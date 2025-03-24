@@ -96,6 +96,8 @@ export function initTrainingsModule() {
                 console.log('Основной интерфейс:', mainInterface);
                 if (mainInterface) {
                     mainInterface.style.display = 'block';
+                    mainInterface.style.width = '100%';
+                    mainInterface.style.maxWidth = '100%';
                     console.log('Основной интерфейс показан');
                 } else {
                     console.error('Не найден основной интерфейс с ID "main-interface"');
@@ -737,9 +739,18 @@ export function initTrainingsModule() {
         console.log('Интерфейс деталей тренировки:', trainingDetailsInterface);
         if (trainingDetailsInterface) {
             trainingDetailsInterface.style.display = 'block';
+            trainingDetailsInterface.style.width = '100%';
+            trainingDetailsInterface.style.maxWidth = '100%';
             console.log('Интерфейс деталей тренировки показан');
         } else {
             console.error('Не найден интерфейс деталей тренировки с ID "training-details-interface"');
+        }
+
+        // Убедимся, что контейнер деталей тренировки имеет правильную ширину
+        const trainingDetailsContainer = document.getElementById('training-details-container');
+        if (trainingDetailsContainer) {
+            trainingDetailsContainer.style.width = '100%';
+            trainingDetailsContainer.style.maxWidth = '100%';
         }
 
         // Инициализируем иконки Feather
