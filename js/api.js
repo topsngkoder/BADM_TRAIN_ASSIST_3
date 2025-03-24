@@ -225,21 +225,39 @@ export const trainingsApi = {
     // Удаление тренировки
     async deleteTraining(trainingId) {
         try {
+            console.log(`Удаление тренировки с ID: ${trainingId}`);
+
+            // Преобразуем ID в число, если он передан как строка
+            const numericId = parseInt(trainingId);
+            if (isNaN(numericId)) {
+                throw new Error(`Некорректный ID тренировки: ${trainingId}`);
+            }
+
             // Сначала удаляем связи с игроками
+            console.log(`Удаление связей с игроками для тренировки ${numericId}`);
             const { error: playersError } = await supabase
                 .from('training_players')
                 .delete()
-                .eq('training_id', trainingId);
+                .eq('training_id', numericId);
 
-            if (playersError) throw playersError;
+            if (playersError) {
+                console.error('Ошибка при удалении связей с игроками:', playersError);
+                throw playersError;
+            }
 
             // Затем удаляем саму тренировку
+            console.log(`Удаление тренировки ${numericId}`);
             const { error } = await supabase
                 .from('trainings')
                 .delete()
-                .eq('id', trainingId);
+                .eq('id', numericId);
 
-            if (error) throw error;
+            if (error) {
+                console.error('Ошибка при удалении тренировки:', error);
+                throw error;
+            }
+
+            console.log(`Тренировка ${numericId} успешно удалена`);
             return true;
         } catch (error) {
             console.error('Error deleting training:', error);

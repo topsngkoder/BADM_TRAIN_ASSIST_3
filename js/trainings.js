@@ -291,6 +291,11 @@ export function initTrainingsModule() {
                 <div class="training-header">
                     <div class="training-venue">${training.venue}</div>
                     <div class="training-datetime">${formattedDate}, ${training.time || 'Время не указано'}</div>
+                    <div class="training-actions">
+                        <button class="delete-btn" data-training-id="${training.id}" aria-label="Удалить тренировку">
+                            <i data-feather="trash-2"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="training-details">
                     <div class="training-courts">${courtCount} ${getCourtWord(courtCount)}</div>
@@ -302,11 +307,25 @@ export function initTrainingsModule() {
             `;
 
             // Добавляем обработчик для нажатия на карточку
-            card.addEventListener('click', () => {
+            card.addEventListener('click', (e) => {
+                // Проверяем, не была ли нажата кнопка удаления
+                if (e.target.closest('.delete-btn')) {
+                    return; // Не обрабатываем клик по карточке, если нажата кнопка удаления
+                }
+
                 // В будущем здесь будет открытие детальной информации о тренировке
                 card.classList.add('selected');
                 setTimeout(() => card.classList.remove('selected'), 200);
             });
+
+            // Добавляем обработчик для кнопки удаления
+            const deleteBtn = card.querySelector('.delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Предотвращаем всплытие события клика
+                    handleDeleteTraining(training.id, card);
+                });
+            }
         } catch (error) {
             console.error('Ошибка при создании карточки тренировки:', error);
             card.innerHTML = `
@@ -320,6 +339,43 @@ export function initTrainingsModule() {
         }
 
         return card;
+    }
+
+    // Функция для обработки удаления тренировки
+    async function handleDeleteTraining(trainingId, cardElement) {
+        // Запрашиваем подтверждение удаления
+        if (!confirm('Вы уверены, что хотите удалить эту тренировку?')) {
+            return;
+        }
+
+        try {
+            // Добавляем класс для анимации удаления
+            cardElement.classList.add('removing');
+
+            // Удаляем тренировку через API
+            await trainingsApi.deleteTraining(trainingId);
+
+            // Ждем завершения анимации и удаляем элемент из DOM
+            setTimeout(() => {
+                cardElement.remove();
+
+                // Проверяем, остались ли еще тренировки
+                if (trainingsContainer.querySelectorAll('.training-card').length === 0) {
+                    trainingsContainer.innerHTML = '<p>У вас пока нет тренировок.</p>';
+                }
+
+                // Показываем сообщение об успешном удалении
+                showMessage('Тренировка успешно удалена', 'success');
+            }, 300); // Время должно соответствовать длительности анимации в CSS
+        } catch (error) {
+            console.error('Ошибка при удалении тренировки:', error);
+
+            // Убираем класс анимации
+            cardElement.classList.remove('removing');
+
+            // Показываем сообщение об ошибке
+            showMessage('Не удалось удалить тренировку', 'error');
+        }
     }
 
     // Функция для склонения слова "корт"
