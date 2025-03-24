@@ -570,30 +570,8 @@ export function initTrainingsModule() {
             playersQueueHTML = '<p class="no-players-message">Нет игроков в очереди</p>';
         }
 
-        // Добавляем информацию о тренировке и очередь игроков
+        // Добавляем только очередь игроков
         content.innerHTML = `
-            <div class="training-info-section">
-                <h3>Информация о тренировке</h3>
-                <div class="training-info-grid">
-                    <div class="training-info-item">
-                        <span class="info-label">Место:</span>
-                        <span class="info-value">${training.venue}</span>
-                    </div>
-                    <div class="training-info-item">
-                        <span class="info-label">Дата:</span>
-                        <span class="info-value">${formattedDate}</span>
-                    </div>
-                    <div class="training-info-item">
-                        <span class="info-label">Время:</span>
-                        <span class="info-value">${training.time || 'Не указано'}</span>
-                    </div>
-                    <div class="training-info-item">
-                        <span class="info-label">Количество кортов:</span>
-                        <span class="info-value">${training.court_count} ${getCourtWord(training.court_count)}</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="players-queue-section">
                 <div class="section-header">
                     <h3>Очередь игроков</h3>
