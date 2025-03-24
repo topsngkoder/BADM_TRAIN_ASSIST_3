@@ -58,8 +58,8 @@ npx serve
    - Создать таблицы через SQL Editor в Supabase:
 
    ```sql
-   -- Создание таблицы игроков
-   CREATE TABLE players (
+   -- Создание таблицы игроков (если она еще не существует)
+   CREATE TABLE IF NOT EXISTS players (
      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
      first_name TEXT NOT NULL,
      last_name TEXT NOT NULL,
@@ -68,8 +68,8 @@ npx serve
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
    );
 
-   -- Создание таблицы тренировок
-   CREATE TABLE trainings (
+   -- Создание таблицы тренировок (если она еще не существует)
+   CREATE TABLE IF NOT EXISTS trainings (
      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
      venue TEXT NOT NULL,
      date DATE NOT NULL,
@@ -78,8 +78,8 @@ npx serve
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
    );
 
-   -- Создание связующей таблицы между тренировками и игроками
-   CREATE TABLE training_players (
+   -- Создание связующей таблицы между тренировками и игроками (если она еще не существует)
+   CREATE TABLE IF NOT EXISTS training_players (
      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
      training_id UUID REFERENCES trainings(id) ON DELETE CASCADE,
      player_id UUID REFERENCES players(id) ON DELETE CASCADE,
@@ -87,12 +87,34 @@ npx serve
      UNIQUE(training_id, player_id)
    );
 
-   -- Создание индексов для оптимизации запросов
-   CREATE INDEX idx_players_rating ON players(rating DESC);
-   CREATE INDEX idx_players_last_name ON players(last_name);
-   CREATE INDEX idx_trainings_date ON trainings(date DESC);
-   CREATE INDEX idx_training_players_training_id ON training_players(training_id);
-   CREATE INDEX idx_training_players_player_id ON training_players(player_id);
+   -- Создание индексов для оптимизации запросов (если они еще не существуют)
+   DO $$
+   BEGIN
+     -- Проверяем, существует ли индекс idx_players_rating
+     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_players_rating') THEN
+       CREATE INDEX idx_players_rating ON players(rating DESC);
+     END IF;
+
+     -- Проверяем, существует ли индекс idx_players_last_name
+     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_players_last_name') THEN
+       CREATE INDEX idx_players_last_name ON players(last_name);
+     END IF;
+
+     -- Проверяем, существует ли индекс idx_trainings_date
+     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_trainings_date') THEN
+       CREATE INDEX idx_trainings_date ON trainings(date DESC);
+     END IF;
+
+     -- Проверяем, существует ли индекс idx_training_players_training_id
+     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_training_players_training_id') THEN
+       CREATE INDEX idx_training_players_training_id ON training_players(training_id);
+     END IF;
+
+     -- Проверяем, существует ли индекс idx_training_players_player_id
+     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_training_players_player_id') THEN
+       CREATE INDEX idx_training_players_player_id ON training_players(player_id);
+     END IF;
+   END $$;
    ```
 
    - Создать хранилище (bucket) с именем `players` в разделе Storage
