@@ -59,6 +59,19 @@
                     <p id="loading-message">Загрузка игроков...</p>
                 </div>
             </section>
+
+            <!-- Страница просмотра тренировки -->
+            <section id="training-details-section" class="page">
+                <div class="section-header">
+                    <button id="back-to-trainings-btn" class="back-btn" aria-label="Вернуться к списку тренировок">
+                        <i data-feather="arrow-left"></i>
+                    </button>
+                    <h2 id="training-title">Детали тренировки</h2>
+                </div>
+                <div id="training-details-container" class="training-details-container">
+                    <!-- Здесь будет содержимое тренировки -->
+                </div>
+            </section>
         </div>
     </main>
 
@@ -182,22 +195,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно для просмотра тренировки -->
-    <div id="view-training-modal" class="modal fullscreen-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="training-title">Детали тренировки</h2>
-                <button class="close-modal-btn" aria-label="Закрыть">
-                    <i data-feather="x"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="training-details-container">
-                    <!-- Здесь будет содержимое тренировки -->
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <script type="module" src="js/main.js"></script>
 </body>

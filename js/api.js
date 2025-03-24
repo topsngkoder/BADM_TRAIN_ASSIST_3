@@ -9,6 +9,78 @@ const supabase = window.supabase.createClient(
 
 // API для работы с тренировками
 export const trainingsApi = {
+    // Получение тренировки по ID
+    async getTrainingById(trainingId) {
+        try {
+            console.log(`Получение тренировки с ID: ${trainingId}`);
+
+            // Преобразуем ID в число, если он передан как строка
+            const numericId = parseInt(trainingId);
+            if (isNaN(numericId)) {
+                throw new Error(`Некорректный ID тренировки: ${trainingId}`);
+            }
+
+            // Получаем тренировку по ID
+            const { data, error } = await supabase
+                .from('trainings')
+                .select('*')
+                .eq('id', numericId)
+                .single();
+
+            if (error) {
+                console.error(`Ошибка при получении тренировки с ID ${numericId}:`, error);
+                throw error;
+            }
+
+            if (!data) {
+                console.warn(`Тренировка с ID ${numericId} не найдена`);
+                return null;
+            }
+
+            console.log(`Получена тренировка:`, data);
+
+            // Получаем связанных игроков
+            const { data: trainingPlayers, error: tpError } = await supabase
+                .from('training_players')
+                .select('player_id')
+                .eq('training_id', numericId);
+
+            if (tpError) {
+                console.error(`Ошибка при получении игроков для тренировки ${numericId}:`, tpError);
+                return data; // Возвращаем тренировку без игроков
+            }
+
+            // Если нет связей, возвращаем тренировку без игроков
+            if (!trainingPlayers || trainingPlayers.length === 0) {
+                return data;
+            }
+
+            // Получаем данные игроков
+            const playerIds = trainingPlayers.map(tp => tp.player_id);
+            const { data: players, error: playersError } = await supabase
+                .from('players')
+                .select('*')
+                .in('id', playerIds);
+
+            if (playersError) {
+                console.error(`Ошибка при получении данных игроков для тренировки ${numericId}:`, playersError);
+                return data; // Возвращаем тренировку без игроков
+            }
+
+            // Формируем структуру данных с игроками
+            return {
+                ...data,
+                training_players: players.map(player => ({
+                    player_id: player.id,
+                    training_id: numericId,
+                    players: player
+                }))
+            };
+        } catch (error) {
+            console.error('Error getting training by ID:', error);
+            throw error;
+        }
+    },
     // Получение списка тренировок
     async getTrainings() {
         try {

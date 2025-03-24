@@ -480,35 +480,56 @@ input:focus {
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* Полноэкранное модальное окно для тренировки */
-.fullscreen-modal .modal-content {
-    max-width: 1200px;
-    width: 95%;
-    height: 90vh;
+/* Стили для страницы просмотра тренировки */
+#training-details-section .section-header {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
 }
 
-.fullscreen-modal .modal-body {
-    flex: 1;
-    overflow-y: auto;
+.back-btn {
+    background: none;
+    border: none;
+    color: #3498db;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.back-btn svg {
+    width: 24px;
+    height: 24px;
 }
 
 /* Стили для заголовка тренировки */
 #training-title {
-    font-size: 24px;
+    font-size: 20px;
     margin: 0;
     color: #2c3e50;
+    flex: 1;
 }
 
 /* Стили для контейнера деталей тренировки */
-#training-details-container {
-    padding: 0;
+.training-details-container {
+    padding: 20px;
+    overflow-y: auto;
+    height: calc(100vh - 120px); /* Высота экрана минус высота заголовка и отступы */
 }
 
 /* Стили для содержимого деталей тренировки */
 .training-details-content {
-    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 /* Секция информации о тренировке */

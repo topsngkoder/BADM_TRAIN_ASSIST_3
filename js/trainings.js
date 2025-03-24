@@ -17,6 +17,25 @@ export function initTrainingsModule() {
     // Загрузка тренировок
     fetchTrainings();
 
+    // Проверяем, есть ли сохраненный ID тренировки (если пользователь обновил страницу)
+    const savedTrainingId = sessionStorage.getItem('currentTrainingId');
+    if (savedTrainingId) {
+        // Загружаем данные тренировки и открываем страницу деталей
+        trainingsApi.getTrainingById(parseInt(savedTrainingId))
+            .then(training => {
+                if (training) {
+                    openTrainingDetails(training);
+                } else {
+                    // Если тренировка не найдена, очищаем ID
+                    sessionStorage.removeItem('currentTrainingId');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке тренировки:', error);
+                sessionStorage.removeItem('currentTrainingId');
+            });
+    }
+
     // Функция для инициализации обработчиков тренировок
     function initTrainingHandlers() {
         // Обработчик для кнопки "Добавить тренировку"
@@ -26,6 +45,22 @@ export function initTrainingsModule() {
 
         // Обработчик для формы добавления тренировки
         addTrainingForm.addEventListener('submit', handleAddTraining);
+
+        // Инициализируем кнопку "Назад" на странице деталей тренировки
+        const backBtn = document.getElementById('back-to-trainings-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                // Показываем вкладки снова
+                document.querySelector('.tabs-container').style.display = '';
+
+                // Возвращаемся на страницу тренировок
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                document.getElementById('trainings-section').classList.add('active');
+
+                // Очищаем ID текущей тренировки
+                sessionStorage.removeItem('currentTrainingId');
+            });
+        }
 
         // Установка текущей даты в поле даты
         const today = new Date();
@@ -381,12 +416,14 @@ export function initTrainingsModule() {
         }
     }
 
-    // Функция для открытия модального окна с деталями тренировки
+    // Функция для открытия страницы с деталями тренировки
     function openTrainingDetails(training) {
         console.log('Открытие деталей тренировки:', training);
 
-        // Получаем элементы модального окна
-        const modal = document.getElementById('view-training-modal');
+        // Сохраняем ID тренировки в sessionStorage для возможности обновления данных
+        sessionStorage.setItem('currentTrainingId', training.id);
+
+        // Получаем элементы страницы
         const titleElement = document.getElementById('training-title');
         const detailsContainer = document.getElementById('training-details-container');
 
@@ -405,13 +442,13 @@ export function initTrainingsModule() {
             }
         }
 
-        // Устанавливаем заголовок модального окна
+        // Устанавливаем заголовок страницы
         titleElement.textContent = `${training.venue} - ${formattedDate}, ${training.time || 'Время не указано'}`;
 
         // Очищаем контейнер деталей
         detailsContainer.innerHTML = '';
 
-        // Создаем содержимое модального окна
+        // Создаем содержимое страницы
         const content = document.createElement('div');
         content.className = 'training-details-content';
 
@@ -443,8 +480,12 @@ export function initTrainingsModule() {
         // Добавляем содержимое в контейнер
         detailsContainer.appendChild(content);
 
-        // Открываем модальное окно
-        openModal(modal);
+        // Скрываем все страницы и показываем страницу деталей тренировки
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.getElementById('training-details-section').classList.add('active');
+
+        // Скрываем вкладки, так как мы находимся на странице деталей
+        document.querySelector('.tabs-container').style.display = 'none';
 
         // Инициализируем иконки Feather
         if (window.feather) {
