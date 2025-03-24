@@ -4,28 +4,55 @@ import { showMessage, openModal, closeModal } from './ui.js';
 
 // Инициализация модуля тренировок
 export function initTrainingsModule() {
+    console.log('Инициализация модуля тренировок');
+
     // DOM элементы
     const addTrainingBtn = document.getElementById('add-training-btn');
+    console.log('Кнопка добавления тренировки:', addTrainingBtn);
+
     const addTrainingModal = document.getElementById('add-training-modal');
+    console.log('Модальное окно добавления тренировки:', addTrainingModal);
+
     const addTrainingForm = document.getElementById('add-training-form');
+    console.log('Форма добавления тренировки:', addTrainingForm);
+
     const trainingsContainer = document.getElementById('trainings-container');
+    console.log('Контейнер тренировок:', trainingsContainer);
+
     const playersSelection = document.getElementById('players-selection');
+    console.log('Контейнер выбора игроков:', playersSelection);
+
+    // Проверяем наличие страницы деталей тренировки
+    const trainingDetailsSection = document.getElementById('training-details-section');
+    console.log('Страница деталей тренировки:', trainingDetailsSection);
+
+    // Проверяем наличие кнопки "Назад"
+    const backBtn = document.getElementById('back-to-trainings-btn');
+    console.log('Кнопка "Назад":', backBtn);
 
     // Инициализация обработчиков
+    console.log('Инициализация обработчиков');
     initTrainingHandlers();
 
     // Загрузка тренировок
+    console.log('Загрузка тренировок');
     fetchTrainings();
 
     // Проверяем, есть ли сохраненный ID тренировки (если пользователь обновил страницу)
     const savedTrainingId = sessionStorage.getItem('currentTrainingId');
+    console.log('Сохраненный ID тренировки:', savedTrainingId);
+
     if (savedTrainingId) {
+        console.log('Загрузка тренировки по ID:', savedTrainingId);
         // Загружаем данные тренировки и открываем страницу деталей
         trainingsApi.getTrainingById(parseInt(savedTrainingId))
             .then(training => {
+                console.log('Получена тренировка по ID:', training);
                 if (training) {
+                    console.log('Открытие страницы деталей тренировки');
                     openTrainingDetails(training);
                 } else {
+                    console.log('Тренировка не найдена, очищаем ID');
                     // Если тренировка не найдена, очищаем ID
                     sessionStorage.removeItem('currentTrainingId');
                 }
@@ -48,18 +75,42 @@ export function initTrainingsModule() {
 
         // Инициализируем кнопку "Назад" на странице деталей тренировки
         const backBtn = document.getElementById('back-to-trainings-btn');
+        console.log('Кнопка "Назад":', backBtn);
         if (backBtn) {
             backBtn.addEventListener('click', () => {
+                console.log('Нажата кнопка "Назад"');
+
                 // Показываем вкладки снова
-                document.querySelector('.tabs-container').style.display = '';
+                const tabsContainer = document.querySelector('.tabs-container');
+                console.log('Показываем вкладки снова:', tabsContainer);
+                if (tabsContainer) {
+                    tabsContainer.style.display = '';
+                }
 
                 // Возвращаемся на страницу тренировок
-                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-                document.getElementById('trainings-section').classList.add('active');
+                console.log('Возвращаемся на страницу тренировок');
+                const pages = document.querySelectorAll('.page');
+                console.log('Найдено страниц:', pages.length);
+                pages.forEach(page => {
+                    console.log('Скрываем страницу:', page.id);
+                    page.classList.remove('active');
+                });
+
+                const trainingsSection = document.getElementById('trainings-section');
+                console.log('Страница тренировок:', trainingsSection);
+                if (trainingsSection) {
+                    trainingsSection.classList.add('active');
+                    console.log('Страница тренировок активирована');
+                } else {
+                    console.error('Не найдена страница тренировок с ID "trainings-section"');
+                }
 
                 // Очищаем ID текущей тренировки
                 sessionStorage.removeItem('currentTrainingId');
+                console.log('ID текущей тренировки очищен');
             });
+        } else {
+            console.error('Не найдена кнопка "Назад" с ID "back-to-trainings-btn"');
         }
 
         // Установка текущей даты в поле даты
@@ -234,28 +285,38 @@ export function initTrainingsModule() {
 
     // Функция для загрузки тренировок
     async function fetchTrainings() {
+        console.log('Загрузка тренировок');
         try {
             // Получаем тренировки
             const trainings = await trainingsApi.getTrainings();
+            console.log('Получены тренировки:', trainings);
 
             // Очистка контейнера
+            console.log('Очистка контейнера тренировок');
             trainingsContainer.innerHTML = '';
 
             // Если тренировок нет, показываем сообщение
             if (trainings.length === 0) {
+                console.log('Тренировок нет, показываем сообщение');
                 trainingsContainer.innerHTML = '<p>У вас пока нет тренировок.</p>';
                 return;
             }
 
             // Отображение каждой тренировки
+            console.log('Отображение тренировок');
             trainings.forEach(training => {
+                console.log('Создание карточки для тренировки:', training.id);
                 const trainingCard = createTrainingCard(training);
                 trainingsContainer.appendChild(trainingCard);
             });
 
             // Инициализируем иконки Feather после добавления всех карточек в DOM
+            console.log('Инициализация иконок Feather');
             if (window.feather) {
+                console.log('Feather доступен, инициализируем иконки');
                 feather.replace();
+            } else {
+                console.error('Feather не доступен');
             }
         } catch (error) {
             console.error('Ошибка при загрузке тренировок:', error);
@@ -343,8 +404,11 @@ export function initTrainingsModule() {
 
             // Добавляем обработчик для нажатия на карточку
             card.addEventListener('click', (e) => {
+                console.log('Клик по карточке тренировки:', training.id);
+
                 // Проверяем, не была ли нажата кнопка удаления
                 if (e.target.closest('.delete-btn')) {
+                    console.log('Клик по кнопке удаления, игнорируем');
                     return; // Не обрабатываем клик по карточке, если нажата кнопка удаления
                 }
 
@@ -352,7 +416,8 @@ export function initTrainingsModule() {
                 card.classList.add('selected');
                 setTimeout(() => card.classList.remove('selected'), 200);
 
-                // Открываем модальное окно с деталями тренировки
+                console.log('Открываем страницу с деталями тренировки');
+                // Открываем страницу с деталями тренировки
                 openTrainingDetails(training);
             });
 
@@ -481,15 +546,40 @@ export function initTrainingsModule() {
         detailsContainer.appendChild(content);
 
         // Скрываем все страницы и показываем страницу деталей тренировки
-        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-        document.getElementById('training-details-section').classList.add('active');
+        console.log('Скрываем все страницы и показываем страницу деталей тренировки');
+        const pages = document.querySelectorAll('.page');
+        console.log('Найдено страниц:', pages.length);
+        pages.forEach(page => {
+            console.log('Страница:', page.id);
+            page.classList.remove('active');
+        });
+
+        const detailsSection = document.getElementById('training-details-section');
+        console.log('Страница деталей тренировки:', detailsSection);
+        if (detailsSection) {
+            detailsSection.classList.add('active');
+            console.log('Страница деталей тренировки активирована');
+        } else {
+            console.error('Не найдена страница деталей тренировки с ID "training-details-section"');
+        }
 
         // Скрываем вкладки, так как мы находимся на странице деталей
-        document.querySelector('.tabs-container').style.display = 'none';
+        const tabsContainer = document.querySelector('.tabs-container');
+        console.log('Контейнер вкладок:', tabsContainer);
+        if (tabsContainer) {
+            tabsContainer.style.display = 'none';
+            console.log('Вкладки скрыты');
+        } else {
+            console.error('Не найден контейнер вкладок с классом "tabs-container"');
+        }
 
         // Инициализируем иконки Feather
+        console.log('Инициализация иконок Feather');
         if (window.feather) {
+            console.log('Feather доступен, инициализируем иконки');
             feather.replace();
+        } else {
+            console.error('Feather не доступен');
         }
     }
 
