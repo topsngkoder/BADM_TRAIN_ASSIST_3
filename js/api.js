@@ -12,13 +12,55 @@ export const trainingsApi = {
     // Получение списка тренировок
     async getTrainings() {
         try {
-            const { data, error } = await supabase
-                .from('trainings')
-                .select('*, training_players(*, players(*))')
-                .order('date', { ascending: false });
+            console.log('Запрос на получение тренировок');
 
-            if (error) throw error;
-            return data;
+            // Сначала проверяем, существует ли таблица trainings
+            try {
+                const { data: checkData, error: checkError } = await supabase
+                    .from('trainings')
+                    .select('id')
+                    .limit(1);
+
+                if (checkError) {
+                    console.error('Ошибка при проверке таблицы trainings:', checkError);
+                    return []; // Возвращаем пустой массив, если таблица не существует
+                }
+            } catch (checkErr) {
+                console.error('Ошибка при проверке таблицы:', checkErr);
+                return []; // Возвращаем пустой массив в случае ошибки
+            }
+
+            // Пробуем получить тренировки с игроками
+            try {
+                const { data, error } = await supabase
+                    .from('trainings')
+                    .select('*, training_players(*, players(*))')
+                    .order('date', { ascending: false });
+
+                if (error) {
+                    console.error('Ошибка при получении тренировок с игроками:', error);
+                    throw error;
+                }
+
+                console.log('Получены тренировки с игроками:', data);
+                return data;
+            } catch (joinError) {
+                console.error('Ошибка при получении тренировок с игроками:', joinError);
+
+                // Если не удалось получить тренировки с игроками, пробуем получить только тренировки
+                const { data: trainingsOnly, error: trainingsError } = await supabase
+                    .from('trainings')
+                    .select('*')
+                    .order('date', { ascending: false });
+
+                if (trainingsError) {
+                    console.error('Ошибка при получении только тренировок:', trainingsError);
+                    throw trainingsError;
+                }
+
+                console.log('Получены только тренировки (без игроков):', trainingsOnly);
+                return trainingsOnly;
+            }
         } catch (error) {
             console.error('Error fetching trainings:', error);
             throw error;
@@ -28,31 +70,77 @@ export const trainingsApi = {
     // Добавление новой тренировки
     async addTraining(trainingData) {
         try {
+            console.log('Добавление тренировки с данными:', trainingData);
+
+            // Проверяем, существуют ли таблицы
+            const { data: tables, error: tablesError } = await supabase
+                .from('trainings')
+                .select('id')
+                .limit(1);
+
+            if (tablesError) {
+                console.error('Ошибка при проверке таблицы trainings:', tablesError);
+                throw new Error('Таблица trainings не существует или недоступна. Пожалуйста, создайте таблицу в Supabase.');
+            }
+
             // Сначала добавляем основные данные тренировки
+            const trainingInsertData = {
+                venue: trainingData.venue,
+                date: trainingData.date,
+                time: trainingData.time,
+                court_count: parseInt(trainingData.courtCount)
+            };
+
+            console.log('Вставка данных тренировки:', trainingInsertData);
+
             const { data: training, error } = await supabase
                 .from('trainings')
-                .insert([{
-                    venue: trainingData.venue,
-                    date: trainingData.date,
-                    time: trainingData.time,
-                    court_count: trainingData.courtCount
-                }])
+                .insert([trainingInsertData])
                 .select();
 
-            if (error) throw error;
+            if (error) {
+                console.error('Ошибка при добавлении тренировки:', error);
+                throw error;
+            }
+
+            console.log('Тренировка успешно добавлена:', training);
 
             // Если есть игроки, добавляем их в связующую таблицу
             if (trainingData.players && trainingData.players.length > 0) {
-                const playerEntries = trainingData.players.map(playerId => ({
-                    training_id: training[0].id,
-                    player_id: playerId
-                }));
+                try {
+                    // Проверяем, существует ли таблица training_players
+                    const { error: tpCheckError } = await supabase
+                        .from('training_players')
+                        .select('id')
+                        .limit(1);
 
-                const { error: playersError } = await supabase
-                    .from('training_players')
-                    .insert(playerEntries);
+                    if (tpCheckError) {
+                        console.error('Ошибка при проверке таблицы training_players:', tpCheckError);
+                        throw new Error('Таблица training_players не существует или недоступна. Пожалуйста, создайте таблицу в Supabase.');
+                    }
 
-                if (playersError) throw playersError;
+                    const playerEntries = trainingData.players.map(playerId => ({
+                        training_id: training[0].id,
+                        player_id: playerId
+                    }));
+
+                    console.log('Добавление игроков к тренировке:', playerEntries);
+
+                    const { error: playersError } = await supabase
+                        .from('training_players')
+                        .insert(playerEntries);
+
+                    if (playersError) {
+                        console.error('Ошибка при добавлении игроков к тренировке:', playersError);
+                        throw playersError;
+                    }
+
+                    console.log('Игроки успешно добавлены к тренировке');
+                } catch (playerError) {
+                    console.error('Ошибка при добавлении игроков:', playerError);
+                    // Продолжаем выполнение, даже если не удалось добавить игроков
+                    // Тренировка уже создана, и мы не хотим терять эти данные
+                }
             }
 
             return training[0];

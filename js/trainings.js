@@ -183,46 +183,87 @@ export function initTrainingsModule() {
         const card = document.createElement('div');
         card.className = 'training-card';
 
-        // Форматируем дату
-        const date = new Date(training.date);
-        const formattedDate = date.toLocaleDateString('ru-RU', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        try {
+            // Проверяем наличие необходимых данных
+            if (!training || !training.venue) {
+                console.error('Некорректные данные тренировки:', training);
+                return card; // Возвращаем пустую карточку
+            }
 
-        // Получаем список игроков
-        const players = training.training_players ? training.training_players.map(tp => tp.players) : [];
+            // Форматируем дату
+            let formattedDate = 'Дата не указана';
+            if (training.date) {
+                try {
+                    const date = new Date(training.date);
+                    formattedDate = date.toLocaleDateString('ru-RU', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
+                } catch (dateError) {
+                    console.error('Ошибка при форматировании даты:', dateError);
+                }
+            }
 
-        // Создаем HTML для аватаров игроков
-        let playersAvatarsHTML = '';
-        if (players.length > 0) {
-            playersAvatarsHTML = players.map(player => {
-                const photoUrl = player.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.first_name + ' ' + player.last_name) + '&background=3498db&color=fff&size=150';
-                return `<img src="${photoUrl}" alt="${player.first_name} ${player.last_name}" class="training-player-avatar" title="${player.first_name} ${player.last_name}">`;
-            }).join('');
+            // Получаем список игроков
+            let players = [];
+            if (training.training_players && Array.isArray(training.training_players)) {
+                players = training.training_players
+                    .filter(tp => tp && tp.players) // Фильтруем только записи с игроками
+                    .map(tp => tp.players);
+            }
+
+            // Создаем HTML для аватаров игроков
+            let playersAvatarsHTML = '';
+            if (players.length > 0) {
+                playersAvatarsHTML = players.map(player => {
+                    try {
+                        if (!player || !player.first_name) return ''; // Пропускаем некорректные данные
+
+                        const fullName = `${player.first_name} ${player.last_name || ''}`.trim();
+                        const photoUrl = player.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullName) + '&background=3498db&color=fff&size=150';
+                        return `<img src="${photoUrl}" alt="${fullName}" class="training-player-avatar" title="${fullName}">`;
+                    } catch (playerError) {
+                        console.error('Ошибка при обработке данных игрока:', playerError);
+                        return '';
+                    }
+                }).join('');
+            }
+
+            // Безопасно получаем количество кортов
+            const courtCount = parseInt(training.court_count) || 0;
+
+            card.innerHTML = `
+                <div class="training-header">
+                    <div class="training-venue">${training.venue}</div>
+                    <div class="training-datetime">${formattedDate}, ${training.time || 'Время не указано'}</div>
+                </div>
+                <div class="training-details">
+                    <div class="training-courts">${courtCount} ${getCourtWord(courtCount)}</div>
+                    <div class="training-players-count">Игроков: ${players.length}</div>
+                </div>
+                <div class="training-players-list">
+                    ${playersAvatarsHTML}
+                </div>
+            `;
+
+            // Добавляем обработчик для нажатия на карточку
+            card.addEventListener('click', () => {
+                // В будущем здесь будет открытие детальной информации о тренировке
+                card.classList.add('selected');
+                setTimeout(() => card.classList.remove('selected'), 200);
+            });
+        } catch (error) {
+            console.error('Ошибка при создании карточки тренировки:', error);
+            card.innerHTML = `
+                <div class="training-header">
+                    <div class="training-venue">${training?.venue || 'Ошибка данных'}</div>
+                </div>
+                <div class="training-details">
+                    <div class="training-error">Ошибка при загрузке данных тренировки</div>
+                </div>
+            `;
         }
-
-        card.innerHTML = `
-            <div class="training-header">
-                <div class="training-venue">${training.venue}</div>
-                <div class="training-datetime">${formattedDate}, ${training.time}</div>
-            </div>
-            <div class="training-details">
-                <div class="training-courts">${training.court_count} ${getCourtWord(training.court_count)}</div>
-                <div class="training-players-count">Игроков: ${players.length}</div>
-            </div>
-            <div class="training-players-list">
-                ${playersAvatarsHTML}
-            </div>
-        `;
-
-        // Добавляем обработчик для нажатия на карточку
-        card.addEventListener('click', () => {
-            // В будущем здесь будет открытие детальной информации о тренировке
-            card.classList.add('selected');
-            setTimeout(() => card.classList.remove('selected'), 200);
-        });
 
         return card;
     }
