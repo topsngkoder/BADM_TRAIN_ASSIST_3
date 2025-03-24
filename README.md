@@ -8,6 +8,8 @@
 - Сортировка игроков по фамилии или рейтингу
 - Загрузка и отображение фотографий игроков
 - Визуальная индикация рейтинга игроков с помощью цветовой кодировки
+- Управление тренировками (добавление, просмотр)
+- Выбор игроков для участия в тренировке
 - Адаптивный дизайн для мобильных и десктопных устройств
 - Поддержка свайпов для навигации между вкладками на мобильных устройствах
 
@@ -53,12 +55,23 @@ npx serve
 
 3. Для работы с Supabase необходимо:
    - Создать проект в [Supabase](https://supabase.io/)
-   - Создать таблицу `players` со следующими полями:
-     - `id` (uuid, primary key)
-     - `first_name` (text)
-     - `last_name` (text)
-     - `rating` (integer)
-     - `photo` (text, nullable)
+   - Создать таблицы:
+     - `players` со следующими полями:
+       - `id` (uuid, primary key)
+       - `first_name` (text)
+       - `last_name` (text)
+       - `rating` (integer)
+       - `photo` (text, nullable)
+     - `trainings` со следующими полями:
+       - `id` (uuid, primary key)
+       - `venue` (text)
+       - `date` (date)
+       - `time` (time)
+       - `court_count` (integer)
+     - `training_players` (связующая таблица) со следующими полями:
+       - `id` (uuid, primary key)
+       - `training_id` (uuid, foreign key -> trainings.id)
+       - `player_id` (uuid, foreign key -> players.id)
    - Создать хранилище (bucket) с именем `players`
    - Обновить URL и ключ API в файле `js/config.js`
 

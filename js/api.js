@@ -3,9 +3,107 @@ import { config } from './config.js';
 
 // Инициализация клиента Supabase
 const supabase = window.supabase.createClient(
-    config.supabase.url, 
+    config.supabase.url,
     config.supabase.key
 );
+
+// API для работы с тренировками
+export const trainingsApi = {
+    // Получение списка тренировок
+    async getTrainings() {
+        try {
+            const { data, error } = await supabase
+                .from('trainings')
+                .select('*, training_players(*, players(*))')
+                .order('date', { ascending: false });
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Error fetching trainings:', error);
+            throw error;
+        }
+    },
+
+    // Добавление новой тренировки
+    async addTraining(trainingData) {
+        try {
+            // Сначала добавляем основные данные тренировки
+            const { data: training, error } = await supabase
+                .from('trainings')
+                .insert([{
+                    venue: trainingData.venue,
+                    date: trainingData.date,
+                    time: trainingData.time,
+                    court_count: trainingData.courtCount
+                }])
+                .select();
+
+            if (error) throw error;
+
+            // Если есть игроки, добавляем их в связующую таблицу
+            if (trainingData.players && trainingData.players.length > 0) {
+                const playerEntries = trainingData.players.map(playerId => ({
+                    training_id: training[0].id,
+                    player_id: playerId
+                }));
+
+                const { error: playersError } = await supabase
+                    .from('training_players')
+                    .insert(playerEntries);
+
+                if (playersError) throw playersError;
+            }
+
+            return training[0];
+        } catch (error) {
+            console.error('Error adding training:', error);
+            throw error;
+        }
+    },
+
+    // Получение данных одной тренировки
+    async getTraining(trainingId) {
+        try {
+            const { data, error } = await supabase
+                .from('trainings')
+                .select('*, training_players(*, players(*))')
+                .eq('id', trainingId)
+                .single();
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Error fetching training:', error);
+            throw error;
+        }
+    },
+
+    // Удаление тренировки
+    async deleteTraining(trainingId) {
+        try {
+            // Сначала удаляем связи с игроками
+            const { error: playersError } = await supabase
+                .from('training_players')
+                .delete()
+                .eq('training_id', trainingId);
+
+            if (playersError) throw playersError;
+
+            // Затем удаляем саму тренировку
+            const { error } = await supabase
+                .from('trainings')
+                .delete()
+                .eq('id', trainingId);
+
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            console.error('Error deleting training:', error);
+            throw error;
+        }
+    }
+};
 
 // API для работы с игроками
 export const playersApi = {

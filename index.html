@@ -35,8 +35,8 @@
                         <i data-feather="plus"></i>
                     </button>
                 </div>
-                <div id="trainings-container">
-                    <p>У вас пока нет тренировок.</p>
+                <div id="trainings-container" class="trainings-list">
+                    <p id="trainings-loading">Загрузка тренировок...</p>
                 </div>
             </section>
 
@@ -136,6 +136,47 @@
                     </div>
 
                     <button type="submit" class="submit-btn">Сохранить изменения</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления тренировки -->
+    <div id="add-training-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Добавить новую тренировку</h2>
+                <button class="close-modal-btn" aria-label="Закрыть">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="add-training-form">
+                    <div class="form-group">
+                        <label for="trainingVenue">Место (название зала):</label>
+                        <input type="text" id="trainingVenue" name="trainingVenue" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trainingDate">Дата:</label>
+                        <input type="date" id="trainingDate" name="trainingDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trainingTime">Время:</label>
+                        <input type="time" id="trainingTime" name="trainingTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courtCount">Количество кортов:</label>
+                        <input type="number" id="courtCount" name="courtCount" pattern="[0-9]*" inputmode="numeric" required min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Игроки на тренировке:</label>
+                        <div id="players-selection" class="players-selection">
+                            <p id="players-loading">Загрузка списка игроков...</p>
+                            <!-- Здесь будут отображаться игроки для выбора -->
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Добавить тренировку</button>
                 </form>
             </div>
         </div>
