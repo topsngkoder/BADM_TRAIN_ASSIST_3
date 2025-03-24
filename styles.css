@@ -538,6 +538,123 @@ input:focus {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Стили для секции очереди игроков */
+.players-queue-section {
+    margin-top: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.players-queue-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 18px;
+    border-bottom: 1px solid #e1e4e8;
+    padding-bottom: 10px;
+}
+
+.players-queue-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Стили для карточки игрока в очереди */
+.queue-player-card {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.queue-player-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.queue-player-photo-container {
+    margin-right: 15px;
+}
+
+.queue-player-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #3498db;
+}
+
+/* Применяем те же цветовые обводки к фото игрока в очереди */
+.queue-player-photo.rating-blue {
+    border-color: #3498db; /* Голубой - до 300 */
+}
+
+.queue-player-photo.rating-green {
+    border-color: #2ecc71; /* Зеленый - от 300 до 450 */
+}
+
+.queue-player-photo.rating-yellow {
+    border-color: #f1c40f; /* Желтый - от 450 до 600 */
+}
+
+.queue-player-photo.rating-orange {
+    border-color: #e67e22; /* Оранжевый - от 600 до 800 */
+}
+
+.queue-player-photo.rating-red {
+    border-color: #e74c3c; /* Красный - выше 800 */
+}
+
+.queue-player-info {
+    flex: 1;
+}
+
+.queue-player-name {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.queue-player-rating {
+    font-size: 14px;
+    color: #7f8c8d;
+}
+
+.queue-player-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.queue-action-btn {
+    background: none;
+    border: none;
+    color: #3498db;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.queue-action-btn:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.no-players-message {
+    text-align: center;
+    color: #7f8c8d;
+    padding: 20px;
+    font-style: italic;
+}
+
 /* Стили для содержимого деталей тренировки */
 .training-details-content {
     max-width: 1200px;

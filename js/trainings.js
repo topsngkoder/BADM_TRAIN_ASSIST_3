@@ -513,7 +513,64 @@ export function initTrainingsModule() {
         const content = document.createElement('div');
         content.className = 'training-details-content';
 
-        // Добавляем информацию о тренировке
+        // Получаем список игроков для тренировки
+        let players = [];
+        if (training.training_players && Array.isArray(training.training_players)) {
+            players = training.training_players.map(tp => tp.players || tp);
+        }
+
+        // Создаем HTML для игроков в очереди
+        let playersQueueHTML = '';
+        if (players.length > 0) {
+            playersQueueHTML = players.map(player => {
+                // Проверяем наличие данных игрока
+                if (!player || !player.first_name) return '';
+
+                // Формируем полное имя
+                const fullName = `${player.last_name || ''} ${player.first_name || ''}`.trim();
+
+                // Получаем URL фото или используем заглушку
+                const photoUrl = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3498db&color=fff&size=150`;
+
+                // Определяем класс рейтинга
+                let ratingClass = 'rating-blue';
+                const rating = parseInt(player.rating) || 0;
+                if (rating >= 800) {
+                    ratingClass = 'rating-red';
+                } else if (rating >= 600) {
+                    ratingClass = 'rating-orange';
+                } else if (rating >= 450) {
+                    ratingClass = 'rating-yellow';
+                } else if (rating >= 300) {
+                    ratingClass = 'rating-green';
+                }
+
+                // Возвращаем HTML для карточки игрока в очереди
+                return `
+                    <div class="queue-player-card" data-player-id="${player.id}">
+                        <div class="queue-player-photo-container">
+                            <img src="${photoUrl}" alt="${fullName}" class="queue-player-photo ${ratingClass}">
+                        </div>
+                        <div class="queue-player-info">
+                            <div class="queue-player-name">${fullName}</div>
+                            <div class="queue-player-rating">${rating}</div>
+                        </div>
+                        <div class="queue-player-actions">
+                            <button class="queue-action-btn add-to-court-btn" data-player-id="${player.id}" aria-label="Добавить на корт">
+                                <i data-feather="plus-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Если игроков нет, показываем сообщение
+        if (!playersQueueHTML) {
+            playersQueueHTML = '<p class="no-players-message">Нет игроков в очереди</p>';
+        }
+
+        // Добавляем информацию о тренировке и очередь игроков
         content.innerHTML = `
             <div class="training-info-section">
                 <h3>Информация о тренировке</h3>
@@ -536,10 +593,35 @@ export function initTrainingsModule() {
                     </div>
                 </div>
             </div>
+
+            <div class="players-queue-section">
+                <div class="section-header">
+                    <h3>Очередь игроков</h3>
+                </div>
+                <div class="players-queue-container">
+                    ${playersQueueHTML}
+                </div>
+            </div>
         `;
 
         // Добавляем содержимое в контейнер
         detailsContainer.appendChild(content);
+
+        // Добавляем обработчики для кнопок в очереди игроков
+        setTimeout(() => {
+            const addToCourtButtons = detailsContainer.querySelectorAll('.add-to-court-btn');
+            console.log('Найдено кнопок добавления на корт:', addToCourtButtons.length);
+
+            addToCourtButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const playerId = button.getAttribute('data-player-id');
+                    console.log('Нажата кнопка добавления игрока на корт:', playerId);
+                    // В будущем здесь будет функционал добавления игрока на корт
+                    showMessage('Функционал добавления игрока на корт будет реализован в следующем обновлении', 'info');
+                });
+            });
+        }, 100); // Небольшая задержка для уверенности, что DOM обновился
 
         // Скрываем основной интерфейс и показываем интерфейс деталей тренировки
         console.log('Скрываем основной интерфейс и показываем интерфейс деталей тренировки');
