@@ -624,6 +624,8 @@ input:focus {
     padding: 10px 15px;
     border-bottom: 1px solid #eee;
     transition: background-color 0.2s;
+    cursor: pointer;
+    position: relative;
 }
 
 .player-checkbox-item:last-child {
@@ -635,9 +637,11 @@ input:focus {
 }
 
 .player-checkbox-item input[type="checkbox"] {
-    width: auto;
+    width: 20px;
+    height: 20px;
     margin-right: 10px;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .player-checkbox-label {
@@ -645,6 +649,24 @@ input:focus {
     align-items: center;
     cursor: pointer;
     flex: 1;
+    margin-left: 10px;
+}
+
+/* Стиль для выделения выбранных игроков */
+.player-checkbox-item input[type="checkbox"]:checked + .player-checkbox-label .player-checkbox-photo {
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.3);
+}
+
+.player-checkbox-item input[type="checkbox"]:checked + .player-checkbox-label .player-checkbox-name {
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+/* Дополнительный стиль для выделения всего элемента */
+.player-checkbox-item.selected {
+    background-color: rgba(46, 204, 113, 0.05);
+    border-left: 3px solid #2ecc71;
 }
 
 .player-checkbox-photo {

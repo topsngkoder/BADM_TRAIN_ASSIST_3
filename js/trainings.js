@@ -59,16 +59,67 @@ export function initTrainingsModule() {
                     // Используем дефолтное изображение, если фото не указано
                     const photoUrl = player.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.first_name + ' ' + player.last_name) + '&background=3498db&color=fff&size=150';
 
-                    playerItem.innerHTML = `
-                        <label class="player-checkbox-label">
-                            <input type="checkbox" name="selectedPlayers" value="${player.id}">
-                            <img src="${photoUrl}" alt="${player.first_name} ${player.last_name}" class="player-checkbox-photo">
-                            <div class="player-checkbox-info">
-                                <div class="player-checkbox-name">${player.first_name} ${player.last_name}</div>
-                                <div class="player-checkbox-rating">Рейтинг: ${player.rating}</div>
-                            </div>
-                        </label>
-                    `;
+                    // Создаем элементы вручную для лучшего контроля
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'selectedPlayers';
+                    checkbox.value = player.id;
+                    checkbox.id = `player-${player.id}`;
+
+                    const label = document.createElement('label');
+                    label.className = 'player-checkbox-label';
+                    label.htmlFor = `player-${player.id}`;
+
+                    const img = document.createElement('img');
+                    img.src = photoUrl;
+                    img.alt = `${player.first_name} ${player.last_name}`;
+                    img.className = 'player-checkbox-photo';
+
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'player-checkbox-info';
+
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'player-checkbox-name';
+                    nameDiv.textContent = `${player.first_name} ${player.last_name}`;
+
+                    const ratingDiv = document.createElement('div');
+                    ratingDiv.className = 'player-checkbox-rating';
+                    ratingDiv.textContent = `Рейтинг: ${player.rating}`;
+
+                    // Собираем структуру
+                    infoDiv.appendChild(nameDiv);
+                    infoDiv.appendChild(ratingDiv);
+
+                    playerItem.appendChild(checkbox);
+                    label.appendChild(img);
+                    label.appendChild(infoDiv);
+                    playerItem.appendChild(label);
+
+                    // Добавляем обработчик клика на весь элемент
+                    playerItem.addEventListener('click', (e) => {
+                        // Если клик был не на самом чекбоксе
+                        if (e.target !== checkbox) {
+                            // Переключаем состояние чекбокса
+                            checkbox.checked = !checkbox.checked;
+
+                            // Создаем и диспатчим событие change для чекбокса
+                            const changeEvent = new Event('change', { bubbles: true });
+                            checkbox.dispatchEvent(changeEvent);
+
+                            // Предотвращаем дальнейшее всплытие события
+                            e.stopPropagation();
+                        }
+                    });
+
+                    // Добавляем обработчик изменения состояния чекбокса
+                    checkbox.addEventListener('change', () => {
+                        // Добавляем визуальное выделение выбранного элемента
+                        if (checkbox.checked) {
+                            playerItem.classList.add('selected');
+                        } else {
+                            playerItem.classList.remove('selected');
+                        }
+                    });
 
                     playersSelection.appendChild(playerItem);
                 });
