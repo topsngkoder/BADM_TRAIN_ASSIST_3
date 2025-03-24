@@ -505,8 +505,8 @@ export function initTrainingsModule() {
             }
         }
 
-        // Устанавливаем заголовок страницы
-        titleElement.textContent = `${training.venue} - ${formattedDate}, ${training.time || 'Время не указано'}`;
+        // Устанавливаем заголовок страницы в более компактном формате
+        titleElement.textContent = `${training.venue} ${formattedDate}`;
 
         // Очищаем контейнер деталей
         detailsContainer.innerHTML = '';
@@ -598,7 +598,7 @@ export function initTrainingsModule() {
                             </div>
                             <div class="court-actions">
                                 <button class="court-action-btn add-from-queue-btn" data-court="${i}" data-half="top" aria-label="Добавить из очереди">
-                                    Добавить из очереди
+                                    <i data-feather="user-plus"></i> Из очереди
                                 </button>
                                 <button class="court-action-btn add-player-btn" data-court="${i}" data-half="top" aria-label="Добавить игрока">
                                     <i data-feather="plus"></i>
@@ -621,7 +621,7 @@ export function initTrainingsModule() {
                             </div>
                             <div class="court-actions">
                                 <button class="court-action-btn add-from-queue-btn" data-court="${i}" data-half="bottom" aria-label="Добавить из очереди">
-                                    Добавить из очереди
+                                    <i data-feather="user-plus"></i> Из очереди
                                 </button>
                                 <button class="court-action-btn add-player-btn" data-court="${i}" data-half="bottom" aria-label="Добавить игрока">
                                     <i data-feather="plus"></i>
