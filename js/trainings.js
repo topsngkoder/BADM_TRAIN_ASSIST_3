@@ -570,14 +570,89 @@ export function initTrainingsModule() {
             playersQueueHTML = '<p class="no-players-message">Нет игроков в очереди</p>';
         }
 
-        // Добавляем только очередь игроков
-        content.innerHTML = `
-            <div class="players-queue-section">
-                <div class="section-header">
-                    <h3>Очередь игроков</h3>
+        // Создаем HTML для кортов
+        let courtsHTML = '';
+        const courtCount = parseInt(training.court_count) || 1;
+
+        for (let i = 1; i <= courtCount; i++) {
+            courtsHTML += `
+                <div class="court-container" data-court-id="${i}">
+                    <div class="court-header">
+                        <h4>Корт ${i}</h4>
+                    </div>
+                    <div class="court-body">
+                        <div class="court-half top-half" data-court="${i}" data-half="top">
+                            <div class="court-players">
+                                <div class="court-player-slot" data-slot="1">
+                                    <div class="empty-player-slot">
+                                        <i data-feather="user"></i>
+                                    </div>
+                                </div>
+                                <div class="court-player-slot" data-slot="2">
+                                    <div class="empty-player-slot">
+                                        <i data-feather="user"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="court-actions">
+                                <button class="court-action-btn add-from-queue-btn" data-court="${i}" data-half="top" aria-label="Добавить из очереди">
+                                    Добавить из очереди
+                                </button>
+                                <button class="court-action-btn add-player-btn" data-court="${i}" data-half="top" aria-label="Добавить игрока">
+                                    <i data-feather="plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="court-divider"></div>
+                        <div class="court-half bottom-half" data-court="${i}" data-half="bottom">
+                            <div class="court-players">
+                                <div class="court-player-slot" data-slot="1">
+                                    <div class="empty-player-slot">
+                                        <i data-feather="user"></i>
+                                    </div>
+                                </div>
+                                <div class="court-player-slot" data-slot="2">
+                                    <div class="empty-player-slot">
+                                        <i data-feather="user"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="court-actions">
+                                <button class="court-action-btn add-from-queue-btn" data-court="${i}" data-half="bottom" aria-label="Добавить из очереди">
+                                    Добавить из очереди
+                                </button>
+                                <button class="court-action-btn add-player-btn" data-court="${i}" data-half="bottom" aria-label="Добавить игрока">
+                                    <i data-feather="plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="players-queue-container">
-                    ${playersQueueHTML}
+            `;
+        }
+
+        // Добавляем очередь игроков и корты в двухколоночный макет
+        content.innerHTML = `
+            <div class="training-layout">
+                <div class="queue-column">
+                    <div class="players-queue-section">
+                        <div class="section-header">
+                            <h3>Очередь игроков</h3>
+                        </div>
+                        <div class="players-queue-container">
+                            ${playersQueueHTML}
+                        </div>
+                    </div>
+                </div>
+                <div class="courts-column">
+                    <div class="courts-section">
+                        <div class="section-header">
+                            <h3>Корты</h3>
+                        </div>
+                        <div class="courts-container">
+                            ${courtsHTML}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -585,10 +660,11 @@ export function initTrainingsModule() {
         // Добавляем содержимое в контейнер
         detailsContainer.appendChild(content);
 
-        // Добавляем обработчики для кнопок в очереди игроков
+        // Добавляем обработчики для кнопок
         setTimeout(() => {
+            // Обработчики для кнопок в очереди игроков
             const addToCourtButtons = detailsContainer.querySelectorAll('.add-to-court-btn');
-            console.log('Найдено кнопок добавления на корт:', addToCourtButtons.length);
+            console.log('Найдено кнопок добавления на корт из очереди:', addToCourtButtons.length);
 
             addToCourtButtons.forEach(button => {
                 button.addEventListener('click', (e) => {
@@ -599,6 +675,50 @@ export function initTrainingsModule() {
                     showMessage('Функционал добавления игрока на корт будет реализован в следующем обновлении', 'info');
                 });
             });
+
+            // Обработчики для кнопок "Добавить из очереди"
+            const addFromQueueButtons = detailsContainer.querySelectorAll('.add-from-queue-btn');
+            console.log('Найдено кнопок добавления из очереди:', addFromQueueButtons.length);
+
+            addFromQueueButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const courtId = button.getAttribute('data-court');
+                    const half = button.getAttribute('data-half');
+                    console.log(`Нажата кнопка добавления из очереди на корт ${courtId}, половина ${half}`);
+
+                    // Проверяем, есть ли игроки в очереди
+                    const queuePlayers = detailsContainer.querySelectorAll('.queue-player-card');
+                    if (queuePlayers.length === 0) {
+                        showMessage('В очереди нет игроков', 'warning');
+                        return;
+                    }
+
+                    // В будущем здесь будет функционал добавления первого игрока из очереди на корт
+                    showMessage('Функционал добавления игрока из очереди будет реализован в следующем обновлении', 'info');
+                });
+            });
+
+            // Обработчики для кнопок "+" (добавить выбранного игрока)
+            const addPlayerButtons = detailsContainer.querySelectorAll('.add-player-btn');
+            console.log('Найдено кнопок добавления выбранного игрока:', addPlayerButtons.length);
+
+            addPlayerButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const courtId = button.getAttribute('data-court');
+                    const half = button.getAttribute('data-half');
+                    console.log(`Нажата кнопка добавления выбранного игрока на корт ${courtId}, половина ${half}`);
+
+                    // В будущем здесь будет функционал выбора и добавления игрока на корт
+                    showMessage('Функционал выбора игрока будет реализован в следующем обновлении', 'info');
+                });
+            });
+
+            // Инициализируем иконки Feather
+            if (window.feather) {
+                feather.replace();
+            }
         }, 100); // Небольшая задержка для уверенности, что DOM обновился
 
         // Скрываем основной интерфейс и показываем интерфейс деталей тренировки
