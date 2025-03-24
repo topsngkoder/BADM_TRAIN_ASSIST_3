@@ -480,6 +480,78 @@ input:focus {
     to { transform: translateY(0); opacity: 1; }
 }
 
+/* Полноэкранное модальное окно для тренировки */
+.fullscreen-modal .modal-content {
+    max-width: 1200px;
+    width: 95%;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.fullscreen-modal .modal-body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Стили для заголовка тренировки */
+#training-title {
+    font-size: 24px;
+    margin: 0;
+    color: #2c3e50;
+}
+
+/* Стили для контейнера деталей тренировки */
+#training-details-container {
+    padding: 0;
+}
+
+/* Стили для содержимого деталей тренировки */
+.training-details-content {
+    padding: 20px;
+}
+
+/* Секция информации о тренировке */
+.training-info-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.training-info-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 18px;
+    border-bottom: 1px solid #e1e4e8;
+    padding-bottom: 10px;
+}
+
+.training-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.training-info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
 .modal-header {
     display: flex;
     justify-content: space-between;

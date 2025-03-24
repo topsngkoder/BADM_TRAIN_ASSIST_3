@@ -313,9 +313,12 @@ export function initTrainingsModule() {
                     return; // Не обрабатываем клик по карточке, если нажата кнопка удаления
                 }
 
-                // В будущем здесь будет открытие детальной информации о тренировке
+                // Добавляем визуальный эффект нажатия
                 card.classList.add('selected');
                 setTimeout(() => card.classList.remove('selected'), 200);
+
+                // Открываем модальное окно с деталями тренировки
+                openTrainingDetails(training);
             });
 
             // Добавляем обработчик для кнопки удаления
@@ -375,6 +378,77 @@ export function initTrainingsModule() {
 
             // Показываем сообщение об ошибке
             showMessage('Не удалось удалить тренировку', 'error');
+        }
+    }
+
+    // Функция для открытия модального окна с деталями тренировки
+    function openTrainingDetails(training) {
+        console.log('Открытие деталей тренировки:', training);
+
+        // Получаем элементы модального окна
+        const modal = document.getElementById('view-training-modal');
+        const titleElement = document.getElementById('training-title');
+        const detailsContainer = document.getElementById('training-details-container');
+
+        // Форматируем дату
+        let formattedDate = 'Дата не указана';
+        if (training.date) {
+            try {
+                const date = new Date(training.date);
+                formattedDate = date.toLocaleDateString('ru-RU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            } catch (dateError) {
+                console.error('Ошибка при форматировании даты:', dateError);
+            }
+        }
+
+        // Устанавливаем заголовок модального окна
+        titleElement.textContent = `${training.venue} - ${formattedDate}, ${training.time || 'Время не указано'}`;
+
+        // Очищаем контейнер деталей
+        detailsContainer.innerHTML = '';
+
+        // Создаем содержимое модального окна
+        const content = document.createElement('div');
+        content.className = 'training-details-content';
+
+        // Добавляем информацию о тренировке
+        content.innerHTML = `
+            <div class="training-info-section">
+                <h3>Информация о тренировке</h3>
+                <div class="training-info-grid">
+                    <div class="training-info-item">
+                        <span class="info-label">Место:</span>
+                        <span class="info-value">${training.venue}</span>
+                    </div>
+                    <div class="training-info-item">
+                        <span class="info-label">Дата:</span>
+                        <span class="info-value">${formattedDate}</span>
+                    </div>
+                    <div class="training-info-item">
+                        <span class="info-label">Время:</span>
+                        <span class="info-value">${training.time || 'Не указано'}</span>
+                    </div>
+                    <div class="training-info-item">
+                        <span class="info-label">Количество кортов:</span>
+                        <span class="info-value">${training.court_count} ${getCourtWord(training.court_count)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Добавляем содержимое в контейнер
+        detailsContainer.appendChild(content);
+
+        // Открываем модальное окно
+        openModal(modal);
+
+        // Инициализируем иконки Feather
+        if (window.feather) {
+            feather.replace();
         }
     }
 
