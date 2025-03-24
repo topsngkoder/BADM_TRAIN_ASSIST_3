@@ -115,8 +115,8 @@ h2 {
     overflow: hidden;
     width: 100%;
     max-width: 100%;
-    height: calc(100vh - 60px); /* Высота экрана минус высота шапки и подвала */
-    padding: 10px;
+    height: 100vh; /* Полная высота экрана */
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -126,9 +126,9 @@ h2 {
     top: 0;
     z-index: 10;
     background-color: white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
-    border-radius: 12px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 5px;
+    border-radius: 0;
 }
 
 .tabs {
@@ -139,13 +139,13 @@ h2 {
 
 .tab-btn {
     flex: 1;
-    padding: 15px 0;
+    padding: 10px 0;
     background-color: transparent;
     border: none;
-    border-bottom: 3px solid transparent;
+    border-bottom: 2px solid transparent;
     color: #7f8c8d;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 15px;
     transition: all 0.3s;
     border-radius: 0;
 }
@@ -166,11 +166,11 @@ h2 {
 /* Страницы */
 .page {
     width: 50%; /* Каждая страница занимает половину контейнера */
-    padding: 15px;
+    padding: 8px;
     overflow-y: auto;
     background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
     transition: opacity 0.3s;
 }
 
@@ -515,11 +515,11 @@ input:focus {
 #training-details-section .section-header {
     display: flex;
     align-items: center;
-    padding: 15px 20px;
+    padding: 10px 15px;
     border-bottom: 1px solid #eee;
     background-color: white;
-    border-radius: 12px 12px 0 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
     width: 100%;
 }
 
@@ -556,12 +556,12 @@ input:focus {
 
 /* Стили для контейнера деталей тренировки */
 .training-details-container {
-    padding: 20px;
+    padding: 10px;
     overflow-y: auto;
-    height: calc(100vh - 120px); /* Высота экрана минус высота заголовка и отступы */
+    height: calc(100vh - 60px); /* Высота экрана минус высота заголовка */
     background-color: white;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -575,7 +575,7 @@ input:focus {
 /* Двухколоночный макет для страницы тренировки */
 .training-layout {
     display: flex;
-    gap: 20px;
+    gap: 10px;
     height: 100%;
     width: 100%;
     max-width: 100%;
@@ -583,22 +583,22 @@ input:focus {
 
 .queue-column {
     flex: 1;
-    min-width: 300px;
-    max-width: 350px;
+    min-width: 120px;
+    max-width: 35%;
     width: 30%;
 }
 
 .courts-column {
     flex: 2;
-    min-width: 400px;
+    min-width: 200px;
     width: 70%;
 }
 
 /* Стили для секции очереди игроков */
 .players-queue-section {
     background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
+    border-radius: 4px;
+    padding: 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     height: 100%;
     overflow-y: auto;
@@ -608,8 +608,8 @@ input:focus {
 /* Стили для секции кортов */
 .courts-section {
     background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
+    border-radius: 4px;
+    padding: 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     height: 100%;
     overflow-y: auto;
@@ -625,9 +625,10 @@ input:focus {
 /* Стили для корта */
 .court-container {
     background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    margin-bottom: 10px;
 }
 
 .court-header {
@@ -736,13 +737,13 @@ input:focus {
     height: 18px;
 }
 
-.players-queue-section h3 {
+.players-queue-section h3, .courts-section h3 {
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     color: #2c3e50;
-    font-size: 18px;
+    font-size: 16px;
     border-bottom: 1px solid #e1e4e8;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
 }
 
 .players-queue-container {
@@ -755,11 +756,12 @@ input:focus {
 .queue-player-card {
     display: flex;
     align-items: center;
-    padding: 10px;
+    padding: 8px;
     background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 5px;
 }
 
 .queue-player-card:hover {
@@ -772,11 +774,11 @@ input:focus {
 }
 
 .queue-player-photo {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #3498db;
+    border: 2px solid #3498db;
 }
 
 /* Применяем те же цветовые обводки к фото игрока в очереди */
