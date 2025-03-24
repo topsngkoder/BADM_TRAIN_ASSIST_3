@@ -557,11 +557,7 @@ export function initTrainingsModule() {
                             <div class="queue-player-name">${fullName}</div>
                             <div class="queue-player-rating">${rating}</div>
                         </div>
-                        <div class="queue-player-actions">
-                            <button class="queue-action-btn add-to-court-btn" data-player-id="${player.id}" aria-label="Добавить на корт">
-                                <i data-feather="plus-circle"></i>
-                            </button>
-                        </div>
+
                     </div>
                 `;
             }).join('');
@@ -662,17 +658,17 @@ export function initTrainingsModule() {
         // Добавляем содержимое в контейнер
         detailsContainer.appendChild(content);
 
-        // Добавляем обработчики для кнопок
+        // Добавляем обработчики для кнопок и карточек игроков
         setTimeout(() => {
-            // Обработчики для кнопок в очереди игроков
-            const addToCourtButtons = detailsContainer.querySelectorAll('.add-to-court-btn');
-            console.log('Найдено кнопок добавления на корт из очереди:', addToCourtButtons.length);
+            // Обработчики для карточек игроков в очереди
+            const queuePlayerCards = detailsContainer.querySelectorAll('.queue-player-card');
+            console.log('Найдено карточек игроков в очереди:', queuePlayerCards.length);
 
-            addToCourtButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
+            queuePlayerCards.forEach(card => {
+                card.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const playerId = button.getAttribute('data-player-id');
-                    console.log('Нажата кнопка добавления игрока на корт:', playerId);
+                    const playerId = card.getAttribute('data-player-id');
+                    console.log('Нажата карточка игрока в очереди:', playerId);
                     // В будущем здесь будет функционал добавления игрока на корт
                     showMessage('Функционал добавления игрока на корт будет реализован в следующем обновлении', 'info');
                 });
