@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бадминтон - Система тренировок</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Подключаем Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Система тренировок по бадминтону</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">Игроки</a></li>
+                    <li><a href="#">Тренировки</a></li>
+                    <li><a href="#">Статистика</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        <main>
+            <section id="players-section">
+                <h2>Список игроков</h2>
+                <div class="controls">
+                    <button id="add-player-btn">Добавить игрока</button>
+                    <input type="text" id="search-player" placeholder="Поиск игрока...">
+                </div>
+                
+                <div class="players-container" id="players-list">
+                    <!-- Здесь будет список игроков из Supabase -->
+                    <div class="loading">Загрузка списка игроков...</div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2024 Система тренировок по бадминтону</p>
+        </footer>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования игрока -->
+    <div class="modal" id="player-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">Добавить игрока</h2>
+            <form id="player-form">
+                <div class="form-group">
+                    <label for="player-name">Имя</label>
+                    <input type="text" id="player-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="player-level">Уровень</label>
+                    <select id="player-level">
+                        <option value="beginner">Начинающий</option>
+                        <option value="intermediate">Средний</option>
+                        <option value="advanced">Продвинутый</option>
+                        <option value="pro">Профессионал</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="player-phone">Телефон</label>
+                    <input type="tel" id="player-phone">
+                </div>
+                <div class="form-group">
+                    <label for="player-email">Email</label>
+                    <input type="email" id="player-email">
+                </div>
+                <div class="form-group">
+                    <label for="player-notes">Примечания</label>
+                    <textarea id="player-notes"></textarea>
+                </div>
+                <button type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
