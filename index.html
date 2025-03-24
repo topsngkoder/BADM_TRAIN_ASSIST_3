@@ -19,49 +19,54 @@
     </header>
 
     <main id="app-container">
-        <div class="tabs-container">
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="trainings">Тренировки</button>
-                <button class="tab-btn" data-tab="players">Игроки</button>
+        <!-- Основной интерфейс с вкладками -->
+        <div id="main-interface">
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="trainings">Тренировки</button>
+                    <button class="tab-btn" data-tab="players">Игроки</button>
+                </div>
+            </div>
+
+            <div class="pages-container">
+                <!-- Страница тренировок -->
+                <section id="trainings-section" class="page active">
+                    <div class="section-header">
+                        <h2>Тренировки</h2>
+                        <button id="add-training-btn" class="section-action-btn" aria-label="Добавить тренировку">
+                            <i data-feather="plus"></i>
+                        </button>
+                    </div>
+                    <div id="trainings-container" class="trainings-list">
+                        <p id="trainings-loading">Загрузка тренировок...</p>
+                    </div>
+                </section>
+
+                <!-- Страница игроков -->
+                <section id="players-section" class="page">
+                    <div class="section-header">
+                        <div class="sort-toggle">
+                            <span>Сортировка:</span>
+                            <div class="toggle-buttons">
+                                <button id="sort-by-name" class="toggle-btn active">По фамилии</button>
+                                <button id="sort-by-rating" class="toggle-btn">По рейтингу</button>
+                            </div>
+                        </div>
+                        <button id="add-player-btn" class="section-action-btn" aria-label="Добавить игрока">
+                            <i data-feather="plus"></i>
+                        </button>
+                    </div>
+                    <div id="players-container" class="players-grid">
+                        <!-- Здесь будут отображаться игроки из базы данных -->
+                        <p id="loading-message">Загрузка игроков...</p>
+                    </div>
+                </section>
             </div>
         </div>
 
-        <div class="pages-container">
-            <!-- Страница тренировок -->
-            <section id="trainings-section" class="page active">
-                <div class="section-header">
-                    <h2>Тренировки</h2>
-                    <button id="add-training-btn" class="section-action-btn" aria-label="Добавить тренировку">
-                        <i data-feather="plus"></i>
-                    </button>
-                </div>
-                <div id="trainings-container" class="trainings-list">
-                    <p id="trainings-loading">Загрузка тренировок...</p>
-                </div>
-            </section>
-
-            <!-- Страница игроков -->
-            <section id="players-section" class="page">
-                <div class="section-header">
-                    <div class="sort-toggle">
-                        <span>Сортировка:</span>
-                        <div class="toggle-buttons">
-                            <button id="sort-by-name" class="toggle-btn active">По фамилии</button>
-                            <button id="sort-by-rating" class="toggle-btn">По рейтингу</button>
-                        </div>
-                    </div>
-                    <button id="add-player-btn" class="section-action-btn" aria-label="Добавить игрока">
-                        <i data-feather="plus"></i>
-                    </button>
-                </div>
-                <div id="players-container" class="players-grid">
-                    <!-- Здесь будут отображаться игроки из базы данных -->
-                    <p id="loading-message">Загрузка игроков...</p>
-                </div>
-            </section>
-
-            <!-- Страница просмотра тренировки -->
-            <section id="training-details-section" class="page">
+        <!-- Страница просмотра тренировки (отдельно от основного интерфейса) -->
+        <div id="training-details-interface" style="display: none;">
+            <section id="training-details-section" class="page active">
                 <div class="section-header">
                     <button id="back-to-trainings-btn" class="back-btn" aria-label="Вернуться к списку тренировок">
                         <i data-feather="arrow-left"></i>

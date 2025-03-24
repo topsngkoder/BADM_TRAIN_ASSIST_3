@@ -80,29 +80,25 @@ export function initTrainingsModule() {
             backBtn.addEventListener('click', () => {
                 console.log('Нажата кнопка "Назад"');
 
-                // Показываем вкладки снова
-                const tabsContainer = document.querySelector('.tabs-container');
-                console.log('Показываем вкладки снова:', tabsContainer);
-                if (tabsContainer) {
-                    tabsContainer.style.display = '';
+                // Скрываем интерфейс деталей тренировки и показываем основной интерфейс
+                console.log('Скрываем интерфейс деталей тренировки и показываем основной интерфейс');
+
+                const trainingDetailsInterface = document.getElementById('training-details-interface');
+                console.log('Интерфейс деталей тренировки:', trainingDetailsInterface);
+                if (trainingDetailsInterface) {
+                    trainingDetailsInterface.style.display = 'none';
+                    console.log('Интерфейс деталей тренировки скрыт');
+                } else {
+                    console.error('Не найден интерфейс деталей тренировки с ID "training-details-interface"');
                 }
 
-                // Возвращаемся на страницу тренировок
-                console.log('Возвращаемся на страницу тренировок');
-                const pages = document.querySelectorAll('.page');
-                console.log('Найдено страниц:', pages.length);
-                pages.forEach(page => {
-                    console.log('Скрываем страницу:', page.id);
-                    page.classList.remove('active');
-                });
-
-                const trainingsSection = document.getElementById('trainings-section');
-                console.log('Страница тренировок:', trainingsSection);
-                if (trainingsSection) {
-                    trainingsSection.classList.add('active');
-                    console.log('Страница тренировок активирована');
+                const mainInterface = document.getElementById('main-interface');
+                console.log('Основной интерфейс:', mainInterface);
+                if (mainInterface) {
+                    mainInterface.style.display = 'block';
+                    console.log('Основной интерфейс показан');
                 } else {
-                    console.error('Не найдена страница тренировок с ID "trainings-section"');
+                    console.error('Не найден основной интерфейс с ID "main-interface"');
                 }
 
                 // Очищаем ID текущей тренировки
@@ -545,32 +541,25 @@ export function initTrainingsModule() {
         // Добавляем содержимое в контейнер
         detailsContainer.appendChild(content);
 
-        // Скрываем все страницы и показываем страницу деталей тренировки
-        console.log('Скрываем все страницы и показываем страницу деталей тренировки');
-        const pages = document.querySelectorAll('.page');
-        console.log('Найдено страниц:', pages.length);
-        pages.forEach(page => {
-            console.log('Страница:', page.id);
-            page.classList.remove('active');
-        });
+        // Скрываем основной интерфейс и показываем интерфейс деталей тренировки
+        console.log('Скрываем основной интерфейс и показываем интерфейс деталей тренировки');
 
-        const detailsSection = document.getElementById('training-details-section');
-        console.log('Страница деталей тренировки:', detailsSection);
-        if (detailsSection) {
-            detailsSection.classList.add('active');
-            console.log('Страница деталей тренировки активирована');
+        const mainInterface = document.getElementById('main-interface');
+        console.log('Основной интерфейс:', mainInterface);
+        if (mainInterface) {
+            mainInterface.style.display = 'none';
+            console.log('Основной интерфейс скрыт');
         } else {
-            console.error('Не найдена страница деталей тренировки с ID "training-details-section"');
+            console.error('Не найден основной интерфейс с ID "main-interface"');
         }
 
-        // Скрываем вкладки, так как мы находимся на странице деталей
-        const tabsContainer = document.querySelector('.tabs-container');
-        console.log('Контейнер вкладок:', tabsContainer);
-        if (tabsContainer) {
-            tabsContainer.style.display = 'none';
-            console.log('Вкладки скрыты');
+        const trainingDetailsInterface = document.getElementById('training-details-interface');
+        console.log('Интерфейс деталей тренировки:', trainingDetailsInterface);
+        if (trainingDetailsInterface) {
+            trainingDetailsInterface.style.display = 'block';
+            console.log('Интерфейс деталей тренировки показан');
         } else {
-            console.error('Не найден контейнер вкладок с классом "tabs-container"');
+            console.error('Не найден интерфейс деталей тренировки с ID "training-details-interface"');
         }
 
         // Инициализируем иконки Feather
