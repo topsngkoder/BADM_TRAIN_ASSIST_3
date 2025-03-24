@@ -58,9 +58,30 @@ npx serve
    - Создать таблицы через SQL Editor в Supabase:
 
    ```sql
+   -- Проверяем тип столбца id в таблице players
+   DO $$
+   DECLARE
+     player_id_type TEXT;
+   BEGIN
+     SELECT data_type INTO player_id_type
+     FROM information_schema.columns
+     WHERE table_name = 'players' AND column_name = 'id';
+
+     IF player_id_type = 'integer' THEN
+       RAISE NOTICE 'Таблица players использует тип INTEGER для id';
+     ELSIF player_id_type = 'uuid' THEN
+       RAISE NOTICE 'Таблица players использует тип UUID для id';
+     ELSE
+       RAISE NOTICE 'Таблица players использует тип % для id', player_id_type;
+     END IF;
+   EXCEPTION
+     WHEN OTHERS THEN
+       RAISE NOTICE 'Таблица players не существует или произошла ошибка при проверке';
+   END $$;
+
    -- Создание таблицы игроков (если она еще не существует)
    CREATE TABLE IF NOT EXISTS players (
-     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     id SERIAL PRIMARY KEY,
      first_name TEXT NOT NULL,
      last_name TEXT NOT NULL,
      rating INTEGER NOT NULL,
@@ -70,7 +91,7 @@ npx serve
 
    -- Создание таблицы тренировок (если она еще не существует)
    CREATE TABLE IF NOT EXISTS trainings (
-     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+     id SERIAL PRIMARY KEY,
      venue TEXT NOT NULL,
      date DATE NOT NULL,
      time TIME NOT NULL,
@@ -80,9 +101,9 @@ npx serve
 
    -- Создание связующей таблицы между тренировками и игроками (если она еще не существует)
    CREATE TABLE IF NOT EXISTS training_players (
-     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-     training_id UUID REFERENCES trainings(id) ON DELETE CASCADE,
-     player_id UUID REFERENCES players(id) ON DELETE CASCADE,
+     id SERIAL PRIMARY KEY,
+     training_id INTEGER REFERENCES trainings(id) ON DELETE CASCADE,
+     player_id INTEGER REFERENCES players(id) ON DELETE CASCADE,
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
      UNIQUE(training_id, player_id)
    );

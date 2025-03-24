@@ -208,9 +208,12 @@ export function initTrainingsModule() {
             // Получаем список игроков
             let players = [];
             if (training.training_players && Array.isArray(training.training_players)) {
+                console.log('Данные игроков в тренировке:', training.training_players);
                 players = training.training_players
                     .filter(tp => tp && tp.players) // Фильтруем только записи с игроками
                     .map(tp => tp.players);
+            } else {
+                console.log('Нет данных об игроках в тренировке или неверный формат данных');
             }
 
             // Создаем HTML для аватаров игроков

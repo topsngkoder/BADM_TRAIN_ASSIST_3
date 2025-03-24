@@ -32,20 +32,74 @@ export const trainingsApi = {
 
             // Пробуем получить тренировки с игроками
             try {
-                const { data, error } = await supabase
+                // Сначала получаем все тренировки
+                const { data: trainings, error: trainingsError } = await supabase
                     .from('trainings')
-                    .select('*, training_players(*, players(*))')
+                    .select('*')
                     .order('date', { ascending: false });
 
-                if (error) {
-                    console.error('Ошибка при получении тренировок с игроками:', error);
-                    throw error;
+                if (trainingsError) {
+                    console.error('Ошибка при получении тренировок:', trainingsError);
+                    throw trainingsError;
                 }
 
-                console.log('Получены тренировки с игроками:', data);
-                return data;
-            } catch (joinError) {
-                console.error('Ошибка при получении тренировок с игроками:', joinError);
+                console.log('Получены тренировки:', trainings);
+
+                // Если тренировок нет, возвращаем пустой массив
+                if (!trainings || trainings.length === 0) {
+                    return [];
+                }
+
+                // Для каждой тренировки получаем связанных игроков
+                const trainingsWithPlayers = await Promise.all(trainings.map(async (training) => {
+                    try {
+                        // Получаем связи тренировка-игрок
+                        const { data: trainingPlayers, error: tpError } = await supabase
+                            .from('training_players')
+                            .select('player_id')
+                            .eq('training_id', training.id);
+
+                        if (tpError) {
+                            console.error(`Ошибка при получении игроков для тренировки ${training.id}:`, tpError);
+                            return training; // Возвращаем тренировку без игроков
+                        }
+
+                        // Если нет связей, возвращаем тренировку без игроков
+                        if (!trainingPlayers || trainingPlayers.length === 0) {
+                            return training;
+                        }
+
+                        // Получаем данные игроков
+                        const playerIds = trainingPlayers.map(tp => tp.player_id);
+                        const { data: players, error: playersError } = await supabase
+                            .from('players')
+                            .select('*')
+                            .in('id', playerIds);
+
+                        if (playersError) {
+                            console.error(`Ошибка при получении данных игроков для тренировки ${training.id}:`, playersError);
+                            return training; // Возвращаем тренировку без игроков
+                        }
+
+                        // Формируем структуру данных, аналогичную join-запросу
+                        return {
+                            ...training,
+                            training_players: players.map(player => ({
+                                player_id: player.id,
+                                training_id: training.id,
+                                players: player
+                            }))
+                        };
+                    } catch (error) {
+                        console.error(`Ошибка при обработке тренировки ${training.id}:`, error);
+                        return training; // Возвращаем тренировку без игроков в случае ошибки
+                    }
+                }));
+
+                console.log('Получены тренировки с игроками:', trainingsWithPlayers);
+                return trainingsWithPlayers;
+            } catch (error) {
+                console.error('Ошибка при получении тренировок с игроками:', error);
 
                 // Если не удалось получить тренировки с игроками, пробуем получить только тренировки
                 const { data: trainingsOnly, error: trainingsError } = await supabase
@@ -119,9 +173,10 @@ export const trainingsApi = {
                         throw new Error('Таблица training_players не существует или недоступна. Пожалуйста, создайте таблицу в Supabase.');
                     }
 
+                    // Преобразуем строковые ID в числовые, если необходимо
                     const playerEntries = trainingData.players.map(playerId => ({
-                        training_id: training[0].id,
-                        player_id: playerId
+                        training_id: parseInt(training[0].id),
+                        player_id: parseInt(playerId)
                     }));
 
                     console.log('Добавление игроков к тренировке:', playerEntries);
