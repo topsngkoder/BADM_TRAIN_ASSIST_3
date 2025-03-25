@@ -639,13 +639,13 @@ input:focus {
     flex: 1;
 }
 
-/* Очередь игроков в виде горизонтальных карточек */
+/* Очередь игроков в виде компактных карточек */
 .players-queue-container.horizontal {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    padding-bottom: 10px;
-    min-height: 60px;
+    gap: 6px;
+    padding-bottom: 8px;
+    min-height: 50px;
     width: 100%;
 }
 
@@ -929,8 +929,8 @@ input:focus {
     align-items: center;
     padding: 8px 12px;
     background-color: white;
-    border-radius: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 18px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
     margin-bottom: 4px;
     cursor: pointer;
@@ -941,18 +941,19 @@ input:focus {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Стили для очереди в виде горизонтальных карточек */
+/* Стили для очереди в виде компактных карточек */
 .players-queue-container.horizontal .queue-player-card {
     flex-direction: row;
     align-items: center;
-    padding: 6px 12px;
+    padding: 4px 8px;
     height: auto;
-    min-height: 40px;
+    min-height: 36px;
     justify-content: flex-start;
     box-sizing: border-box;
     flex: 0 0 auto;
     margin-bottom: 0;
     width: auto;
+    max-width: 180px;
 }
 
 .queue-player-photo-container {
@@ -961,7 +962,7 @@ input:focus {
 }
 
 .players-queue-container.horizontal .queue-player-photo-container {
-    margin-right: 10px;
+    margin-right: 6px;
     margin-bottom: 0;
 }
 
@@ -974,8 +975,8 @@ input:focus {
 }
 
 .players-queue-container.horizontal .queue-player-photo {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     border-width: 2px;
 }
 
@@ -1021,13 +1022,13 @@ input:focus {
 }
 
 .players-queue-container.horizontal .queue-player-name {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-right: 10px;
+    margin-right: 6px;
 }
 
 .queue-player-rating {
@@ -1036,12 +1037,12 @@ input:focus {
 }
 
 .players-queue-container.horizontal .queue-player-rating {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: bold;
     color: #3498db;
     background-color: rgba(52, 152, 219, 0.1);
-    padding: 2px 6px;
-    border-radius: 10px;
+    padding: 2px 4px;
+    border-radius: 8px;
     white-space: nowrap;
 }
 
