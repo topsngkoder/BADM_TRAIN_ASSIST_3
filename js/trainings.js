@@ -950,7 +950,7 @@ export function initTrainingsModule() {
                     if (!startGameBtn) {
                         startGameBtn = document.createElement('button');
                         startGameBtn.className = 'start-game-btn';
-                        startGameBtn.innerHTML = '<i data-feather="play"></i> Начать игру';
+                        startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
                         startGameBtn.setAttribute('data-court-id', courtId);
 
                         // Добавляем обработчик для кнопки

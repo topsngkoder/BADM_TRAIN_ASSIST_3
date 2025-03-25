@@ -759,31 +759,40 @@ input:focus {
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #27ae60;
+    background-color: rgba(39, 174, 96, 0.8); /* Полупрозрачный зеленый */
     color: white;
     border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: bold;
+    border-radius: 20px; /* Более закругленные углы */
+    padding: 6px 12px; /* Меньше отступы */
+    font-size: 12px; /* Меньший размер шрифта */
+    font-weight: 500; /* Не такой жирный шрифт */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.2s;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
     width: auto;
-    max-width: 200px;
+    max-width: 150px; /* Меньшая максимальная ширина */
+    backdrop-filter: blur(2px); /* Эффект размытия для современных браузеров */
+    letter-spacing: 0.5px; /* Небольшое расстояние между буквами */
 }
 
 .start-game-btn:hover {
-    background-color: #219653;
+    background-color: rgba(39, 174, 96, 0.9); /* Менее прозрачный при наведении */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    transform: translateX(-50%) translateY(-1px); /* Легкий эффект подъема */
+}
+
+.start-game-btn:active {
+    transform: translateX(-50%) translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .start-game-btn i {
-    width: 16px;
-    height: 16px;
+    width: 14px; /* Меньшая иконка */
+    height: 14px;
 }
 
 .court-header {
