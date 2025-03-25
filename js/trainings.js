@@ -1094,14 +1094,12 @@ export function initTrainingsModule() {
                 // Добавляем класс для анимации
                 buttonElement.classList.add('timer-transition');
 
-                // Получаем ID корта
-                const courtId = buttonElement.getAttribute('data-court-id');
-
-                // Получаем элемент корта
-                const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
-                if (courtElement) {
+                // Получаем ID корта и элемент корта
+                const courtIdForLock = buttonElement.getAttribute('data-court-id');
+                const courtElementForLock = document.querySelector(`.court-container[data-court-id="${courtIdForLock}"]`);
+                if (courtElementForLock) {
                     // Блокируем возможность изменения состава игроков
-                    lockCourtPlayers(courtElement);
+                    lockCourtPlayers(courtElementForLock);
                 }
 
                 // Создаем контейнер для таймера и кнопок
