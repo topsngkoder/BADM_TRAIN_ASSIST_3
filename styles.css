@@ -28,7 +28,8 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
 }
 
 /* Переключатель сортировки */
@@ -510,6 +511,10 @@ input:focus {
 #training-details-section {
     width: 100%;
     max-width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 #training-details-section .section-header {
@@ -523,6 +528,7 @@ input:focus {
     width: 100%;
     overflow: hidden;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .back-btn {
@@ -566,14 +572,16 @@ input:focus {
 /* Стили для контейнера деталей тренировки */
 .training-details-container {
     padding: 10px;
-    overflow-y: auto;
-    height: calc(100vh - 60px); /* Высота экрана минус высота заголовка */
+    flex: 1;
     background-color: white;
     border-radius: 0;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* Стили для содержимого деталей тренировки */
@@ -588,10 +596,12 @@ input:focus {
     height: 100%;
     width: 100%;
     max-width: 100%;
+    overflow: hidden;
 }
 
 .training-layout.vertical {
     flex-direction: column;
+    flex: 1;
 }
 
 /* Стили для секции очереди игроков */
@@ -601,7 +611,9 @@ input:focus {
     padding: 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     width: 100%;
-    overflow: auto;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
     max-height: 220px;
 }
 
@@ -612,14 +624,18 @@ input:focus {
     padding: 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     flex: 1;
-    overflow-y: auto;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .courts-container {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    overflow-y: auto;
+    flex: 1;
 }
 
 /* Очередь игроков в виде плитки */
@@ -630,6 +646,8 @@ input:focus {
     padding-bottom: 10px;
     min-height: 80px;
     width: 100%;
+    overflow-y: auto;
+    flex: 1;
 }
 
 .players-queue-container.horizontal .queue-player-card {
