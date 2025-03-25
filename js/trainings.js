@@ -731,10 +731,13 @@ export function initTrainingsModule() {
                 }
 
                 // Получаем данные игрока
-                const playerName = playerCard.querySelector('.queue-player-name').textContent;
+                const playerFullName = playerCard.querySelector('.queue-player-name').textContent;
                 const playerPhoto = playerCard.querySelector('.queue-player-photo').src;
                 const playerRatingClass = Array.from(playerCard.querySelector('.queue-player-photo').classList)
                     .find(cls => cls.startsWith('rating-')) || 'rating-blue';
+
+                // Извлекаем только фамилию (предполагается, что фамилия идет первой в формате "Фамилия Имя")
+                const playerLastName = playerFullName.split(' ')[0];
 
                 // Создаем элемент игрока на корте
                 const playerElement = document.createElement('div');
@@ -742,9 +745,9 @@ export function initTrainingsModule() {
                 playerElement.setAttribute('data-player-id', playerId);
                 playerElement.innerHTML = `
                     <div class="court-player-photo-container">
-                        <img src="${playerPhoto}" alt="${playerName}" class="court-player-photo">
+                        <img src="${playerPhoto}" alt="${playerFullName}" class="court-player-photo">
                     </div>
-                    <div class="court-player-name">${playerName}</div>
+                    <div class="court-player-name">${playerLastName}</div>
                     <button class="remove-player-btn" aria-label="Удалить игрока">
                         <i data-feather="x"></i>
                     </button>
@@ -786,7 +789,7 @@ export function initTrainingsModule() {
                 if (removeBtn) {
                     removeBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        removePlayerFromCourt(playerElement, playerId, playerName, playerPhoto, playerRatingClass);
+                        removePlayerFromCourt(playerElement, playerId, playerFullName, playerPhoto, playerRatingClass);
                     });
                 }
             }
