@@ -15,6 +15,7 @@ export function initTrainingsModule() {
 
     const addTrainingForm = document.getElementById('add-training-form');
     console.log('Форма добавления тренировки:', addTrainingForm);
+    
 
     const trainingsContainer = document.getElementById('trainings-container');
     console.log('Контейнер тренировок:', trainingsContainer);
