@@ -990,14 +990,54 @@ export function initTrainingsModule() {
                 // Добавляем класс для анимации
                 buttonElement.classList.add('timer-transition');
 
-                // Меняем текст и стиль кнопки
-                buttonElement.innerHTML = '<i data-feather="clock"></i> 00:00';
+                // Создаем контейнер для таймера и кнопок
+                const gameControlsContainer = document.createElement('div');
+                gameControlsContainer.className = 'game-controls-container';
+
+                // Создаем кнопку "Отмена"
+                const cancelButton = document.createElement('button');
+                cancelButton.className = 'game-control-btn cancel-btn';
+                cancelButton.innerHTML = '<i data-feather="x"></i> Отмена';
+                cancelButton.title = 'Отменить игру';
+
+                // Создаем таймер
+                const timerElement = document.createElement('div');
+                timerElement.className = 'game-timer';
+                timerElement.innerHTML = '<i data-feather="clock"></i> 00:00';
+
+                // Создаем кнопку "Игра завершена"
+                const finishButton = document.createElement('button');
+                finishButton.className = 'game-control-btn finish-btn';
+                finishButton.innerHTML = '<i data-feather="check"></i> Игра завершена';
+                finishButton.title = 'Завершить игру';
+
+                // Добавляем элементы в контейнер
+                gameControlsContainer.appendChild(cancelButton);
+                gameControlsContainer.appendChild(timerElement);
+                gameControlsContainer.appendChild(finishButton);
+
+                // Заменяем содержимое кнопки на контейнер с элементами управления
+                buttonElement.innerHTML = '';
+                buttonElement.appendChild(gameControlsContainer);
                 buttonElement.classList.add('timer-active');
 
                 // Инициализируем иконки Feather
                 if (window.feather) {
                     feather.replace();
                 }
+
+                // Добавляем обработчики для кнопок
+                cancelButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('Нажата кнопка "Отмена" для корта', courtId);
+                    cancelGame(buttonElement, timerInterval);
+                });
+
+                finishButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('Нажата кнопка "Игра завершена" для корта', courtId);
+                    finishGame(buttonElement, timerInterval);
+                });
 
                 // Сохраняем время начала игры
                 const startTime = new Date();
@@ -1018,23 +1058,71 @@ export function initTrainingsModule() {
                     // Форматируем время
                     const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-                    // Обновляем текст кнопки
-                    buttonElement.innerHTML = `<i data-feather="clock"></i> ${formattedTime}`;
+                    // Обновляем текст таймера
+                    const timerElement = buttonElement.querySelector('.game-timer');
+                    if (timerElement) {
+                        timerElement.innerHTML = `<i data-feather="clock"></i> ${formattedTime}`;
 
-                    // Обновляем иконки Feather
-                    if (window.feather) {
-                        feather.replace();
+                        // Обновляем иконки Feather
+                        if (window.feather) {
+                            feather.replace();
+                        }
                     }
                 }, 1000);
 
                 // Сохраняем ID интервала в атрибуте кнопки для возможности остановки таймера в будущем
                 buttonElement.setAttribute('data-timer-id', timerInterval);
 
-                // Делаем кнопку неактивной для нажатий
-                buttonElement.style.pointerEvents = 'none';
+                // Функция для отмены игры
+                function cancelGame(buttonElement, timerInterval) {
+                    // Останавливаем таймер
+                    clearInterval(timerInterval);
 
-                // Добавляем подсказку, что таймер активен
-                buttonElement.title = 'Таймер активен';
+                    // Возвращаем кнопку в исходное состояние
+                    buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
+                    buttonElement.classList.remove('timer-active');
+                    buttonElement.classList.remove('timer-transition');
+                    buttonElement.style.pointerEvents = '';
+                    buttonElement.title = '';
+
+                    // Инициализируем иконки Feather
+                    if (window.feather) {
+                        feather.replace();
+                    }
+                }
+
+                // Функция для завершения игры
+                function finishGame(buttonElement, timerInterval) {
+                    // Останавливаем таймер
+                    clearInterval(timerInterval);
+
+                    // Получаем время игры
+                    const startTimeMs = parseInt(buttonElement.getAttribute('data-start-time'));
+                    const endTimeMs = new Date().getTime();
+                    const gameDurationMs = endTimeMs - startTimeMs;
+
+                    // Преобразуем в минуты и секунды
+                    const minutes = Math.floor(gameDurationMs / 60000);
+                    const seconds = Math.floor((gameDurationMs % 60000) / 1000);
+
+                    // Форматируем время
+                    const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                    // Показываем сообщение о завершении игры
+                    showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+
+                    // Возвращаем кнопку в исходное состояние
+                    buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
+                    buttonElement.classList.remove('timer-active');
+                    buttonElement.classList.remove('timer-transition');
+                    buttonElement.style.pointerEvents = '';
+                    buttonElement.title = '';
+
+                    // Инициализируем иконки Feather
+                    if (window.feather) {
+                        feather.replace();
+                    }
+                }
             }
 
             // Функция для открытия модального окна выбора игрока

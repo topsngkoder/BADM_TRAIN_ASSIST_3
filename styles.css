@@ -801,16 +801,85 @@ input:focus {
 }
 
 .start-game-btn.timer-active {
-    background-color: rgba(52, 152, 219, 0.8); /* Синий цвет для таймера */
-    min-width: 100px;
-    font-family: 'Courier New', monospace; /* Моноширинный шрифт для таймера */
-    cursor: default; /* Меняем курсор, чтобы показать, что кнопка не кликабельна */
+    background-color: transparent; /* Прозрачный фон */
+    min-width: 300px; /* Увеличиваем ширину для размещения кнопок */
+    padding: 0; /* Убираем отступы */
+    box-shadow: none; /* Убираем тень */
 }
 
 .start-game-btn.timer-active:hover {
-    background-color: rgba(52, 152, 219, 0.8); /* Не меняем цвет при наведении */
+    background-color: transparent; /* Не меняем цвет при наведении */
     transform: translateX(-50%); /* Отменяем эффект подъема при наведении */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Не меняем тень при наведении */
+    box-shadow: none; /* Не меняем тень при наведении */
+}
+
+/* Контейнер для элементов управления игрой */
+.game-controls-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+}
+
+/* Стили для таймера */
+.game-timer {
+    background-color: rgba(52, 152, 219, 0.8); /* Синий цвет для таймера */
+    color: white;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Courier New', monospace; /* Моноширинный шрифт для таймера */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Стили для кнопок управления игрой */
+.game-control-btn {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.2s;
+    width: auto;
+    white-space: nowrap;
+}
+
+.game-control-btn i {
+    width: 12px;
+    height: 12px;
+}
+
+.game-control-btn.cancel-btn {
+    background-color: rgba(231, 76, 60, 0.8); /* Красный цвет для кнопки отмены */
+    color: white;
+}
+
+.game-control-btn.cancel-btn:hover {
+    background-color: rgba(231, 76, 60, 0.9);
+}
+
+.game-control-btn.finish-btn {
+    background-color: rgba(46, 204, 113, 0.8); /* Зеленый цвет для кнопки завершения */
+    color: white;
+}
+
+.game-control-btn.finish-btn:hover {
+    background-color: rgba(46, 204, 113, 0.9);
 }
 
 @keyframes buttonToTimer {
