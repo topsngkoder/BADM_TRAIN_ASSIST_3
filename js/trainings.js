@@ -677,10 +677,147 @@ export function initTrainingsModule() {
                         return;
                     }
 
-                    // В будущем здесь будет функционал добавления первого игрока из очереди на корт
-                    showMessage('Функционал добавления игрока из очереди будет реализован в следующем обновлении', 'info');
+                    // Добавляем первого игрока из очереди на корт
+                    addPlayerFromQueueToCourt(queuePlayers[0], courtId, half);
                 });
             });
+
+            // Функция для добавления игрока из очереди на корт
+            function addPlayerFromQueueToCourt(playerCard, courtId, half) {
+                // Получаем ID игрока
+                const playerId = playerCard.getAttribute('data-player-id');
+                console.log(`Добавление игрока с ID ${playerId} на корт ${courtId}, половина ${half}`);
+
+                // Находим половину корта
+                const courtHalf = detailsContainer.querySelector(`.court-half[data-court="${courtId}"][data-half="${half}"]`);
+                if (!courtHalf) {
+                    console.error(`Не найдена половина корта: корт ${courtId}, половина ${half}`);
+                    showMessage('Ошибка при добавлении игрока на корт', 'error');
+                    return;
+                }
+
+                // Проверяем, есть ли свободные слоты
+                const slots = courtHalf.querySelectorAll('.court-player-slot');
+                let emptySlot = null;
+
+                for (let i = 0; i < slots.length; i++) {
+                    const slot = slots[i];
+                    if (slot.children.length === 0) {
+                        emptySlot = slot;
+                        break;
+                    }
+                }
+
+                if (!emptySlot) {
+                    console.log('Нет свободных слотов на этой половине корта');
+                    showMessage('На этой половине корта уже 2 игрока', 'warning');
+                    return;
+                }
+
+                // Получаем данные игрока
+                const playerName = playerCard.querySelector('.queue-player-name').textContent;
+                const playerPhoto = playerCard.querySelector('.queue-player-photo').src;
+                const playerRatingClass = Array.from(playerCard.querySelector('.queue-player-photo').classList)
+                    .find(cls => cls.startsWith('rating-')) || 'rating-blue';
+
+                // Создаем элемент игрока на корте
+                const playerElement = document.createElement('div');
+                playerElement.className = 'court-player';
+                playerElement.setAttribute('data-player-id', playerId);
+                playerElement.innerHTML = `
+                    <div class="court-player-photo-container">
+                        <img src="${playerPhoto}" alt="${playerName}" class="court-player-photo ${playerRatingClass}">
+                    </div>
+                    <div class="court-player-name">${playerName}</div>
+                    <button class="remove-player-btn" aria-label="Удалить игрока">
+                        <i data-feather="x"></i>
+                    </button>
+                `;
+
+                // Добавляем игрока в слот
+                emptySlot.appendChild(playerElement);
+
+                // Удаляем игрока из очереди
+                playerCard.classList.add('removing');
+                setTimeout(() => {
+                    playerCard.remove();
+
+                    // Проверяем, остались ли еще игроки в очереди
+                    const remainingPlayers = detailsContainer.querySelectorAll('.queue-player-card');
+                    if (remainingPlayers.length === 0) {
+                        const queueContainer = detailsContainer.querySelector('.players-queue-container');
+                        if (queueContainer) {
+                            queueContainer.innerHTML = '<p class="no-players-message">Нет игроков в очереди</p>';
+                        }
+                    }
+                }, 300);
+
+                // Инициализируем иконки Feather для новых элементов
+                if (window.feather) {
+                    feather.replace();
+                }
+
+                // Добавляем обработчик для кнопки удаления игрока с корта
+                const removeBtn = playerElement.querySelector('.remove-player-btn');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        removePlayerFromCourt(playerElement, playerId, playerName, playerPhoto, playerRatingClass);
+                    });
+                }
+
+                showMessage(`Игрок ${playerName} добавлен на корт ${courtId}`, 'success');
+            }
+
+            // Функция для удаления игрока с корта
+            function removePlayerFromCourt(playerElement, playerId, playerName, playerPhoto, ratingClass) {
+                console.log(`Удаление игрока с ID ${playerId} с корта`);
+
+                // Анимация удаления
+                playerElement.classList.add('removing');
+
+                setTimeout(() => {
+                    // Удаляем элемент игрока
+                    playerElement.remove();
+
+                    // Возвращаем игрока в очередь
+                    const queueContainer = detailsContainer.querySelector('.players-queue-container');
+                    if (queueContainer) {
+                        // Проверяем, есть ли сообщение "Нет игроков в очереди"
+                        const noPlayersMessage = queueContainer.querySelector('.no-players-message');
+                        if (noPlayersMessage) {
+                            noPlayersMessage.remove();
+                        }
+
+                        // Создаем карточку игрока для очереди
+                        const playerCard = document.createElement('div');
+                        playerCard.className = 'queue-player-card';
+                        playerCard.setAttribute('data-player-id', playerId);
+                        playerCard.innerHTML = `
+                            <div class="queue-player-photo-container">
+                                <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo ${ratingClass}">
+                            </div>
+                            <div class="queue-player-info">
+                                <div class="queue-player-name">${playerName}</div>
+                                <div class="queue-player-rating"></div>
+                            </div>
+                        `;
+
+                        // Добавляем карточку в начало очереди
+                        queueContainer.prepend(playerCard);
+
+                        // Анимация появления
+                        setTimeout(() => {
+                            playerCard.classList.add('added');
+                            setTimeout(() => {
+                                playerCard.classList.remove('added');
+                            }, 300);
+                        }, 10);
+                    }
+
+                    showMessage(`Игрок ${playerName} возвращен в очередь`, 'info');
+                }, 300);
+            }
 
             // Обработчики для кнопок "+" (добавить выбранного игрока)
             const addPlayerButtons = detailsContainer.querySelectorAll('.add-player-btn');
