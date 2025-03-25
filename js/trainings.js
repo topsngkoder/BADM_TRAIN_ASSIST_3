@@ -1401,20 +1401,22 @@ export function initTrainingsModule() {
                 const bottomTeamBtn = modal.querySelector('.winner-option-btn[data-team="bottom"]');
 
                 topTeamBtn.addEventListener('click', () => {
-                    // Обрабатываем выбор верхней команды как победителя
-                    handleWinnerSelection(courtId, 'top', topPlayers, bottomPlayers);
+                    // Сначала закрываем модальное окно
                     modal.classList.remove('active');
                     setTimeout(() => {
                         modal.remove();
+                        // Затем обрабатываем выбор верхней команды как победителя
+                        handleWinnerSelection(courtId, 'top', topPlayers, bottomPlayers);
                     }, 300);
                 });
 
                 bottomTeamBtn.addEventListener('click', () => {
-                    // Обрабатываем выбор нижней команды как победителя
-                    handleWinnerSelection(courtId, 'bottom', topPlayers, bottomPlayers);
+                    // Сначала закрываем модальное окно
                     modal.classList.remove('active');
                     setTimeout(() => {
                         modal.remove();
+                        // Затем обрабатываем выбор нижней команды как победителя
+                        handleWinnerSelection(courtId, 'bottom', topPlayers, bottomPlayers);
                     }, 300);
                 });
             }
