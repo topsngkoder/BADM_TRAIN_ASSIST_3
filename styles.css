@@ -602,6 +602,7 @@ input:focus {
 .training-layout.vertical {
     flex-direction: column;
     flex: 1;
+    gap: 0;
 }
 
 /* Стили для секции очереди игроков */
@@ -614,7 +615,6 @@ input:focus {
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    max-height: 220px;
 }
 
 /* Стили для секции кортов */
@@ -628,6 +628,7 @@ input:focus {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    margin-top: 10px;
 }
 
 .courts-container {
@@ -646,8 +647,6 @@ input:focus {
     padding-bottom: 10px;
     min-height: 60px;
     width: 100%;
-    overflow-y: auto;
-    flex: 1;
 }
 
 .players-queue-container.horizontal .queue-player-card {
@@ -660,11 +659,10 @@ input:focus {
     width: 100%;
     text-align: center;
     padding: 10px 0;
-    min-height: 100px;
+    min-height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    grid-column: 1 / -1; /* Занимает все колонки в сетке */
 }
 
 /* Стили для корта */
