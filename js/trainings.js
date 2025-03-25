@@ -1389,18 +1389,18 @@ export function initTrainingsModule() {
                     return rating;
                 };
 
-                // В режиме "Играем один раз" проигравшие идут в конец очереди, а победители - после них
+                // В режиме "Играем один раз" победители идут в конец очереди, а проигравшие - после них
                 // Рейтинг здесь не учитывается для сортировки, а только для отображения
                 setTimeout(() => {
-                    // Добавляем проигравших в конец очереди
-                    losers.forEach(player => {
+                    // Добавляем победителей в конец очереди
+                    winners.forEach(player => {
                         const rating = getPlayerRating(player.id);
                         addPlayerToQueue(player.id, player.name, rating, 'end');
                     });
 
-                    // Добавляем победителей в конец очереди после проигравших
+                    // Добавляем проигравших в конец очереди после победителей
                     setTimeout(() => {
-                        winners.forEach(player => {
+                        losers.forEach(player => {
                             const rating = getPlayerRating(player.id);
                             addPlayerToQueue(player.id, player.name, rating, 'end');
                         });
@@ -1541,7 +1541,7 @@ export function initTrainingsModule() {
                     // Добавляем игрока в очередь в зависимости от позиции
                     // Позиция определяется правилами игры, а не рейтингом
                     if (position === 'end') {
-                        // Добавляем в конец очереди (проигравшие, затем победители)
+                        // Добавляем в конец очереди (победители, затем проигравшие)
                         queue.push(player);
                     } else {
                         // Добавляем в начало очереди (при удалении игрока с корта)
