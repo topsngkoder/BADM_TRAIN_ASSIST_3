@@ -624,18 +624,16 @@ input:focus {
 
 /* Очередь игроков в виде плитки */
 .players-queue-container.horizontal {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 10px;
     padding-bottom: 10px;
     min-height: 80px;
-    justify-content: flex-start;
-    align-content: flex-start;
+    width: 100%;
 }
 
 .players-queue-container.horizontal .queue-player-card {
-    flex: 0 0 auto;
-    width: 80px;
+    width: 100%;
     margin-bottom: 0;
     height: 100px;
 }
@@ -648,6 +646,7 @@ input:focus {
     display: flex;
     align-items: center;
     justify-content: center;
+    grid-column: 1 / -1; /* Занимает все колонки в сетке */
 }
 
 /* Стили для корта */
@@ -934,6 +933,7 @@ input:focus {
     padding: 8px 5px;
     height: 100%;
     justify-content: space-between;
+    box-sizing: border-box;
 }
 
 .queue-player-photo-container {

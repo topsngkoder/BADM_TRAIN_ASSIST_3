@@ -765,7 +765,12 @@ export function initTrainingsModule() {
                     if (remainingPlayers.length === 0) {
                         const queueContainer = detailsContainer.querySelector('.players-queue-container');
                         if (queueContainer) {
-                            queueContainer.innerHTML = '<p class="no-players-message">Нет игроков в очереди</p>';
+                            // Очищаем контейнер и добавляем сообщение
+                            queueContainer.innerHTML = '';
+                            const noPlayersMessage = document.createElement('p');
+                            noPlayersMessage.className = 'no-players-message';
+                            noPlayersMessage.textContent = 'Нет игроков в очереди';
+                            queueContainer.appendChild(noPlayersMessage);
                         }
                     }
 
