@@ -634,6 +634,12 @@ export function initTrainingsModule() {
 
         // Добавляем обработчики для кнопок и карточек игроков
         setTimeout(() => {
+            // Инициализируем видимость кнопок на всех половинах кортов
+            const courtHalves = detailsContainer.querySelectorAll('.court-half');
+            courtHalves.forEach(half => {
+                updateCourtHalfButtons(half);
+            });
+
             // Обработчики для карточек игроков в очереди
             const queuePlayerCards = detailsContainer.querySelectorAll('.queue-player-card');
             console.log('Найдено карточек игроков в очереди:', queuePlayerCards.length);
@@ -750,6 +756,9 @@ export function initTrainingsModule() {
                 // Добавляем игрока в слот
                 emptySlot.appendChild(playerElement);
 
+                // Проверяем, заполнены ли все слоты на этой половине корта
+                updateCourtHalfButtons(courtHalf);
+
                 // Удаляем игрока из очереди
                 playerCard.classList.add('removing');
                 setTimeout(() => {
@@ -796,8 +805,16 @@ export function initTrainingsModule() {
                 playerElement.classList.add('removing');
 
                 setTimeout(() => {
+                    // Находим половину корта, с которой удаляется игрок
+                    const courtHalf = playerElement.closest('.court-half');
+
                     // Удаляем элемент игрока
                     playerElement.remove();
+
+                    // Обновляем видимость кнопок на половине корта
+                    if (courtHalf) {
+                        updateCourtHalfButtons(courtHalf);
+                    }
 
                     // Возвращаем игрока в очередь
                     const queueContainer = detailsContainer.querySelector('.players-queue-container');
@@ -859,6 +876,36 @@ export function initTrainingsModule() {
                     openPlayerSelectionModal(courtId, half, queuePlayers);
                 });
             });
+
+            // Функция для обновления видимости кнопок на половине корта
+            function updateCourtHalfButtons(courtHalf) {
+                if (!courtHalf) return;
+
+                // Получаем все слоты для игроков на этой половине корта
+                const slots = courtHalf.querySelectorAll('.court-player-slot');
+
+                // Считаем количество занятых слотов
+                let occupiedSlots = 0;
+                slots.forEach(slot => {
+                    if (slot.children.length > 0) {
+                        occupiedSlots++;
+                    }
+                });
+
+                // Получаем кнопки на этой половине корта
+                const addFromQueueBtn = courtHalf.querySelector('.add-from-queue-btn');
+                const addPlayerBtn = courtHalf.querySelector('.add-player-btn');
+
+                // Если все слоты заняты (обычно их 2), скрываем кнопки
+                if (occupiedSlots >= slots.length) {
+                    if (addFromQueueBtn) addFromQueueBtn.style.display = 'none';
+                    if (addPlayerBtn) addPlayerBtn.style.display = 'none';
+                } else {
+                    // Иначе показываем кнопки
+                    if (addFromQueueBtn) addFromQueueBtn.style.display = '';
+                    if (addPlayerBtn) addPlayerBtn.style.display = '';
+                }
+            }
 
             // Функция для открытия модального окна выбора игрока
             function openPlayerSelectionModal(courtId, half, queuePlayers) {
