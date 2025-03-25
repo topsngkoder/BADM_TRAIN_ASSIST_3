@@ -640,6 +640,12 @@ export function initTrainingsModule() {
                 updateCourtHalfButtons(half);
             });
 
+            // Инициализируем кнопки "Начать игру" для всех кортов
+            const courtContainers = detailsContainer.querySelectorAll('.court-container');
+            courtContainers.forEach(court => {
+                updateStartGameButton(court);
+            });
+
             // Обработчики для карточек игроков в очереди
             const queuePlayerCards = detailsContainer.querySelectorAll('.queue-player-card');
             console.log('Найдено карточек игроков в очереди:', queuePlayerCards.length);
@@ -807,6 +813,7 @@ export function initTrainingsModule() {
                 setTimeout(() => {
                     // Находим половину корта, с которой удаляется игрок
                     const courtHalf = playerElement.closest('.court-half');
+                    const courtContainer = playerElement.closest('.court-container');
 
                     // Удаляем элемент игрока
                     playerElement.remove();
@@ -814,6 +821,11 @@ export function initTrainingsModule() {
                     // Обновляем видимость кнопок на половине корта
                     if (courtHalf) {
                         updateCourtHalfButtons(courtHalf);
+                    }
+
+                    // Обновляем кнопку "Начать игру"
+                    if (courtContainer) {
+                        updateStartGameButton(courtContainer);
                     }
 
                     // Возвращаем игрока в очередь
@@ -904,6 +916,65 @@ export function initTrainingsModule() {
                     // Иначе показываем кнопки
                     if (addFromQueueBtn) addFromQueueBtn.style.display = '';
                     if (addPlayerBtn) addPlayerBtn.style.display = '';
+                }
+
+                // Проверяем, полностью ли заполнен корт (все 4 игрока)
+                const courtContainer = courtHalf.closest('.court-container');
+                if (courtContainer) {
+                    updateStartGameButton(courtContainer);
+                }
+            }
+
+            // Функция для проверки заполненности корта и отображения кнопки "Начать игру"
+            function updateStartGameButton(courtContainer) {
+                // Получаем ID корта
+                const courtId = courtContainer.getAttribute('data-court-id');
+
+                // Получаем все слоты для игроков на этом корте
+                const slots = courtContainer.querySelectorAll('.court-player-slot');
+
+                // Считаем количество занятых слотов
+                let occupiedSlots = 0;
+                slots.forEach(slot => {
+                    if (slot.children.length > 0) {
+                        occupiedSlots++;
+                    }
+                });
+
+                // Проверяем, есть ли уже кнопка "Начать игру"
+                let startGameBtn = courtContainer.querySelector('.start-game-btn');
+
+                // Если все 4 слота заняты, показываем кнопку "Начать игру"
+                if (occupiedSlots === 4) {
+                    // Если кнопки еще нет, создаем ее
+                    if (!startGameBtn) {
+                        startGameBtn = document.createElement('button');
+                        startGameBtn.className = 'start-game-btn';
+                        startGameBtn.innerHTML = '<i data-feather="play"></i> Начать игру';
+                        startGameBtn.setAttribute('data-court-id', courtId);
+
+                        // Добавляем обработчик для кнопки
+                        startGameBtn.addEventListener('click', () => {
+                            console.log(`Нажата кнопка "Начать игру" для корта ${courtId}`);
+                            // Здесь будет функционал запуска игры
+                        });
+
+                        // Добавляем кнопку в конец контейнера корта
+                        courtContainer.appendChild(startGameBtn);
+
+                        // Инициализируем иконки Feather
+                        if (window.feather) {
+                            feather.replace();
+                        }
+                    } else {
+                        // Если кнопка уже есть, показываем ее
+                        startGameBtn.style.display = '';
+                    }
+                } else {
+                    // Если не все слоты заняты, скрываем кнопку
+                    if (startGameBtn) {
+                        startGameBtn.style.display = 'none';
+                    }
                 }
             }
 

@@ -749,6 +749,41 @@ input:focus {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     margin-bottom: 10px;
+    position: relative;
+    padding-bottom: 50px; /* Добавляем отступ снизу для кнопки "Начать игру" */
+}
+
+/* Стили для кнопки "Начать игру" */
+.start-game-btn {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s;
+    width: auto;
+    max-width: 200px;
+}
+
+.start-game-btn:hover {
+    background-color: #219653;
+}
+
+.start-game-btn i {
+    width: 16px;
+    height: 16px;
 }
 
 .court-header {
