@@ -795,6 +795,36 @@ input:focus {
     height: 14px;
 }
 
+/* Стили для таймера */
+.start-game-btn.timer-transition {
+    animation: buttonToTimer 0.5s forwards;
+}
+
+.start-game-btn.timer-active {
+    background-color: rgba(52, 152, 219, 0.8); /* Синий цвет для таймера */
+    min-width: 100px;
+    font-family: 'Courier New', monospace; /* Моноширинный шрифт для таймера */
+}
+
+.start-game-btn.timer-active:hover {
+    background-color: rgba(52, 152, 219, 0.9);
+}
+
+@keyframes buttonToTimer {
+    0% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(-50%) scale(0.8);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
 .court-header {
     background-color: #3498db;
     color: white;

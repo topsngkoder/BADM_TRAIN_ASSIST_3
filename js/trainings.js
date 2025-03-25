@@ -956,7 +956,8 @@ export function initTrainingsModule() {
                         // Добавляем обработчик для кнопки
                         startGameBtn.addEventListener('click', () => {
                             console.log(`Нажата кнопка "Начать игру" для корта ${courtId}`);
-                            // Здесь будет функционал запуска игры
+                            // Запускаем игру и превращаем кнопку в таймер
+                            startGameTimer(startGameBtn, courtId);
                         });
 
                         // Добавляем кнопку в конец контейнера корта
@@ -975,6 +976,92 @@ export function initTrainingsModule() {
                     if (startGameBtn) {
                         startGameBtn.style.display = 'none';
                     }
+                }
+            }
+
+            // Функция для запуска таймера игры
+            function startGameTimer(buttonElement, courtId) {
+                // Проверяем, не запущен ли уже таймер
+                if (buttonElement.classList.contains('timer-active')) {
+                    console.log('Таймер уже запущен');
+                    return;
+                }
+
+                // Добавляем класс для анимации
+                buttonElement.classList.add('timer-transition');
+
+                // Меняем текст и стиль кнопки
+                buttonElement.innerHTML = '<i data-feather="clock"></i> 00:00';
+                buttonElement.classList.add('timer-active');
+
+                // Инициализируем иконки Feather
+                if (window.feather) {
+                    feather.replace();
+                }
+
+                // Сохраняем время начала игры
+                const startTime = new Date();
+                buttonElement.setAttribute('data-start-time', startTime.getTime());
+
+                // Запускаем таймер
+                const timerInterval = setInterval(() => {
+                    // Получаем текущее время
+                    const currentTime = new Date();
+
+                    // Вычисляем разницу в миллисекундах
+                    const elapsedTime = currentTime - startTime;
+
+                    // Преобразуем в минуты и секунды
+                    const minutes = Math.floor(elapsedTime / 60000);
+                    const seconds = Math.floor((elapsedTime % 60000) / 1000);
+
+                    // Форматируем время
+                    const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                    // Обновляем текст кнопки
+                    buttonElement.innerHTML = `<i data-feather="clock"></i> ${formattedTime}`;
+
+                    // Обновляем иконки Feather
+                    if (window.feather) {
+                        feather.replace();
+                    }
+                }, 1000);
+
+                // Сохраняем ID интервала в атрибуте кнопки для возможности остановки таймера
+                buttonElement.setAttribute('data-timer-id', timerInterval);
+
+                // Добавляем обработчик для остановки таймера при клике
+                buttonElement.addEventListener('click', stopGameTimer);
+
+                // Функция для остановки таймера
+                function stopGameTimer(e) {
+                    e.stopPropagation();
+
+                    // Получаем ID интервала
+                    const timerId = buttonElement.getAttribute('data-timer-id');
+
+                    // Останавливаем интервал
+                    if (timerId) {
+                        clearInterval(parseInt(timerId));
+                    }
+
+                    // Удаляем обработчик остановки таймера
+                    buttonElement.removeEventListener('click', stopGameTimer);
+
+                    // Возвращаем кнопку в исходное состояние
+                    buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
+                    buttonElement.classList.remove('timer-active');
+                    buttonElement.classList.remove('timer-transition');
+
+                    // Инициализируем иконки Feather
+                    if (window.feather) {
+                        feather.replace();
+                    }
+
+                    // Добавляем обработчик для запуска таймера
+                    buttonElement.addEventListener('click', () => {
+                        startGameTimer(buttonElement, courtId);
+                    });
                 }
             }
 
