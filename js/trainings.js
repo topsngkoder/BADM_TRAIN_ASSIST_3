@@ -664,15 +664,16 @@ export function initTrainingsModule() {
             const queuePlayerCards = detailsContainer.querySelectorAll('.queue-player-card');
             console.log('Найдено карточек игроков в очереди:', queuePlayerCards.length);
 
-            queuePlayerCards.forEach(card => {
-                card.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const playerId = card.getAttribute('data-player-id');
-                    console.log('Нажата карточка игрока в очереди:', playerId);
-                    // В будущем здесь будет функционал добавления игрока на корт
-                    showMessage('Функционал добавления игрока на корт будет реализован в следующем обновлении', 'info');
-                });
-            });
+            // Удаляем обработчики для карточек игроков в очереди
+            // queuePlayerCards.forEach(card => {
+            //     card.addEventListener('click', (e) => {
+            //         e.stopPropagation();
+            //         const playerId = card.getAttribute('data-player-id');
+            //         console.log('Нажата карточка игрока в очереди:', playerId);
+            //         // В будущем здесь будет функционал добавления игрока на корт
+            //         showMessage('Функционал добавления игрока на корт будет реализован в следующем обновлении', 'info');
+            //     });
+            // });
 
             // Обработчики для кнопок "Добавить из очереди"
             const addFromQueueButtons = detailsContainer.querySelectorAll('.add-from-queue-btn');
