@@ -574,7 +574,7 @@ export function initTrainingsModule() {
 
         for (let i = 1; i <= courtCount; i++) {
             courtsHTML += `
-                <div class="court-container" data-court-id="${i}">
+                <div class="court-container" data-court-id="${i}" style="margin-bottom: 20px; width: 100%; display: block;">
                     <div class="court-header">
                         <h4>Корт ${i}</h4>
                     </div>
@@ -624,11 +624,11 @@ export function initTrainingsModule() {
                         ${playersQueueHTML}
                     </div>
                 </div>
-                <div class="courts-section">
+                <div class="courts-section" style="width: 100%; height: auto; min-height: 500px; display: flex; flex-direction: column;">
                     <div class="section-header">
                         <h3>Корты</h3>
                     </div>
-                    <div class="courts-container">
+                    <div class="courts-container" style="display: flex; flex-direction: column; width: 100%; overflow-y: auto; max-height: none; padding-bottom: 50px;">
                         ${courtsHTML}
                     </div>
                 </div>
@@ -884,11 +884,14 @@ export function initTrainingsModule() {
             console.error('Не найден интерфейс деталей тренировки с ID "training-details-interface"');
         }
 
-        // Убедимся, что контейнер деталей тренировки имеет правильную ширину
+        // Убедимся, что контейнер деталей тренировки имеет правильную ширину и высоту
         const trainingDetailsContainer = document.getElementById('training-details-container');
         if (trainingDetailsContainer) {
             trainingDetailsContainer.style.width = '100%';
             trainingDetailsContainer.style.maxWidth = '100%';
+            trainingDetailsContainer.style.height = 'auto';
+            trainingDetailsContainer.style.minHeight = '100vh';
+            trainingDetailsContainer.style.overflowY = 'auto';
         }
 
         // Инициализируем иконки Feather
