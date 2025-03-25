@@ -708,7 +708,6 @@ export function initTrainingsModule() {
                 const courtHalf = detailsContainer.querySelector(`.court-half[data-court="${courtId}"][data-half="${half}"]`);
                 if (!courtHalf) {
                     console.error(`Не найдена половина корта: корт ${courtId}, половина ${half}`);
-                    showMessage('Ошибка при добавлении игрока на корт', 'error');
                     if (callback) callback();
                     return;
                 }
@@ -727,7 +726,6 @@ export function initTrainingsModule() {
 
                 if (!emptySlot) {
                     console.log('Нет свободных слотов на этой половине корта');
-                    showMessage('На этой половине корта уже 2 игрока', 'warning');
                     if (callback) callback();
                     return;
                 }
@@ -791,8 +789,6 @@ export function initTrainingsModule() {
                         removePlayerFromCourt(playerElement, playerId, playerName, playerPhoto, playerRatingClass);
                     });
                 }
-
-                showMessage(`Игрок ${playerName} добавлен на корт ${courtId}`, 'success');
             }
 
             // Функция для удаления игрока с корта
@@ -841,8 +837,6 @@ export function initTrainingsModule() {
                             }, 300);
                         }, 10);
                     }
-
-                    showMessage(`Игрок ${playerName} возвращен в очередь`, 'info');
                 }, 300);
             }
 
@@ -858,7 +852,6 @@ export function initTrainingsModule() {
                     console.log(`Нажата кнопка добавления выбранного игрока на корт ${courtId}, половина ${half}`);
 
                     // В будущем здесь будет функционал выбора и добавления игрока на корт
-                    showMessage('Функционал выбора игрока будет реализован в следующем обновлении', 'info');
                 });
             });
 
