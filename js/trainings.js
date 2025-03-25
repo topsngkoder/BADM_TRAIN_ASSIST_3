@@ -1139,21 +1139,261 @@ export function initTrainingsModule() {
                     // Форматируем время
                     const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-                    // Показываем сообщение о завершении игры
-                    showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+                    // Получаем ID корта
+                    const courtId = buttonElement.getAttribute('data-court-id');
 
-                    // Возвращаем кнопку в исходное состояние
-                    buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
-                    buttonElement.classList.remove('timer-active');
-                    buttonElement.classList.remove('timer-transition');
-                    buttonElement.style.pointerEvents = '';
-                    buttonElement.title = '';
+                    // Получаем текущий режим тренировки
+                    const trainingModeSelect = document.getElementById('training-mode');
+                    const currentMode = trainingModeSelect ? trainingModeSelect.value : 'single';
+
+                    // Обрабатываем завершение игры в зависимости от режима
+                    if (currentMode === 'single') {
+                        // Режим "Играем один раз"
+                        // Получаем игроков на корте
+                        const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                        if (!courtElement) {
+                            console.error('Не найден элемент корта');
+                            return;
+                        }
+
+                        // Получаем игроков верхней половины
+                        const topPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="top"] .court-player'))
+                            .map(playerElement => {
+                                const playerId = playerElement.getAttribute('data-player-id');
+                                const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                return { id: playerId, name: playerName };
+                            });
+
+                        // Получаем игроков нижней половины
+                        const bottomPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="bottom"] .court-player'))
+                            .map(playerElement => {
+                                const playerId = playerElement.getAttribute('data-player-id');
+                                const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                return { id: playerId, name: playerName };
+                            });
+
+                        // Проверяем, что на корте 4 игрока
+                        if (topPlayers.length === 2 && bottomPlayers.length === 2) {
+                            // Формируем названия команд
+                            const topTeamName = `${topPlayers[0].name}/${topPlayers[1].name}`;
+                            const bottomTeamName = `${bottomPlayers[0].name}/${bottomPlayers[1].name}`;
+
+                            // Показываем модальное окно выбора победителя
+                            showWinnerSelectionModal(courtId, topTeamName, bottomTeamName, topPlayers, bottomPlayers, formattedTime);
+                        } else {
+                            // Если на корте не 4 игрока, просто показываем сообщение о завершении
+                            showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+                            resetGameButton();
+                        }
+                    } else {
+                        // Другие режимы (пока просто показываем сообщение)
+                        showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+                        resetGameButton();
+                    }
+
+                    // Функция для сброса кнопки в исходное состояние
+                    function resetGameButton() {
+                        buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
+                        buttonElement.classList.remove('timer-active');
+                        buttonElement.classList.remove('timer-transition');
+                        buttonElement.style.pointerEvents = '';
+                        buttonElement.title = '';
+
+                        // Инициализируем иконки Feather
+                        if (window.feather) {
+                            feather.replace();
+                        }
+                    }
+                }
+            }
+
+            // Функция для отображения модального окна выбора победителя
+            function showWinnerSelectionModal(courtId, topTeamName, bottomTeamName, topPlayers, bottomPlayers, gameDuration) {
+                // Создаем модальное окно
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.id = 'winner-selection-modal';
+
+                // Создаем содержимое модального окна
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Кто победил?</h3>
+                            <button class="close-btn" id="close-winner-modal">
+                                <i data-feather="x"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Выберите победителя (продолжительность игры: ${gameDuration})</p>
+                            <div class="winner-options">
+                                <button class="winner-option-btn" data-team="top">
+                                    ${topTeamName}
+                                </button>
+                                <div class="winner-option-divider">или</div>
+                                <button class="winner-option-btn" data-team="bottom">
+                                    ${bottomTeamName}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Добавляем модальное окно в DOM
+                document.body.appendChild(modal);
+
+                // Инициализируем иконки Feather
+                if (window.feather) {
+                    feather.replace();
+                }
+
+                // Показываем модальное окно
+                setTimeout(() => {
+                    modal.classList.add('active');
+                }, 10);
+
+                // Добавляем обработчик для закрытия модального окна
+                const closeBtn = modal.querySelector('#close-winner-modal');
+                closeBtn.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.remove();
+                    }, 300);
+                });
+
+                // Добавляем обработчики для кнопок выбора победителя
+                const topTeamBtn = modal.querySelector('.winner-option-btn[data-team="top"]');
+                const bottomTeamBtn = modal.querySelector('.winner-option-btn[data-team="bottom"]');
+
+                topTeamBtn.addEventListener('click', () => {
+                    // Обрабатываем выбор верхней команды как победителя
+                    handleWinnerSelection(courtId, 'top', topPlayers, bottomPlayers);
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.remove();
+                    }, 300);
+                });
+
+                bottomTeamBtn.addEventListener('click', () => {
+                    // Обрабатываем выбор нижней команды как победителя
+                    handleWinnerSelection(courtId, 'bottom', topPlayers, bottomPlayers);
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.remove();
+                    }, 300);
+                });
+            }
+
+            // Функция для обработки выбора победителя
+            function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers) {
+                // Определяем победителей и проигравших
+                let winners, losers;
+
+                if (winnerTeam === 'top') {
+                    winners = topPlayers;
+                    losers = bottomPlayers;
+                    showMessage(`Победила команда: ${topPlayers[0].name}/${topPlayers[1].name}`, 'success');
+                } else {
+                    winners = bottomPlayers;
+                    losers = topPlayers;
+                    showMessage(`Победила команда: ${bottomPlayers[0].name}/${bottomPlayers[1].name}`, 'success');
+                }
+
+                // Удаляем игроков с корта
+                const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                if (!courtElement) {
+                    console.error('Не найден элемент корта');
+                    return;
+                }
+
+                // Удаляем всех игроков с корта
+                const courtPlayers = courtElement.querySelectorAll('.court-player');
+                courtPlayers.forEach(player => {
+                    player.classList.add('removing');
+                    setTimeout(() => {
+                        player.remove();
+                    }, 300);
+                });
+
+                // Добавляем проигравших в конец очереди
+                setTimeout(() => {
+                    losers.forEach(player => {
+                        addPlayerToQueue(player.id, player.name);
+                    });
+
+                    // Добавляем победителей в конец очереди после проигравших
+                    setTimeout(() => {
+                        winners.forEach(player => {
+                            addPlayerToQueue(player.id, player.name);
+                        });
+                    }, 300);
+                }, 300);
+
+                // Сбрасываем кнопку "Начать игру"
+                const startGameBtn = courtElement.querySelector('.start-game-btn');
+                if (startGameBtn) {
+                    startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
+                    startGameBtn.classList.remove('timer-active');
+                    startGameBtn.classList.remove('timer-transition');
+                    startGameBtn.style.pointerEvents = '';
+                    startGameBtn.title = '';
 
                     // Инициализируем иконки Feather
                     if (window.feather) {
                         feather.replace();
                     }
                 }
+            }
+
+            // Функция для добавления игрока в очередь
+            function addPlayerToQueue(playerId, playerName) {
+                // Получаем данные игрока
+                const player = {
+                    id: playerId,
+                    name: playerName
+                };
+
+                // Получаем контейнер очереди
+                const queueContainer = document.querySelector('.players-queue-container');
+                if (!queueContainer) {
+                    console.error('Не найден контейнер очереди');
+                    return;
+                }
+
+                // Проверяем, есть ли сообщение "Нет игроков в очереди"
+                const noPlayersMessage = queueContainer.querySelector('.no-players-message');
+                if (noPlayersMessage) {
+                    noPlayersMessage.remove();
+                }
+
+                // Создаем элемент игрока в очереди
+                const playerElement = document.createElement('div');
+                playerElement.className = 'queue-player-card';
+                playerElement.setAttribute('data-player-id', player.id);
+
+                // Получаем URL фото игрока (используем заглушку, если фото нет)
+                const photoUrl = `img/players/${player.id}.jpg`;
+
+                // Заполняем HTML игрока
+                playerElement.innerHTML = `
+                    <div class="queue-player-photo-container">
+                        <img src="${photoUrl}" alt="${player.name}" class="queue-player-photo" onerror="this.src='img/player-placeholder.jpg'">
+                    </div>
+                    <div class="queue-player-info">
+                        <div class="queue-player-name">${player.name}</div>
+                        <div class="queue-player-rating"></div>
+                    </div>
+                `;
+
+                // Добавляем игрока в очередь
+                queueContainer.appendChild(playerElement);
+
+                // Добавляем класс для анимации
+                playerElement.classList.add('added');
+
+                // Добавляем обработчик для перетаскивания игрока на корт
+                playerElement.addEventListener('click', function() {
+                    console.log(`Нажат игрок в очереди: ${player.name}`);
+                });
             }
 
             // Функция для открытия модального окна выбора игрока
