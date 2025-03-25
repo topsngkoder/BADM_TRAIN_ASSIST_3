@@ -1436,14 +1436,47 @@ export function initTrainingsModule() {
                     showMessage(`Победила команда: ${bottomPlayers[0].name}/${bottomPlayers[1].name}`, 'success');
                 }
 
-                // Удаляем игроков с корта
+                // Получаем элемент корта
                 const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
                 if (!courtElement) {
                     console.error('Не найден элемент корта');
                     return;
                 }
 
-                // Удаляем всех игроков с корта
+                // Получаем рейтинги игроков из очереди в sessionStorage
+                const getPlayerRating = (playerId) => {
+                    let rating = 0;
+                    const queueJson = sessionStorage.getItem('playersQueue');
+                    if (queueJson) {
+                        try {
+                            const queue = JSON.parse(queueJson);
+                            const player = queue.find(p => p.id === playerId);
+                            if (player) {
+                                rating = parseInt(player.rating) || 0;
+                            }
+                        } catch (e) {
+                            console.error('Ошибка при получении рейтинга игрока:', e);
+                        }
+                    }
+                    return rating;
+                };
+
+                // Сначала добавляем игроков в очередь, затем удаляем их с корта
+                console.log('Добавляем победителей в очередь:', winners);
+                winners.forEach(player => {
+                    const rating = getPlayerRating(player.id);
+                    console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
+                    addPlayerToQueue(player.id, player.name, rating, 'end', player.photo);
+                });
+
+                console.log('Добавляем проигравших в очередь:', losers);
+                losers.forEach(player => {
+                    const rating = getPlayerRating(player.id);
+                    console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
+                    addPlayerToQueue(player.id, player.name, rating, 'end', player.photo);
+                });
+
+                // Теперь удаляем игроков с корта
                 const courtPlayers = courtElement.querySelectorAll('.court-player');
                 courtPlayers.forEach(player => {
                     player.classList.add('removing');
@@ -1464,42 +1497,6 @@ export function initTrainingsModule() {
                     });
                 }, 350);
 
-                // Получаем рейтинги игроков из очереди в sessionStorage
-                const getPlayerRating = (playerId) => {
-                    let rating = 0;
-                    const queueJson = sessionStorage.getItem('playersQueue');
-                    if (queueJson) {
-                        try {
-                            const queue = JSON.parse(queueJson);
-                            const player = queue.find(p => p.id === playerId);
-                            if (player) {
-                                rating = parseInt(player.rating) || 0;
-                            }
-                        } catch (e) {
-                            console.error('Ошибка при получении рейтинга игрока:', e);
-                        }
-                    }
-                    return rating;
-                };
-
-                // В режиме "Играем один раз" победители идут в конец очереди, а проигравшие - после них
-                // Рейтинг здесь не учитывается для сортировки, а только для отображения
-                setTimeout(() => {
-                    // Добавляем победителей в конец очереди
-                    winners.forEach(player => {
-                        const rating = getPlayerRating(player.id);
-                        addPlayerToQueue(player.id, player.name, rating, 'end', player.photo);
-                    });
-
-                    // Добавляем проигравших в конец очереди после победителей
-                    setTimeout(() => {
-                        losers.forEach(player => {
-                            const rating = getPlayerRating(player.id);
-                            addPlayerToQueue(player.id, player.name, rating, 'end', player.photo);
-                        });
-                    }, 300);
-                }, 300);
-
                 // Сбрасываем кнопку "Начать игру"
                 const startGameBtn = courtElement.querySelector('.start-game-btn');
                 if (startGameBtn) {
@@ -1519,6 +1516,13 @@ export function initTrainingsModule() {
             // Функция для добавления игрока в очередь
             function addPlayerToQueue(playerId, playerName, rating = 0, position = 'end', playerPhoto = null) {
                 console.log(`Добавление игрока ${playerName} (ID: ${playerId}, рейтинг: ${rating}) в очередь`);
+                console.log('Фото игрока:', playerPhoto);
+
+                // Проверяем входные данные
+                if (!playerId || !playerName) {
+                    console.error('Не указан ID или имя игрока');
+                    return null;
+                }
 
                 // Получаем данные игрока
                 const player = {
@@ -1532,8 +1536,10 @@ export function initTrainingsModule() {
                 const queueContainer = document.querySelector('.players-queue-container');
                 if (!queueContainer) {
                     console.error('Не найден контейнер очереди');
-                    return;
+                    return null;
                 }
+
+                console.log('Контейнер очереди найден:', queueContainer);
 
                 // Проверяем, есть ли сообщение "Нет игроков в очереди"
                 const noPlayersMessage = queueContainer.querySelector('.no-players-message');
@@ -1579,13 +1585,13 @@ export function initTrainingsModule() {
                     queueContainer.appendChild(playerElement);
 
                     // Обновляем очередь в sessionStorage
-                    updateQueueInSessionStorage(playerId, playerName, rating, 'add', 'end');
+                    updateQueueInSessionStorage(playerId, playerName, rating, 'add', 'end', player.photo);
                 } else {
                     // Добавляем в начало очереди
                     queueContainer.prepend(playerElement);
 
                     // Обновляем очередь в sessionStorage
-                    updateQueueInSessionStorage(playerId, playerName, rating, 'add', 'start');
+                    updateQueueInSessionStorage(playerId, playerName, rating, 'add', 'start', player.photo);
                 }
 
                 // Добавляем класс для анимации
