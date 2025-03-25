@@ -709,12 +709,13 @@ input:focus {
     display: flex;
     gap: 10px;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .court-player-slot {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    min-width: 150px;
+    height: 36px;
+    border-radius: 18px;
     overflow: visible;
     display: flex;
     align-items: center;
@@ -730,7 +731,7 @@ input:focus {
     align-items: center;
     justify-content: center;
     color: #b2bec3;
-    border-radius: 50%;
+    border-radius: 18px;
 }
 
 .empty-player-slot svg {
@@ -741,16 +742,21 @@ input:focus {
 /* Стили для игрока на корте */
 .court-player {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    width: 100%;
+    width: auto;
     position: relative;
     animation: fadeIn 0.3s ease;
+    background-color: white;
+    border-radius: 18px;
+    padding: 4px 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .court-player-photo-container {
     position: relative;
-    margin-bottom: 3px;
+    margin-right: 6px;
+    margin-bottom: 0;
 }
 
 .court-player-photo {
@@ -766,11 +772,12 @@ input:focus {
     font-size: 12px;
     font-weight: 600;
     color: #2c3e50;
-    text-align: center;
-    max-width: 70px;
+    text-align: left;
+    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100px;
 }
 
 .remove-player-btn {
@@ -791,6 +798,7 @@ input:focus {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     opacity: 0;
     transition: opacity 0.2s;
+    z-index: 1;
 }
 
 .court-player:hover .remove-player-btn {
