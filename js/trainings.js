@@ -659,6 +659,9 @@ export function initTrainingsModule() {
             //     });
             // });
 
+            // Флаг для отслеживания процесса добавления игрока
+            let isAddingPlayer = false;
+
             // Обработчики для кнопок "Добавить из очереди"
             const addFromQueueButtons = detailsContainer.querySelectorAll('.add-from-queue-btn');
             console.log('Найдено кнопок добавления из очереди:', addFromQueueButtons.length);
@@ -666,24 +669,41 @@ export function initTrainingsModule() {
             addFromQueueButtons.forEach(button => {
                 button.addEventListener('click', (e) => {
                     e.stopPropagation();
+
+                    // Если процесс добавления уже идет, игнорируем клик
+                    if (isAddingPlayer) {
+                        console.log('Процесс добавления игрока уже идет, игнорируем клик');
+                        return;
+                    }
+
                     const courtId = button.getAttribute('data-court');
                     const half = button.getAttribute('data-half');
                     console.log(`Нажата кнопка добавления из очереди на корт ${courtId}, половина ${half}`);
 
                     // Проверяем, есть ли игроки в очереди
-                    const queuePlayers = detailsContainer.querySelectorAll('.queue-player-card');
+                    const queuePlayers = detailsContainer.querySelectorAll('.queue-player-card:not(.removing)');
                     if (queuePlayers.length === 0) {
                         showMessage('В очереди нет игроков', 'warning');
                         return;
                     }
 
+                    // Устанавливаем флаг, что процесс добавления начался
+                    isAddingPlayer = true;
+
+                    // Визуально блокируем кнопку
+                    button.classList.add('disabled');
+
                     // Добавляем первого игрока из очереди на корт
-                    addPlayerFromQueueToCourt(queuePlayers[0], courtId, half);
+                    addPlayerFromQueueToCourt(queuePlayers[0], courtId, half, () => {
+                        // Callback после завершения анимации
+                        isAddingPlayer = false;
+                        button.classList.remove('disabled');
+                    });
                 });
             });
 
             // Функция для добавления игрока из очереди на корт
-            function addPlayerFromQueueToCourt(playerCard, courtId, half) {
+            function addPlayerFromQueueToCourt(playerCard, courtId, half, callback) {
                 // Получаем ID игрока
                 const playerId = playerCard.getAttribute('data-player-id');
                 console.log(`Добавление игрока с ID ${playerId} на корт ${courtId}, половина ${half}`);
@@ -693,6 +713,7 @@ export function initTrainingsModule() {
                 if (!courtHalf) {
                     console.error(`Не найдена половина корта: корт ${courtId}, половина ${half}`);
                     showMessage('Ошибка при добавлении игрока на корт', 'error');
+                    if (callback) callback();
                     return;
                 }
 
@@ -711,6 +732,7 @@ export function initTrainingsModule() {
                 if (!emptySlot) {
                     console.log('Нет свободных слотов на этой половине корта');
                     showMessage('На этой половине корта уже 2 игрока', 'warning');
+                    if (callback) callback();
                     return;
                 }
 
@@ -750,6 +772,9 @@ export function initTrainingsModule() {
                             queueContainer.innerHTML = '<p class="no-players-message">Нет игроков в очереди</p>';
                         }
                     }
+
+                    // Вызываем callback после завершения анимации
+                    if (callback) callback();
                 }, 300);
 
                 // Инициализируем иконки Feather для новых элементов
