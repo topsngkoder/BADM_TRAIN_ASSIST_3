@@ -713,7 +713,7 @@ input:focus {
 }
 
 .court-player-slot {
-    min-width: 150px;
+    min-width: 120px;
     height: 36px;
     border-radius: 18px;
     overflow: visible;
@@ -732,6 +732,7 @@ input:focus {
     justify-content: center;
     color: #b2bec3;
     border-radius: 18px;
+    min-width: 120px;
 }
 
 .empty-player-slot svg {
@@ -751,6 +752,8 @@ input:focus {
     border-radius: 18px;
     padding: 4px 8px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    min-width: 100px;
+    max-width: fit-content;
 }
 
 .court-player-photo-container {
@@ -774,10 +777,8 @@ input:focus {
     color: #2c3e50;
     text-align: left;
     flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 100px;
+    min-width: 80px;
 }
 
 .remove-player-btn {
@@ -929,7 +930,8 @@ input:focus {
     margin-bottom: 0;
     cursor: pointer;
     flex: 0 0 auto;
-    max-width: 180px;
+    min-width: 100px;
+    max-width: fit-content;
 }
 
 .queue-player-card:hover {
@@ -1005,10 +1007,8 @@ input:focus {
     font-size: 12px;
     font-weight: 600;
     flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
-    width: 100%;
+    min-width: 80px;
 }
 
 .queue-player-rating {
