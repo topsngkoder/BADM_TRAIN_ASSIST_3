@@ -848,9 +848,100 @@ export function initTrainingsModule() {
                     const half = button.getAttribute('data-half');
                     console.log(`Нажата кнопка добавления выбранного игрока на корт ${courtId}, половина ${half}`);
 
-                    // В будущем здесь будет функционал выбора и добавления игрока на корт
+                    // Проверяем, есть ли игроки в очереди
+                    const queuePlayers = detailsContainer.querySelectorAll('.queue-player-card:not(.removing)');
+                    if (queuePlayers.length === 0) {
+                        showMessage('В очереди нет игроков', 'warning');
+                        return;
+                    }
+
+                    // Создаем модальное окно для выбора игрока
+                    openPlayerSelectionModal(courtId, half, queuePlayers);
                 });
             });
+
+            // Функция для открытия модального окна выбора игрока
+            function openPlayerSelectionModal(courtId, half, queuePlayers) {
+                // Проверяем, существует ли уже модальное окно
+                let playerSelectionModal = document.getElementById('player-selection-modal');
+
+                // Если модальное окно не существует, создаем его
+                if (!playerSelectionModal) {
+                    playerSelectionModal = document.createElement('div');
+                    playerSelectionModal.id = 'player-selection-modal';
+                    playerSelectionModal.className = 'modal';
+
+                    // Добавляем модальное окно в DOM
+                    document.body.appendChild(playerSelectionModal);
+                }
+
+                // Создаем содержимое модального окна
+                playerSelectionModal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Выберите игрока</h3>
+                            <button class="close-btn" aria-label="Закрыть">
+                                <i data-feather="x"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="players-list">
+                                ${Array.from(queuePlayers).map(player => {
+                                    const playerId = player.getAttribute('data-player-id');
+                                    const playerName = player.querySelector('.queue-player-name').textContent;
+                                    const playerPhoto = player.querySelector('.queue-player-photo').src;
+
+                                    return `
+                                        <div class="player-selection-item" data-player-id="${playerId}">
+                                            <div class="player-selection-photo-container">
+                                                <img src="${playerPhoto}" alt="${playerName}" class="player-selection-photo">
+                                            </div>
+                                            <div class="player-selection-name">${playerName}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Открываем модальное окно
+                openModal(playerSelectionModal);
+
+                // Инициализируем иконки Feather
+                if (window.feather) {
+                    feather.replace();
+                }
+
+                // Добавляем обработчик для кнопки закрытия
+                const closeBtn = playerSelectionModal.querySelector('.close-btn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        closeModal(playerSelectionModal);
+                    });
+                }
+
+                // Добавляем обработчики для элементов выбора игрока
+                const playerItems = playerSelectionModal.querySelectorAll('.player-selection-item');
+                playerItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const playerId = item.getAttribute('data-player-id');
+                        console.log(`Выбран игрок с ID ${playerId} для добавления на корт ${courtId}, половина ${half}`);
+
+                        // Находим карточку игрока в очереди
+                        const playerCard = detailsContainer.querySelector(`.queue-player-card[data-player-id="${playerId}"]`);
+                        if (playerCard) {
+                            // Добавляем игрока на корт
+                            addPlayerFromQueueToCourt(playerCard, courtId, half);
+
+                            // Закрываем модальное окно
+                            closeModal(playerSelectionModal);
+                        } else {
+                            console.error(`Не найдена карточка игрока с ID ${playerId}`);
+                        }
+                    });
+                });
+            }
 
             // Инициализируем иконки Feather
             if (window.feather) {
