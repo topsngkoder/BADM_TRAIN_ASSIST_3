@@ -1027,42 +1027,14 @@ export function initTrainingsModule() {
                     }
                 }, 1000);
 
-                // Сохраняем ID интервала в атрибуте кнопки для возможности остановки таймера
+                // Сохраняем ID интервала в атрибуте кнопки для возможности остановки таймера в будущем
                 buttonElement.setAttribute('data-timer-id', timerInterval);
 
-                // Добавляем обработчик для остановки таймера при клике
-                buttonElement.addEventListener('click', stopGameTimer);
+                // Делаем кнопку неактивной для нажатий
+                buttonElement.style.pointerEvents = 'none';
 
-                // Функция для остановки таймера
-                function stopGameTimer(e) {
-                    e.stopPropagation();
-
-                    // Получаем ID интервала
-                    const timerId = buttonElement.getAttribute('data-timer-id');
-
-                    // Останавливаем интервал
-                    if (timerId) {
-                        clearInterval(parseInt(timerId));
-                    }
-
-                    // Удаляем обработчик остановки таймера
-                    buttonElement.removeEventListener('click', stopGameTimer);
-
-                    // Возвращаем кнопку в исходное состояние
-                    buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
-                    buttonElement.classList.remove('timer-active');
-                    buttonElement.classList.remove('timer-transition');
-
-                    // Инициализируем иконки Feather
-                    if (window.feather) {
-                        feather.replace();
-                    }
-
-                    // Добавляем обработчик для запуска таймера
-                    buttonElement.addEventListener('click', () => {
-                        startGameTimer(buttonElement, courtId);
-                    });
-                }
+                // Добавляем подсказку, что таймер активен
+                buttonElement.title = 'Таймер активен';
             }
 
             // Функция для открытия модального окна выбора игрока

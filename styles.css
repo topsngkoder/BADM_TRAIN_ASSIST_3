@@ -804,10 +804,13 @@ input:focus {
     background-color: rgba(52, 152, 219, 0.8); /* Синий цвет для таймера */
     min-width: 100px;
     font-family: 'Courier New', monospace; /* Моноширинный шрифт для таймера */
+    cursor: default; /* Меняем курсор, чтобы показать, что кнопка не кликабельна */
 }
 
 .start-game-btn.timer-active:hover {
-    background-color: rgba(52, 152, 219, 0.9);
+    background-color: rgba(52, 152, 219, 0.8); /* Не меняем цвет при наведении */
+    transform: translateX(-50%); /* Отменяем эффект подъема при наведении */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Не меняем тень при наведении */
 }
 
 @keyframes buttonToTimer {
