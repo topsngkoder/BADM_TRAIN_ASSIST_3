@@ -555,14 +555,14 @@ export function initTrainingsModule() {
                 .map(tp => tp.players);
         }
 
-        // Сортируем игроков по рейтингу (от высокого к низкому)
+        // Сортируем игроков по рейтингу (от высокого к низкому) для начального формирования очереди
         players.sort((a, b) => {
             const ratingA = parseInt(a.rating) || 0;
             const ratingB = parseInt(b.rating) || 0;
             return ratingB - ratingA; // Сортировка по убыванию
         });
 
-        console.log('Отсортированные игроки по рейтингу:', players);
+        console.log('Отсортированные игроки по рейтингу для начальной очереди:', players);
 
         // Сохраняем отсортированную очередь в sessionStorage
         sessionStorage.setItem('playersQueue', JSON.stringify(players));
@@ -937,6 +937,7 @@ export function initTrainingsModule() {
                         `;
 
                         // Обновляем очередь в sessionStorage
+                        // При удалении игрока с корта он всегда идет в начало очереди, рейтинг не влияет на порядок
                         updateQueueInSessionStorage(playerId, playerName, playerRating, 'add', 'start');
 
                         // Добавляем карточку в начало очереди
@@ -1388,8 +1389,10 @@ export function initTrainingsModule() {
                     return rating;
                 };
 
-                // Добавляем проигравших в конец очереди
+                // В режиме "Играем один раз" проигравшие идут в конец очереди, а победители - после них
+                // Рейтинг здесь не учитывается для сортировки, а только для отображения
                 setTimeout(() => {
+                    // Добавляем проигравших в конец очереди
                     losers.forEach(player => {
                         const rating = getPlayerRating(player.id);
                         addPlayerToQueue(player.id, player.name, rating, 'end');
@@ -1536,9 +1539,12 @@ export function initTrainingsModule() {
                     }
 
                     // Добавляем игрока в очередь в зависимости от позиции
+                    // Позиция определяется правилами игры, а не рейтингом
                     if (position === 'end') {
+                        // Добавляем в конец очереди (проигравшие, затем победители)
                         queue.push(player);
                     } else {
+                        // Добавляем в начало очереди (при удалении игрока с корта)
                         queue.unshift(player);
                     }
                 } else if (action === 'remove') {
