@@ -1193,6 +1193,19 @@ export function initTrainingsModule() {
                     if (window.feather) {
                         feather.replace();
                     }
+
+                    // Получаем ID корта
+                    const courtId = buttonElement.getAttribute('data-court-id');
+
+                    // Получаем элемент корта
+                    const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                    if (courtElement) {
+                        // Обновляем видимость кнопок на всех половинах корта
+                        const courtHalves = courtElement.querySelectorAll('.court-half');
+                        courtHalves.forEach(half => {
+                            updateCourtHalfButtons(half);
+                        });
+                    }
                 }
 
                 // Функция для завершения игры
@@ -1277,6 +1290,16 @@ export function initTrainingsModule() {
                         // Инициализируем иконки Feather
                         if (window.feather) {
                             feather.replace();
+                        }
+
+                        // Получаем элемент корта
+                        const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                        if (courtElement) {
+                            // Обновляем видимость кнопок на всех половинах корта
+                            const courtHalves = courtElement.querySelectorAll('.court-half');
+                            courtHalves.forEach(half => {
+                                updateCourtHalfButtons(half);
+                            });
                         }
                     }
                 }
@@ -1388,6 +1411,15 @@ export function initTrainingsModule() {
                         player.remove();
                     }, 300);
                 });
+
+                // Обновляем состояние корта после удаления игроков
+                setTimeout(() => {
+                    // Обновляем видимость кнопок на всех половинах корта
+                    const courtHalves = courtElement.querySelectorAll('.court-half');
+                    courtHalves.forEach(half => {
+                        updateCourtHalfButtons(half);
+                    });
+                }, 350);
 
                 // Получаем рейтинги игроков из очереди в sessionStorage
                 const getPlayerRating = (playerId) => {
