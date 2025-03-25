@@ -581,16 +581,8 @@ export function initTrainingsModule() {
                     <div class="court-body">
                         <div class="court-half top-half" data-court="${i}" data-half="top">
                             <div class="court-players">
-                                <div class="court-player-slot" data-slot="1">
-                                    <div class="empty-player-slot">
-                                        <i data-feather="user"></i>
-                                    </div>
-                                </div>
-                                <div class="court-player-slot" data-slot="2">
-                                    <div class="empty-player-slot">
-                                        <i data-feather="user"></i>
-                                    </div>
-                                </div>
+                                <div class="court-player-slot" data-slot="1"></div>
+                                <div class="court-player-slot" data-slot="2"></div>
                             </div>
                             <div class="court-actions">
                                 <button class="court-action-btn add-from-queue-btn" data-court="${i}" data-half="top" aria-label="Добавить из очереди">
@@ -604,16 +596,8 @@ export function initTrainingsModule() {
                         <div class="court-divider"></div>
                         <div class="court-half bottom-half" data-court="${i}" data-half="bottom">
                             <div class="court-players">
-                                <div class="court-player-slot" data-slot="1">
-                                    <div class="empty-player-slot">
-                                        <i data-feather="user"></i>
-                                    </div>
-                                </div>
-                                <div class="court-player-slot" data-slot="2">
-                                    <div class="empty-player-slot">
-                                        <i data-feather="user"></i>
-                                    </div>
-                                </div>
+                                <div class="court-player-slot" data-slot="1"></div>
+                                <div class="court-player-slot" data-slot="2"></div>
                             </div>
                             <div class="court-actions">
                                 <button class="court-action-btn add-from-queue-btn" data-court="${i}" data-half="bottom" aria-label="Добавить из очереди">
