@@ -873,9 +873,14 @@ export function initTrainingsModule() {
                         playerCard.className = 'queue-player-card';
                         playerCard.setAttribute('data-player-id', playerId);
 
+                        // Используем API для генерации аватаров, если фото не передано или недоступно
+                        const photoUrl = playerPhoto && !playerPhoto.includes('ui-avatars.com') ?
+                            playerPhoto :
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(playerName)}&background=3498db&color=fff&size=150`;
+
                         playerCard.innerHTML = `
                             <div class="queue-player-photo-container">
-                                <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo">
+                                <img src="${photoUrl}" alt="${playerName}" class="queue-player-photo">
                             </div>
                             <div class="queue-player-info">
                                 <div class="queue-player-name">${playerName}</div>
@@ -1370,13 +1375,13 @@ export function initTrainingsModule() {
                 playerElement.className = 'queue-player-card';
                 playerElement.setAttribute('data-player-id', player.id);
 
-                // Получаем URL фото игрока (используем заглушку, если фото нет)
-                const photoUrl = `img/players/${player.id}.jpg`;
+                // Используем API для генерации аватаров
+                const photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=3498db&color=fff&size=150`;
 
                 // Заполняем HTML игрока
                 playerElement.innerHTML = `
                     <div class="queue-player-photo-container">
-                        <img src="${photoUrl}" alt="${player.name}" class="queue-player-photo" onerror="this.src='img/player-placeholder.jpg'">
+                        <img src="${photoUrl}" alt="${player.name}" class="queue-player-photo">
                     </div>
                     <div class="queue-player-info">
                         <div class="queue-player-name">${player.name}</div>
