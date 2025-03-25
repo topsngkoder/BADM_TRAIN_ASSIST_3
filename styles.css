@@ -638,13 +638,13 @@ input:focus {
     flex: 1;
 }
 
-/* Очередь игроков в виде плитки */
+/* Очередь игроков в виде горизонтальных карточек */
 .players-queue-container.horizontal {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     padding-bottom: 10px;
-    min-height: 80px;
+    min-height: 60px;
     width: 100%;
     overflow-y: auto;
     flex: 1;
@@ -929,9 +929,9 @@ input:focus {
 .queue-player-card {
     display: flex;
     align-items: center;
-    padding: 8px;
+    padding: 8px 12px;
     background-color: white;
-    border-radius: 8px;
+    border-radius: 20px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
     margin-bottom: 4px;
@@ -943,24 +943,28 @@ input:focus {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Стили для очереди в виде плитки */
+/* Стили для очереди в виде горизонтальных карточек */
 .players-queue-container.horizontal .queue-player-card {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    text-align: center;
-    padding: 8px 5px;
-    height: 100%;
-    justify-content: space-between;
+    padding: 6px 12px;
+    height: auto;
+    min-height: 40px;
+    justify-content: flex-start;
     box-sizing: border-box;
+    flex: 0 0 auto;
+    margin-bottom: 0;
+    width: auto;
 }
 
 .queue-player-photo-container {
     margin-right: 10px;
-    margin-bottom: 8px;
+    margin-bottom: 0;
 }
 
 .players-queue-container.horizontal .queue-player-photo-container {
-    margin-right: 0;
+    margin-right: 10px;
+    margin-bottom: 0;
 }
 
 .queue-player-photo {
@@ -972,8 +976,8 @@ input:focus {
 }
 
 .players-queue-container.horizontal .queue-player-photo {
-    width: 45px;
-    height: 45px;
+    width: 30px;
+    height: 30px;
     border-width: 2px;
 }
 
@@ -1000,30 +1004,47 @@ input:focus {
 
 .queue-player-info {
     flex: 1;
+    display: flex;
+    align-items: center;
 }
 
 .players-queue-container.horizontal .queue-player-info {
-    width: 100%;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .queue-player-name {
     font-weight: 500;
     color: #2c3e50;
-    margin-bottom: 2px;
+    margin-bottom: 0;
     font-size: 13px;
 }
 
 .players-queue-container.horizontal .queue-player-name {
-    font-size: 11px;
-    max-width: 70px;
+    font-size: 14px;
+    font-weight: 600;
+    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    margin-right: 10px;
 }
 
 .queue-player-rating {
     font-size: 11px;
     color: #7f8c8d;
+}
+
+.players-queue-container.horizontal .queue-player-rating {
+    font-size: 12px;
+    font-weight: bold;
+    color: #3498db;
+    background-color: rgba(52, 152, 219, 0.1);
+    padding: 2px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
 }
 
 

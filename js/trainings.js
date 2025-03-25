@@ -820,30 +820,23 @@ export function initTrainingsModule() {
                         playerCard.className = 'queue-player-card';
                         playerCard.setAttribute('data-player-id', playerId);
 
-                        // Проверяем, горизонтальная ли очередь
-                        const isHorizontal = queueContainer.classList.contains('horizontal');
+                        // Получаем рейтинг из класса
+                        let rating = "0";
+                        if (ratingClass === "rating-blue") rating = "до 300";
+                        else if (ratingClass === "rating-green") rating = "300-450";
+                        else if (ratingClass === "rating-yellow") rating = "450-600";
+                        else if (ratingClass === "rating-orange") rating = "600-800";
+                        else if (ratingClass === "rating-red") rating = "800+";
 
-                        if (isHorizontal) {
-                            playerCard.innerHTML = `
-                                <div class="queue-player-photo-container">
-                                    <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo ${ratingClass}">
-                                </div>
-                                <div class="queue-player-info">
-                                    <div class="queue-player-name">${playerName}</div>
-                                    <div class="queue-player-rating"></div>
-                                </div>
-                            `;
-                        } else {
-                            playerCard.innerHTML = `
-                                <div class="queue-player-photo-container">
-                                    <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo ${ratingClass}">
-                                </div>
-                                <div class="queue-player-info">
-                                    <div class="queue-player-name">${playerName}</div>
-                                    <div class="queue-player-rating"></div>
-                                </div>
-                            `;
-                        }
+                        playerCard.innerHTML = `
+                            <div class="queue-player-photo-container">
+                                <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo ${ratingClass}">
+                            </div>
+                            <div class="queue-player-info">
+                                <div class="queue-player-name">${playerName}</div>
+                                <div class="queue-player-rating">${rating}</div>
+                            </div>
+                        `;
 
                         // Добавляем карточку в начало очереди
                         queueContainer.prepend(playerCard);
