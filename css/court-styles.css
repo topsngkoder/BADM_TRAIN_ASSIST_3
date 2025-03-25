@@ -1,0 +1,44 @@
+/* Стили для корта, когда игра идет */
+.court-container.game-in-progress {
+    background-color: rgba(46, 204, 113, 0.05);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    border-radius: 8px;
+}
+
+.court-container.game-in-progress .court-player {
+    cursor: default;
+    pointer-events: none;
+}
+
+.court-container.game-in-progress .court-player:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.court-container.game-in-progress .court-player-photo {
+    border: 2px solid #2ecc71;
+}
+
+.court-container.game-in-progress .court-half {
+    background-color: rgba(46, 204, 113, 0.05);
+}
+
+/* Анимация пульсации для таймера */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+    }
+}
+
+.game-timer {
+    animation: pulse 2s infinite;
+    border-radius: 4px;
+    padding: 5px 10px;
+    background-color: rgba(46, 204, 113, 0.1);
+}
