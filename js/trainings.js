@@ -550,8 +550,22 @@ export function initTrainingsModule() {
         // Получаем список игроков для тренировки
         let players = [];
         if (training.training_players && Array.isArray(training.training_players)) {
-            players = training.training_players.map(tp => tp.players || tp);
+            players = training.training_players
+                .filter(tp => tp && tp.players) // Фильтруем только записи с игроками
+                .map(tp => tp.players);
         }
+
+        // Сортируем игроков по рейтингу (от высокого к низкому)
+        players.sort((a, b) => {
+            const ratingA = parseInt(a.rating) || 0;
+            const ratingB = parseInt(b.rating) || 0;
+            return ratingB - ratingA; // Сортировка по убыванию
+        });
+
+        console.log('Отсортированные игроки по рейтингу:', players);
+
+        // Сохраняем отсортированную очередь в sessionStorage
+        sessionStorage.setItem('playersQueue', JSON.stringify(players));
 
         // Создаем HTML для игроков в очереди
         let playersQueueHTML = '';
@@ -579,15 +593,18 @@ export function initTrainingsModule() {
                     ratingClass = 'rating-green';
                 }
 
+                // Добавляем рейтинг в карточку игрока
+                const ratingDisplay = rating > 0 ? rating : 'Нет';
+
                 // Возвращаем HTML для карточки игрока в очереди
                 return `
-                    <div class="queue-player-card" data-player-id="${player.id}">
+                    <div class="queue-player-card" data-player-id="${player.id}" data-player-rating="${rating}">
                         <div class="queue-player-photo-container">
-                            <img src="${photoUrl}" alt="${fullName}" class="queue-player-photo">
+                            <img src="${photoUrl}" alt="${fullName}" class="queue-player-photo ${ratingClass}">
                         </div>
                         <div class="queue-player-info">
                             <div class="queue-player-name">${fullName}</div>
-                            <div class="queue-player-rating"></div>
+                            <div class="queue-player-rating">Рейтинг: ${ratingDisplay}</div>
                         </div>
                     </div>
                 `;
@@ -798,6 +815,10 @@ export function initTrainingsModule() {
 
                 // Удаляем игрока из очереди
                 playerCard.classList.add('removing');
+
+                // Обновляем очередь в sessionStorage - удаляем игрока
+                updateQueueInSessionStorage(playerId, playerFullName, 0, 'remove');
+
                 setTimeout(() => {
                     playerCard.remove();
 
@@ -873,6 +894,33 @@ export function initTrainingsModule() {
                         playerCard.className = 'queue-player-card';
                         playerCard.setAttribute('data-player-id', playerId);
 
+                        // Получаем рейтинг игрока из очереди в sessionStorage
+                        let playerRating = 0;
+                        const queueJson = sessionStorage.getItem('playersQueue');
+                        if (queueJson) {
+                            try {
+                                const queue = JSON.parse(queueJson);
+                                const player = queue.find(p => p.id === playerId);
+                                if (player) {
+                                    playerRating = parseInt(player.rating) || 0;
+                                }
+                            } catch (e) {
+                                console.error('Ошибка при получении рейтинга игрока:', e);
+                            }
+                        }
+
+                        // Определяем класс рейтинга
+                        let ratingClass = 'rating-blue';
+                        if (playerRating >= 800) {
+                            ratingClass = 'rating-red';
+                        } else if (playerRating >= 600) {
+                            ratingClass = 'rating-orange';
+                        } else if (playerRating >= 450) {
+                            ratingClass = 'rating-yellow';
+                        } else if (playerRating >= 300) {
+                            ratingClass = 'rating-green';
+                        }
+
                         // Используем API для генерации аватаров, если фото не передано или недоступно
                         const photoUrl = playerPhoto && !playerPhoto.includes('ui-avatars.com') ?
                             playerPhoto :
@@ -880,13 +928,16 @@ export function initTrainingsModule() {
 
                         playerCard.innerHTML = `
                             <div class="queue-player-photo-container">
-                                <img src="${photoUrl}" alt="${playerName}" class="queue-player-photo">
+                                <img src="${photoUrl}" alt="${playerName}" class="queue-player-photo ${ratingClass}">
                             </div>
                             <div class="queue-player-info">
                                 <div class="queue-player-name">${playerName}</div>
-                                <div class="queue-player-rating"></div>
+                                <div class="queue-player-rating">Рейтинг: ${playerRating > 0 ? playerRating : 'Нет'}</div>
                             </div>
                         `;
+
+                        // Обновляем очередь в sessionStorage
+                        updateQueueInSessionStorage(playerId, playerName, playerRating, 'add', 'start');
 
                         // Добавляем карточку в начало очереди
                         queueContainer.prepend(playerCard);
@@ -1319,16 +1370,36 @@ export function initTrainingsModule() {
                     }, 300);
                 });
 
+                // Получаем рейтинги игроков из очереди в sessionStorage
+                const getPlayerRating = (playerId) => {
+                    let rating = 0;
+                    const queueJson = sessionStorage.getItem('playersQueue');
+                    if (queueJson) {
+                        try {
+                            const queue = JSON.parse(queueJson);
+                            const player = queue.find(p => p.id === playerId);
+                            if (player) {
+                                rating = parseInt(player.rating) || 0;
+                            }
+                        } catch (e) {
+                            console.error('Ошибка при получении рейтинга игрока:', e);
+                        }
+                    }
+                    return rating;
+                };
+
                 // Добавляем проигравших в конец очереди
                 setTimeout(() => {
                     losers.forEach(player => {
-                        addPlayerToQueue(player.id, player.name);
+                        const rating = getPlayerRating(player.id);
+                        addPlayerToQueue(player.id, player.name, rating, 'end');
                     });
 
                     // Добавляем победителей в конец очереди после проигравших
                     setTimeout(() => {
                         winners.forEach(player => {
-                            addPlayerToQueue(player.id, player.name);
+                            const rating = getPlayerRating(player.id);
+                            addPlayerToQueue(player.id, player.name, rating, 'end');
                         });
                     }, 300);
                 }, 300);
@@ -1350,11 +1421,14 @@ export function initTrainingsModule() {
             }
 
             // Функция для добавления игрока в очередь
-            function addPlayerToQueue(playerId, playerName) {
+            function addPlayerToQueue(playerId, playerName, rating = 0, position = 'end') {
+                console.log(`Добавление игрока ${playerName} (ID: ${playerId}, рейтинг: ${rating}) в очередь`);
+
                 // Получаем данные игрока
                 const player = {
                     id: playerId,
-                    name: playerName
+                    name: playerName,
+                    rating: rating
                 };
 
                 // Получаем контейнер очереди
@@ -1374,31 +1448,107 @@ export function initTrainingsModule() {
                 const playerElement = document.createElement('div');
                 playerElement.className = 'queue-player-card';
                 playerElement.setAttribute('data-player-id', player.id);
+                playerElement.setAttribute('data-player-rating', player.rating);
 
                 // Используем API для генерации аватаров
                 const photoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=3498db&color=fff&size=150`;
 
+                // Определяем класс рейтинга
+                let ratingClass = 'rating-blue';
+                if (rating >= 800) {
+                    ratingClass = 'rating-red';
+                } else if (rating >= 600) {
+                    ratingClass = 'rating-orange';
+                } else if (rating >= 450) {
+                    ratingClass = 'rating-yellow';
+                } else if (rating >= 300) {
+                    ratingClass = 'rating-green';
+                }
+
                 // Заполняем HTML игрока
                 playerElement.innerHTML = `
                     <div class="queue-player-photo-container">
-                        <img src="${photoUrl}" alt="${player.name}" class="queue-player-photo">
+                        <img src="${photoUrl}" alt="${player.name}" class="queue-player-photo ${ratingClass}">
                     </div>
                     <div class="queue-player-info">
                         <div class="queue-player-name">${player.name}</div>
-                        <div class="queue-player-rating"></div>
+                        <div class="queue-player-rating">Рейтинг: ${rating > 0 ? rating : 'Нет'}</div>
                     </div>
                 `;
 
-                // Добавляем игрока в очередь
-                queueContainer.appendChild(playerElement);
+                // Добавляем игрока в очередь в зависимости от позиции
+                if (position === 'end') {
+                    // Добавляем в конец очереди
+                    queueContainer.appendChild(playerElement);
+
+                    // Обновляем очередь в sessionStorage
+                    updateQueueInSessionStorage(playerId, playerName, rating, 'add', 'end');
+                } else {
+                    // Добавляем в начало очереди
+                    queueContainer.prepend(playerElement);
+
+                    // Обновляем очередь в sessionStorage
+                    updateQueueInSessionStorage(playerId, playerName, rating, 'add', 'start');
+                }
 
                 // Добавляем класс для анимации
                 playerElement.classList.add('added');
 
                 // Добавляем обработчик для перетаскивания игрока на корт
                 playerElement.addEventListener('click', function() {
-                    console.log(`Нажат игрок в очереди: ${player.name}`);
+                    console.log(`Нажат игрок в очереди: ${player.name} (ID: ${player.id}, рейтинг: ${player.rating})`);
                 });
+
+                return playerElement;
+            }
+
+            // Функция для обновления очереди в sessionStorage
+            function updateQueueInSessionStorage(playerId, playerName, rating, action, position) {
+                // Получаем текущую очередь из sessionStorage
+                let queue = [];
+                const queueJson = sessionStorage.getItem('playersQueue');
+
+                if (queueJson) {
+                    try {
+                        queue = JSON.parse(queueJson);
+                    } catch (e) {
+                        console.error('Ошибка при парсинге очереди из sessionStorage:', e);
+                        queue = [];
+                    }
+                }
+
+                // Обновляем очередь в зависимости от действия
+                if (action === 'add') {
+                    // Создаем объект игрока
+                    const player = {
+                        id: playerId,
+                        first_name: playerName.split(' ')[1] || '',
+                        last_name: playerName.split(' ')[0] || playerName,
+                        rating: rating
+                    };
+
+                    // Проверяем, есть ли уже игрок с таким ID в очереди
+                    const existingPlayerIndex = queue.findIndex(p => p.id === playerId);
+
+                    if (existingPlayerIndex !== -1) {
+                        // Если игрок уже есть в очереди, удаляем его
+                        queue.splice(existingPlayerIndex, 1);
+                    }
+
+                    // Добавляем игрока в очередь в зависимости от позиции
+                    if (position === 'end') {
+                        queue.push(player);
+                    } else {
+                        queue.unshift(player);
+                    }
+                } else if (action === 'remove') {
+                    // Удаляем игрока из очереди
+                    queue = queue.filter(p => p.id !== playerId);
+                }
+
+                // Сохраняем обновленную очередь в sessionStorage
+                sessionStorage.setItem('playersQueue', JSON.stringify(queue));
+                console.log('Очередь обновлена в sessionStorage:', queue);
             }
 
             // Функция для открытия модального окна выбора игрока
