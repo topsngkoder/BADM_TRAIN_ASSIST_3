@@ -581,26 +581,17 @@ input:focus {
     width: 100%;
 }
 
-/* Двухколоночный макет для страницы тренировки */
+/* Вертикальный макет для страницы тренировки */
 .training-layout {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     height: 100%;
     width: 100%;
     max-width: 100%;
 }
 
-.queue-column {
-    flex: 1;
-    min-width: 120px;
-    max-width: 35%;
-    width: 30%;
-}
-
-.courts-column {
-    flex: 2;
-    min-width: 200px;
-    width: 70%;
+.training-layout.vertical {
+    flex-direction: column;
 }
 
 /* Стили для секции очереди игроков */
@@ -609,9 +600,8 @@ input:focus {
     border-radius: 4px;
     padding: 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    height: 100%;
-    overflow-y: auto;
     width: 100%;
+    overflow-x: auto;
 }
 
 /* Стили для секции кортов */
@@ -620,7 +610,7 @@ input:focus {
     border-radius: 4px;
     padding: 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    height: 100%;
+    flex: 1;
     overflow-y: auto;
     width: 100%;
 }
@@ -629,6 +619,28 @@ input:focus {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+/* Горизонтальная очередь игроков */
+.players-queue-container.horizontal {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    min-height: 80px;
+}
+
+.players-queue-container.horizontal .queue-player-card {
+    flex: 0 0 auto;
+    width: 150px;
+    margin-bottom: 0;
+}
+
+.players-queue-container.horizontal .no-players-message {
+    width: 100%;
+    text-align: center;
+    padding: 20px 0;
 }
 
 /* Стили для корта */
@@ -893,10 +905,10 @@ input:focus {
 .queue-player-card {
     display: flex;
     align-items: center;
-    padding: 6px;
+    padding: 8px;
     background-color: white;
-    border-radius: 4px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
     margin-bottom: 4px;
     cursor: pointer;
@@ -907,8 +919,22 @@ input:focus {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Стили для горизонтальной очереди */
+.players-queue-container.horizontal .queue-player-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 10px;
+    height: 100%;
+}
+
 .queue-player-photo-container {
     margin-right: 10px;
+    margin-bottom: 8px;
+}
+
+.players-queue-container.horizontal .queue-player-photo-container {
+    margin-right: 0;
 }
 
 .queue-player-photo {
@@ -917,6 +943,12 @@ input:focus {
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #3498db;
+}
+
+.players-queue-container.horizontal .queue-player-photo {
+    width: 50px;
+    height: 50px;
+    border-width: 3px;
 }
 
 /* Применяем те же цветовые обводки к фото игрока в очереди */
@@ -944,6 +976,10 @@ input:focus {
     flex: 1;
 }
 
+.players-queue-container.horizontal .queue-player-info {
+    width: 100%;
+}
+
 .queue-player-name {
     font-weight: 500;
     color: #2c3e50;
@@ -963,6 +999,11 @@ input:focus {
     color: #7f8c8d;
     padding: 20px;
     font-style: italic;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
 }
 
 /* Стили для содержимого деталей тренировки */

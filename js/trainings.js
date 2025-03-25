@@ -613,27 +613,23 @@ export function initTrainingsModule() {
             `;
         }
 
-        // Добавляем очередь игроков и корты в двухколоночный макет
+        // Добавляем очередь игроков над кортами в вертикальный макет
         content.innerHTML = `
-            <div class="training-layout">
-                <div class="queue-column">
-                    <div class="players-queue-section">
-                        <div class="section-header">
-                            <h3>Очередь игроков</h3>
-                        </div>
-                        <div class="players-queue-container">
-                            ${playersQueueHTML}
-                        </div>
+            <div class="training-layout vertical">
+                <div class="players-queue-section">
+                    <div class="section-header">
+                        <h3>Очередь игроков</h3>
+                    </div>
+                    <div class="players-queue-container horizontal">
+                        ${playersQueueHTML}
                     </div>
                 </div>
-                <div class="courts-column">
-                    <div class="courts-section">
-                        <div class="section-header">
-                            <h3>Корты</h3>
-                        </div>
-                        <div class="courts-container">
-                            ${courtsHTML}
-                        </div>
+                <div class="courts-section">
+                    <div class="section-header">
+                        <h3>Корты</h3>
+                    </div>
+                    <div class="courts-container">
+                        ${courtsHTML}
                     </div>
                 </div>
             </div>
@@ -818,15 +814,31 @@ export function initTrainingsModule() {
                         const playerCard = document.createElement('div');
                         playerCard.className = 'queue-player-card';
                         playerCard.setAttribute('data-player-id', playerId);
-                        playerCard.innerHTML = `
-                            <div class="queue-player-photo-container">
-                                <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo ${ratingClass}">
-                            </div>
-                            <div class="queue-player-info">
-                                <div class="queue-player-name">${playerName}</div>
-                                <div class="queue-player-rating"></div>
-                            </div>
-                        `;
+
+                        // Проверяем, горизонтальная ли очередь
+                        const isHorizontal = queueContainer.classList.contains('horizontal');
+
+                        if (isHorizontal) {
+                            playerCard.innerHTML = `
+                                <div class="queue-player-photo-container">
+                                    <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo ${ratingClass}">
+                                </div>
+                                <div class="queue-player-info">
+                                    <div class="queue-player-name">${playerName}</div>
+                                    <div class="queue-player-rating"></div>
+                                </div>
+                            `;
+                        } else {
+                            playerCard.innerHTML = `
+                                <div class="queue-player-photo-container">
+                                    <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo ${ratingClass}">
+                                </div>
+                                <div class="queue-player-info">
+                                    <div class="queue-player-name">${playerName}</div>
+                                    <div class="queue-player-rating"></div>
+                                </div>
+                            `;
+                        }
 
                         // Добавляем карточку в начало очереди
                         queueContainer.prepend(playerCard);
