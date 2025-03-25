@@ -491,6 +491,17 @@ export function initTrainingsModule() {
         const titleElement = document.getElementById('training-title');
         const detailsContainer = document.getElementById('training-details-container');
 
+        // Получаем или создаем элемент для режима тренировки
+        let trainingModeElement = document.getElementById('training-mode-selector');
+        if (!trainingModeElement) {
+            trainingModeElement = document.createElement('div');
+            trainingModeElement.id = 'training-mode-selector';
+            trainingModeElement.className = 'training-mode-selector';
+
+            // Добавляем элемент после заголовка
+            titleElement.parentNode.insertBefore(trainingModeElement, titleElement.nextSibling);
+        }
+
         // Форматируем дату
         let formattedDate = 'Дата не указана';
         if (training.date) {
@@ -508,6 +519,26 @@ export function initTrainingsModule() {
 
         // Устанавливаем заголовок страницы в более компактном формате
         titleElement.textContent = `${training.venue} ${formattedDate}`;
+
+        // Заполняем селектор режима тренировки
+        trainingModeElement.innerHTML = `
+            <label for="training-mode">Режим тренировки:</label>
+            <select id="training-mode" class="training-mode-select">
+                <option value="single">Играем один раз</option>
+                <option value="max-two-wins">Не больше двух побед</option>
+                <option value="winner-stays">Победитель остается всегда</option>
+            </select>
+        `;
+
+        // Добавляем обработчик изменения режима тренировки
+        const trainingModeSelect = trainingModeElement.querySelector('#training-mode');
+        if (trainingModeSelect) {
+            trainingModeSelect.addEventListener('change', (e) => {
+                const selectedMode = e.target.value;
+                console.log('Выбран режим тренировки:', selectedMode);
+                // Здесь будет функционал для разных режимов тренировки
+            });
+        }
 
         // Очищаем контейнер деталей
         detailsContainer.innerHTML = '';

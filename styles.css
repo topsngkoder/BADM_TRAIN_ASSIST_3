@@ -645,6 +645,53 @@ input:focus {
     white-space: nowrap;
 }
 
+/* Стили для селектора режима тренировки */
+.training-mode-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    gap: 10px;
+    padding: 0 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 8px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.training-mode-selector label {
+    font-size: 0.9rem;
+    color: #555;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.training-mode-select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 0.9rem;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    min-width: 200px;
+}
+
+.training-mode-select:hover {
+    border-color: #bbb;
+}
+
+.training-mode-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.training-mode-select option {
+    padding: 5px;
+}
+
 /* Стили для контейнера деталей тренировки */
 .training-details-container {
     padding: 10px;
