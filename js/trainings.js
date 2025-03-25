@@ -1083,6 +1083,42 @@ export function initTrainingsModule() {
                 }
             }
 
+            // Функция для блокировки изменения состава игроков на корте
+            function lockCourtPlayers(courtElement) {
+                // Скрываем кнопки добавления игроков
+                const addButtons = courtElement.querySelectorAll('.add-from-queue-btn, .add-player-btn');
+                addButtons.forEach(button => {
+                    button.style.display = 'none';
+                });
+
+                // Скрываем кнопки удаления игроков
+                const removeButtons = courtElement.querySelectorAll('.remove-player-btn');
+                removeButtons.forEach(button => {
+                    button.style.display = 'none';
+                });
+
+                // Добавляем класс к корту, указывающий, что игра идет
+                courtElement.classList.add('game-in-progress');
+            }
+
+            // Функция для разблокировки изменения состава игроков на корте
+            function unlockCourtPlayers(courtElement) {
+                // Удаляем класс, указывающий, что игра идет
+                courtElement.classList.remove('game-in-progress');
+
+                // Обновляем видимость кнопок на всех половинах корта
+                const courtHalves = courtElement.querySelectorAll('.court-half');
+                courtHalves.forEach(half => {
+                    updateCourtHalfButtons(half);
+                });
+
+                // Показываем кнопки удаления игроков
+                const removeButtons = courtElement.querySelectorAll('.remove-player-btn');
+                removeButtons.forEach(button => {
+                    button.style.display = '';
+                });
+            }
+
             // Функция для запуска таймера игры
             function startGameTimer(buttonElement, courtId) {
                 // Проверяем, не запущен ли уже таймер
@@ -1184,42 +1220,6 @@ export function initTrainingsModule() {
 
                 // Сохраняем ID интервала в атрибуте кнопки для возможности остановки таймера в будущем
                 buttonElement.setAttribute('data-timer-id', timerInterval);
-
-                // Функция для блокировки изменения состава игроков на корте
-                function lockCourtPlayers(courtElement) {
-                    // Скрываем кнопки добавления игроков
-                    const addButtons = courtElement.querySelectorAll('.add-from-queue-btn, .add-player-btn');
-                    addButtons.forEach(button => {
-                        button.style.display = 'none';
-                    });
-
-                    // Скрываем кнопки удаления игроков
-                    const removeButtons = courtElement.querySelectorAll('.remove-player-btn');
-                    removeButtons.forEach(button => {
-                        button.style.display = 'none';
-                    });
-
-                    // Добавляем класс к корту, указывающий, что игра идет
-                    courtElement.classList.add('game-in-progress');
-                }
-
-                // Функция для разблокировки изменения состава игроков на корте
-                function unlockCourtPlayers(courtElement) {
-                    // Удаляем класс, указывающий, что игра идет
-                    courtElement.classList.remove('game-in-progress');
-
-                    // Обновляем видимость кнопок на всех половинах корта
-                    const courtHalves = courtElement.querySelectorAll('.court-half');
-                    courtHalves.forEach(half => {
-                        updateCourtHalfButtons(half);
-                    });
-
-                    // Показываем кнопки удаления игроков
-                    const removeButtons = courtElement.querySelectorAll('.remove-player-btn');
-                    removeButtons.forEach(button => {
-                        button.style.display = '';
-                    });
-                }
 
                 // Функция для отмены игры
                 function cancelGame(buttonElement, timerInterval) {
