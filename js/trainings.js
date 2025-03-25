@@ -1322,6 +1322,16 @@ export function initTrainingsModule() {
 
                     // Функция для сброса кнопки в исходное состояние
                     function resetGameButton() {
+                        // Очищаем интервал таймера, если он есть
+                        if (timerInterval) {
+                            clearInterval(timerInterval);
+                        }
+
+                        // Удаляем атрибуты таймера
+                        buttonElement.removeAttribute('data-timer-id');
+                        buttonElement.removeAttribute('data-start-time');
+
+                        // Сбрасываем внешний вид кнопки
                         buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
                         buttonElement.classList.remove('timer-active');
                         buttonElement.classList.remove('timer-transition');
@@ -1500,11 +1510,19 @@ export function initTrainingsModule() {
                 // Сбрасываем кнопку "Начать игру"
                 const startGameBtn = courtElement.querySelector('.start-game-btn');
                 if (startGameBtn) {
+                    // Очищаем интервал таймера, если он есть
+                    const timerId = startGameBtn.getAttribute('data-timer-id');
+                    if (timerId) {
+                        clearInterval(parseInt(timerId));
+                    }
+
                     startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
                     startGameBtn.classList.remove('timer-active');
                     startGameBtn.classList.remove('timer-transition');
                     startGameBtn.style.pointerEvents = '';
                     startGameBtn.title = '';
+                    startGameBtn.removeAttribute('data-timer-id');
+                    startGameBtn.removeAttribute('data-start-time');
 
                     // Инициализируем иконки Feather
                     if (window.feather) {
