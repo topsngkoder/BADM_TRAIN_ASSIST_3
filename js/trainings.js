@@ -548,21 +548,14 @@ export function initTrainingsModule() {
                 }
 
                 // Возвращаем HTML для карточки игрока в очереди
-                // Форматируем рейтинг для отображения
-                let ratingDisplay = '<300';
-                if (rating >= 800) ratingDisplay = '800+';
-                else if (rating >= 600) ratingDisplay = '600+';
-                else if (rating >= 450) ratingDisplay = '450+';
-                else if (rating >= 300) ratingDisplay = '300+';
-
                 return `
                     <div class="queue-player-card" data-player-id="${player.id}">
                         <div class="queue-player-photo-container">
-                            <img src="${photoUrl}" alt="${fullName}" class="queue-player-photo ${ratingClass}">
+                            <img src="${photoUrl}" alt="${fullName}" class="queue-player-photo">
                         </div>
                         <div class="queue-player-info">
                             <div class="queue-player-name">${fullName}</div>
-                            <div class="queue-player-rating">${ratingDisplay}</div>
+                            <div class="queue-player-rating"></div>
                         </div>
                     </div>
                 `;
@@ -750,7 +743,7 @@ export function initTrainingsModule() {
                 playerElement.setAttribute('data-player-id', playerId);
                 playerElement.innerHTML = `
                     <div class="court-player-photo-container">
-                        <img src="${playerPhoto}" alt="${playerName}" class="court-player-photo ${playerRatingClass}">
+                        <img src="${playerPhoto}" alt="${playerName}" class="court-player-photo">
                     </div>
                     <div class="court-player-name">${playerName}</div>
                     <button class="remove-player-btn" aria-label="Удалить игрока">
@@ -826,21 +819,13 @@ export function initTrainingsModule() {
                         playerCard.className = 'queue-player-card';
                         playerCard.setAttribute('data-player-id', playerId);
 
-                        // Получаем рейтинг из класса
-                        let rating = "0";
-                        if (ratingClass === "rating-blue") rating = "<300";
-                        else if (ratingClass === "rating-green") rating = "300+";
-                        else if (ratingClass === "rating-yellow") rating = "450+";
-                        else if (ratingClass === "rating-orange") rating = "600+";
-                        else if (ratingClass === "rating-red") rating = "800+";
-
                         playerCard.innerHTML = `
                             <div class="queue-player-photo-container">
-                                <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo ${ratingClass}">
+                                <img src="${playerPhoto}" alt="${playerName}" class="queue-player-photo">
                             </div>
                             <div class="queue-player-info">
                                 <div class="queue-player-name">${playerName}</div>
-                                <div class="queue-player-rating">${rating}</div>
+                                <div class="queue-player-rating"></div>
                             </div>
                         `;
 

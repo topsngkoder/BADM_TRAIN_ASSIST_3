@@ -802,24 +802,8 @@ input:focus {
 }
 
 /* Применяем те же цветовые обводки к фото игрока на корте */
-.court-player-photo.rating-blue {
-    border-color: #3498db; /* Голубой - до 300 */
-}
-
-.court-player-photo.rating-green {
-    border-color: #2ecc71; /* Зеленый - от 300 до 450 */
-}
-
-.court-player-photo.rating-yellow {
-    border-color: #f1c40f; /* Желтый - от 450 до 600 */
-}
-
-.court-player-photo.rating-orange {
-    border-color: #e67e22; /* Оранжевый - от 600 до 800 */
-}
-
-.court-player-photo.rating-red {
-    border-color: #e74c3c; /* Красный - выше 800 */
+.court-player-photo {
+    border-color: #3498db !important; /* Единый цвет для всех игроков */
 }
 
 /* Анимации для добавления/удаления игроков */
@@ -981,24 +965,8 @@ input:focus {
 }
 
 /* Применяем те же цветовые обводки к фото игрока в очереди */
-.queue-player-photo.rating-blue {
-    border-color: #3498db; /* Голубой - до 300 */
-}
-
-.queue-player-photo.rating-green {
-    border-color: #2ecc71; /* Зеленый - от 300 до 450 */
-}
-
-.queue-player-photo.rating-yellow {
-    border-color: #f1c40f; /* Желтый - от 450 до 600 */
-}
-
-.queue-player-photo.rating-orange {
-    border-color: #e67e22; /* Оранжевый - от 600 до 800 */
-}
-
-.queue-player-photo.rating-red {
-    border-color: #e74c3c; /* Красный - выше 800 */
+.queue-player-photo {
+    border-color: #3498db !important; /* Единый цвет для всех игроков */
 }
 
 .queue-player-info {
@@ -1028,7 +996,7 @@ input:focus {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-right: 6px;
+    width: 100%;
 }
 
 .queue-player-rating {
@@ -1037,13 +1005,7 @@ input:focus {
 }
 
 .players-queue-container.horizontal .queue-player-rating {
-    font-size: 10px;
-    font-weight: bold;
-    color: #3498db;
-    background-color: rgba(52, 152, 219, 0.1);
-    padding: 2px 4px;
-    border-radius: 8px;
-    white-space: nowrap;
+    display: none;
 }
 
 
