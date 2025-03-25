@@ -617,17 +617,11 @@ export function initTrainingsModule() {
         content.innerHTML = `
             <div class="training-layout vertical">
                 <div class="players-queue-section">
-                    <div class="section-header">
-                        <h3>Очередь игроков</h3>
-                    </div>
                     <div class="players-queue-container horizontal">
                         ${playersQueueHTML}
                     </div>
                 </div>
                 <div class="courts-section" style="width: 100%; height: auto; min-height: 500px; display: flex; flex-direction: column;">
-                    <div class="section-header">
-                        <h3>Корты</h3>
-                    </div>
                     <div class="courts-container" style="display: flex; flex-direction: column; width: 100%; overflow-y: auto; max-height: none; padding-bottom: 50px;">
                         ${courtsHTML}
                     </div>
