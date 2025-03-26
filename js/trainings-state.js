@@ -68,15 +68,23 @@ export async function saveTrainingState() {
                 gameStartTime = startGameBtn.getAttribute('data-start-time');
             }
 
+            // Получаем название корта из заголовка
+            const courtHeader = courtElement.querySelector('.court-header h4');
+            const courtName = courtHeader ? courtHeader.textContent.trim() : `Корт ${courtId}`;
+
             // Добавляем данные о корте
             courts.push({
                 id: courtId,
+                name: courtName,
                 gameInProgress: isGameInProgress,
-                topPlayers,
-                bottomPlayers,
+                topPlayers: isGameInProgress ? topPlayers : [],
+                bottomPlayers: isGameInProgress ? bottomPlayers : [],
                 gameStartTime
             });
         });
+
+        // Получаем общее количество кортов
+        const courtCount = courtElements.length;
 
         // Формируем объект с данными состояния
         const stateData = {
@@ -84,6 +92,7 @@ export async function saveTrainingState() {
             trainingMode,
             playersQueue,
             courts,
+            courtCount,
             lastUpdated: new Date().toISOString()
         };
 

@@ -403,88 +403,101 @@ export function initTrainingsModule() {
                         return;
                     }
 
-                    // Восстанавливаем игроков на верхней половине корта
-                    const topHalf = courtElement.querySelector('.court-half[data-half="top"]');
-                    if (topHalf && courtData.topPlayers) {
-                        courtData.topPlayers.forEach(player => {
-                            // Находим свободный слот
-                            const emptySlot = Array.from(topHalf.querySelectorAll('.court-player-slot'))
-                                .find(slot => slot.children.length === 0);
-
-                            if (emptySlot) {
-                                // Создаем элемент игрока
-                                const playerElement = document.createElement('div');
-                                playerElement.className = 'court-player';
-                                playerElement.setAttribute('data-player-id', player.id);
-
-                                // Извлекаем только фамилию (предполагается, что фамилия идет первой в формате "Фамилия Имя")
-                                const playerLastName = player.name.split(' ')[0];
-
-                                playerElement.innerHTML = `
-                                    <div class="court-player-photo-container">
-                                        <img src="${player.photo}" alt="${player.name}" class="court-player-photo">
-                                    </div>
-                                    <div class="court-player-name">${playerLastName}</div>
-                                    <button class="remove-player-btn" aria-label="Удалить игрока">
-                                        <i data-feather="x"></i>
-                                    </button>
-                                `;
-
-                                // Добавляем игрока в слот
-                                emptySlot.appendChild(playerElement);
-
-                                // Добавляем обработчик для кнопки удаления
-                                const removeBtn = playerElement.querySelector('.remove-player-btn');
-                                if (removeBtn) {
-                                    removeBtn.addEventListener('click', (e) => {
-                                        e.stopPropagation();
-                                        removePlayerFromCourt(playerElement, player.id);
-                                    });
-                                }
-                            }
-                        });
+                    // Восстанавливаем название корта, если оно есть
+                    if (courtData.name) {
+                        const courtHeader = courtElement.querySelector('.court-header h4');
+                        if (courtHeader) {
+                            courtHeader.textContent = courtData.name;
+                        }
                     }
 
-                    // Восстанавливаем игроков на нижней половине корта
-                    const bottomHalf = courtElement.querySelector('.court-half[data-half="bottom"]');
-                    if (bottomHalf && courtData.bottomPlayers) {
-                        courtData.bottomPlayers.forEach(player => {
-                            // Находим свободный слот
-                            const emptySlot = Array.from(bottomHalf.querySelectorAll('.court-player-slot'))
-                                .find(slot => slot.children.length === 0);
+                    // Восстанавливаем игроков на кортах только если игра в процессе
+                    if (courtData.gameInProgress && courtData.gameStartTime) {
+                        console.log(`Восстанавливаем игроков на корте ${courtData.id}, игра в процессе`);
 
-                            if (emptySlot) {
-                                // Создаем элемент игрока
-                                const playerElement = document.createElement('div');
-                                playerElement.className = 'court-player';
-                                playerElement.setAttribute('data-player-id', player.id);
+                        // Восстанавливаем игроков на верхней половине корта
+                        const topHalf = courtElement.querySelector('.court-half[data-half="top"]');
+                        if (topHalf && courtData.topPlayers && courtData.topPlayers.length > 0) {
+                            courtData.topPlayers.forEach(player => {
+                                // Находим свободный слот
+                                const emptySlot = Array.from(topHalf.querySelectorAll('.court-player-slot'))
+                                    .find(slot => slot.children.length === 0);
 
-                                // Извлекаем только фамилию (предполагается, что фамилия идет первой в формате "Фамилия Имя")
-                                const playerLastName = player.name.split(' ')[0];
+                                if (emptySlot) {
+                                    // Создаем элемент игрока
+                                    const playerElement = document.createElement('div');
+                                    playerElement.className = 'court-player';
+                                    playerElement.setAttribute('data-player-id', player.id);
 
-                                playerElement.innerHTML = `
-                                    <div class="court-player-photo-container">
-                                        <img src="${player.photo}" alt="${player.name}" class="court-player-photo">
-                                    </div>
-                                    <div class="court-player-name">${playerLastName}</div>
-                                    <button class="remove-player-btn" aria-label="Удалить игрока">
-                                        <i data-feather="x"></i>
-                                    </button>
-                                `;
+                                    // Извлекаем только фамилию (предполагается, что фамилия идет первой в формате "Фамилия Имя")
+                                    const playerLastName = player.name.split(' ')[0];
 
-                                // Добавляем игрока в слот
-                                emptySlot.appendChild(playerElement);
+                                    playerElement.innerHTML = `
+                                        <div class="court-player-photo-container">
+                                            <img src="${player.photo}" alt="${player.name}" class="court-player-photo">
+                                        </div>
+                                        <div class="court-player-name">${playerLastName}</div>
+                                        <button class="remove-player-btn" aria-label="Удалить игрока">
+                                            <i data-feather="x"></i>
+                                        </button>
+                                    `;
 
-                                // Добавляем обработчик для кнопки удаления
-                                const removeBtn = playerElement.querySelector('.remove-player-btn');
-                                if (removeBtn) {
-                                    removeBtn.addEventListener('click', (e) => {
-                                        e.stopPropagation();
-                                        removePlayerFromCourt(playerElement, player.id);
-                                    });
+                                    // Добавляем игрока в слот
+                                    emptySlot.appendChild(playerElement);
+
+                                    // Добавляем обработчик для кнопки удаления
+                                    const removeBtn = playerElement.querySelector('.remove-player-btn');
+                                    if (removeBtn) {
+                                        removeBtn.addEventListener('click', (e) => {
+                                            e.stopPropagation();
+                                            removePlayerFromCourt(playerElement, player.id);
+                                        });
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+
+                        // Восстанавливаем игроков на нижней половине корта
+                        const bottomHalf = courtElement.querySelector('.court-half[data-half="bottom"]');
+                        if (bottomHalf && courtData.bottomPlayers && courtData.bottomPlayers.length > 0) {
+                            courtData.bottomPlayers.forEach(player => {
+                                // Находим свободный слот
+                                const emptySlot = Array.from(bottomHalf.querySelectorAll('.court-player-slot'))
+                                    .find(slot => slot.children.length === 0);
+
+                                if (emptySlot) {
+                                    // Создаем элемент игрока
+                                    const playerElement = document.createElement('div');
+                                    playerElement.className = 'court-player';
+                                    playerElement.setAttribute('data-player-id', player.id);
+
+                                    // Извлекаем только фамилию (предполагается, что фамилия идет первой в формате "Фамилия Имя")
+                                    const playerLastName = player.name.split(' ')[0];
+
+                                    playerElement.innerHTML = `
+                                        <div class="court-player-photo-container">
+                                            <img src="${player.photo}" alt="${player.name}" class="court-player-photo">
+                                        </div>
+                                        <div class="court-player-name">${playerLastName}</div>
+                                        <button class="remove-player-btn" aria-label="Удалить игрока">
+                                            <i data-feather="x"></i>
+                                        </button>
+                                    `;
+
+                                    // Добавляем игрока в слот
+                                    emptySlot.appendChild(playerElement);
+
+                                    // Добавляем обработчик для кнопки удаления
+                                    const removeBtn = playerElement.querySelector('.remove-player-btn');
+                                    if (removeBtn) {
+                                        removeBtn.addEventListener('click', (e) => {
+                                            e.stopPropagation();
+                                            removePlayerFromCourt(playerElement, player.id);
+                                        });
+                                    }
+                                }
+                            });
+                        }
                     }
 
                     // Обновляем видимость кнопок на половинах корта
