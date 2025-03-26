@@ -145,9 +145,36 @@ export async function loadTrainingState(trainingId) {
                 window.history.pushState({}, '', url);
             }
 
+            // Если в состоянии нет очереди игроков, получаем ее отдельно
+            if (!stateData.playersQueue || !Array.isArray(stateData.playersQueue) || stateData.playersQueue.length === 0) {
+                try {
+                    console.log('В состоянии нет очереди игроков, получаем ее отдельно');
+                    const playersQueue = await trainingStateApi.getPlayersQueue(trainingId);
+                    if (playersQueue && playersQueue.length > 0) {
+                        console.log('Получена очередь игроков:', playersQueue);
+                        stateData.playersQueue = playersQueue;
+                    }
+                } catch (queueError) {
+                    console.error('Ошибка при получении очереди игроков:', queueError);
+                }
+            }
+
             return stateData;
         } else {
             console.log('Сохраненное состояние не найдено, используем начальное состояние');
+
+            // Пытаемся получить очередь игроков отдельно
+            try {
+                console.log('Получаем очередь игроков отдельно');
+                const playersQueue = await trainingStateApi.getPlayersQueue(trainingId);
+                if (playersQueue && playersQueue.length > 0) {
+                    console.log('Получена очередь игроков:', playersQueue);
+                    return { playersQueue };
+                }
+            } catch (queueError) {
+                console.error('Ошибка при получении очереди игроков:', queueError);
+            }
+
             return null;
         }
     } catch (error) {

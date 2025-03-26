@@ -224,47 +224,39 @@ export function initTrainingsModule() {
 
         // Получаем список игроков для тренировки
         let players = [];
-        if (training.training_players && Array.isArray(training.training_players)) {
-            players = training.training_players
-                .filter(tp => tp && tp.players) // Фильтруем только записи с игроками
-                .map(tp => tp.players);
-        }
 
-        // Проверяем, есть ли сохраненное состояние тренировки
-        const savedStateJson = sessionStorage.getItem('trainingState');
-        let savedState = null;
+        // Загружаем состояние тренировки из Supabase
+        const stateData = await loadTrainingState(training.id);
 
-        if (savedStateJson) {
-            try {
-                savedState = JSON.parse(savedStateJson);
-                console.log('Найдено сохраненное состояние тренировки:', savedState);
+        if (stateData && stateData.playersQueue && stateData.playersQueue.length > 0) {
+            // Если есть сохраненная очередь игроков в состоянии, используем ее
+            console.log('Используем сохраненную очередь игроков из состояния:', stateData.playersQueue);
 
-                // Если есть сохраненная очередь игроков, используем ее
-                if (savedState.playersQueue && savedState.playersQueue.length > 0) {
-                    console.log('Используем сохраненную очередь игроков');
-                    players = savedState.playersQueue;
-                } else {
-                    // Иначе сортируем игроков по рейтингу
-                    players.sort((a, b) => {
-                        const ratingA = parseInt(a.rating) || 0;
-                        const ratingB = parseInt(b.rating) || 0;
-                        return ratingB - ratingA; // Сортировка по убыванию
-                    });
-                    console.log('Отсортированные игроки по рейтингу для начальной очереди:', players);
+            // Получаем полные данные игроков для каждого ID в очереди
+            const playersQueue = [];
+
+            for (const playerItem of stateData.playersQueue) {
+                const playerId = playerItem.id || playerItem;
+                try {
+                    const playerData = await playersApi.getPlayer(playerId);
+                    if (playerData) {
+                        playersQueue.push(playerData);
+                    }
+                } catch (error) {
+                    console.error(`Ошибка при получении данных игрока с ID ${playerId}:`, error);
                 }
-            } catch (e) {
-                console.error('Ошибка при парсинге сохраненного состояния:', e);
-
-                // В случае ошибки сортируем игроков по рейтингу
-                players.sort((a, b) => {
-                    const ratingA = parseInt(a.rating) || 0;
-                    const ratingB = parseInt(b.rating) || 0;
-                    return ratingB - ratingA; // Сортировка по убыванию
-                });
-                console.log('Отсортированные игроки по рейтингу для начальной очереди:', players);
             }
+
+            players = playersQueue;
         } else {
-            // Если нет сохраненного состояния, сортируем игроков по рейтингу
+            // Если нет сохраненной очереди, используем список игроков из тренировки
+            if (training.training_players && Array.isArray(training.training_players)) {
+                players = training.training_players
+                    .filter(tp => tp && tp.players) // Фильтруем только записи с игроками
+                    .map(tp => tp.players);
+            }
+
+            // Сортируем игроков по рейтингу
             players.sort((a, b) => {
                 const ratingA = parseInt(a.rating) || 0;
                 const ratingB = parseInt(b.rating) || 0;
@@ -273,13 +265,28 @@ export function initTrainingsModule() {
             console.log('Отсортированные игроки по рейтингу для начальной очереди:', players);
         }
 
-        // Сохраняем очередь в sessionStorage
-        sessionStorage.setItem('playersQueue', JSON.stringify(players));
-
         // Создаем HTML для игроков в очереди
         let playersQueueHTML = '';
         if (players.length > 0) {
             playersQueueHTML = players.map(player => {
+                // Проверяем, является ли player объектом с id или полным объектом игрока
+                if (player && typeof player === 'object' && 'id' in player && !player.first_name) {
+                    // Это объект с id из очереди в состоянии тренировки
+                    // Используем заглушку, пока не загрузятся полные данные
+                    const playerId = player.id;
+                    return `
+                        <div class="queue-player-card" data-player-id="${playerId}">
+                            <div class="queue-player-photo-container">
+                                <img src="https://ui-avatars.com/api/?name=Loading&background=3498db&color=fff&size=150" alt="Loading" class="queue-player-photo">
+                            </div>
+                            <div class="queue-player-info">
+                                <div class="queue-player-name">Загрузка...</div>
+                                <div class="queue-player-rating">Рейтинг: -</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
                 // Проверяем наличие данных игрока
                 if (!player || !player.first_name) return '';
 
@@ -318,6 +325,49 @@ export function initTrainingsModule() {
                     </div>
                 `;
             }).join('');
+
+            // После создания HTML, загружаем полные данные игроков для карточек с заглушками
+            setTimeout(async () => {
+                const playerCards = document.querySelectorAll('.queue-player-card');
+                for (const card of playerCards) {
+                    const playerId = card.getAttribute('data-player-id');
+                    if (card.querySelector('.queue-player-name').textContent === 'Загрузка...') {
+                        try {
+                            const playerData = await playersApi.getPlayer(playerId);
+                            if (playerData) {
+                                // Формируем полное имя
+                                const fullName = `${playerData.last_name || ''} ${playerData.first_name || ''}`.trim();
+
+                                // Получаем URL фото или используем заглушку
+                                const photoUrl = playerData.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=3498db&color=fff&size=150`;
+
+                                // Определяем класс рейтинга
+                                let ratingClass = 'rating-blue';
+                                const rating = parseInt(playerData.rating) || 0;
+                                if (rating >= 800) {
+                                    ratingClass = 'rating-red';
+                                } else if (rating >= 600) {
+                                    ratingClass = 'rating-orange';
+                                } else if (rating >= 450) {
+                                    ratingClass = 'rating-yellow';
+                                } else if (rating >= 300) {
+                                    ratingClass = 'rating-green';
+                                }
+
+                                // Обновляем карточку игрока
+                                card.setAttribute('data-player-rating', rating);
+                                card.querySelector('.queue-player-photo').src = photoUrl;
+                                card.querySelector('.queue-player-photo').alt = fullName;
+                                card.querySelector('.queue-player-photo').className = `queue-player-photo ${ratingClass}`;
+                                card.querySelector('.queue-player-name').textContent = fullName;
+                                card.querySelector('.queue-player-rating').textContent = `Рейтинг: ${rating > 0 ? rating : 'Нет'}`;
+                            }
+                        } catch (error) {
+                            console.error(`Ошибка при загрузке данных игрока с ID ${playerId}:`, error);
+                        }
+                    }
+                }
+            }, 100);
         }
 
         // Если игроков нет, показываем сообщение
