@@ -369,6 +369,8 @@ export async function addPlayerToQueue(playerId, position = 'end', saveTrainingS
 
 // Функция для обновления очереди в sessionStorage
 export function updateQueueInSessionStorage(playerId, action, position = null) {
+    console.log(`Обновление очереди в sessionStorage: игрок ${playerId}, действие ${action}, позиция ${position}`);
+
     // Получаем текущую очередь из sessionStorage
     let queue = [];
     const queueJson = sessionStorage.getItem('playersQueue');
@@ -376,34 +378,59 @@ export function updateQueueInSessionStorage(playerId, action, position = null) {
     if (queueJson) {
         try {
             queue = JSON.parse(queueJson);
+            console.log('Текущая очередь из sessionStorage:', queue);
         } catch (e) {
             console.error('Ошибка при парсинге очереди из sessionStorage:', e);
             queue = [];
         }
     }
 
+    // Преобразуем очередь в массив строковых ID для упрощения работы
+    let queueIds = queue.map(item => {
+        // Если item - объект с полем id, возвращаем id
+        if (item && typeof item === 'object' && 'id' in item) {
+            return String(item.id);
+        }
+        // Если item - строка или число, возвращаем как строку
+        return String(item);
+    });
+
+    console.log('Преобразованная очередь ID:', queueIds);
+
     // Обновляем очередь в зависимости от действия
     if (action === 'add') {
+        // Преобразуем playerId в строку для сравнения
+        const playerIdStr = String(playerId);
+
         // Проверяем, есть ли уже игрок с таким ID в очереди
-        const existingPlayerIndex = queue.findIndex(p => p.id === playerId);
+        const existingPlayerIndex = queueIds.indexOf(playerIdStr);
 
         if (existingPlayerIndex !== -1) {
             // Если игрок уже есть в очереди, удаляем его
-            queue.splice(existingPlayerIndex, 1);
+            console.log(`Игрок ${playerId} уже есть в очереди, удаляем его`);
+            queueIds.splice(existingPlayerIndex, 1);
         }
 
         // Добавляем ID игрока в очередь в зависимости от позиции
         if (position === 'end') {
             // Добавляем в конец очереди (победители, затем проигравшие)
-            queue.push({ id: playerId });
+            console.log(`Добавляем игрока ${playerId} в конец очереди`);
+            queueIds.push(playerIdStr);
         } else {
             // Добавляем в начало очереди (при удалении игрока с корта)
-            queue.unshift({ id: playerId });
+            console.log(`Добавляем игрока ${playerId} в начало очереди`);
+            queueIds.unshift(playerIdStr);
         }
     } else if (action === 'remove') {
         // Удаляем игрока из очереди
-        queue = queue.filter(p => p.id !== playerId);
+        console.log(`Удаляем игрока ${playerId} из очереди`);
+        queueIds = queueIds.filter(id => id !== String(playerId));
     }
+
+    // Преобразуем массив ID обратно в массив объектов
+    queue = queueIds.map(id => ({ id }));
+
+    console.log('Обновленная очередь для сохранения:', queue);
 
     // Сохраняем обновленную очередь в sessionStorage
     sessionStorage.setItem('playersQueue', JSON.stringify(queue));

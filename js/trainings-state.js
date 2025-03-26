@@ -21,7 +21,20 @@ export async function saveTrainingState() {
         const queueJson = sessionStorage.getItem('playersQueue');
         if (queueJson) {
             try {
-                playersQueue = JSON.parse(queueJson);
+                const parsedQueue = JSON.parse(queueJson);
+                console.log('Очередь из sessionStorage:', parsedQueue);
+
+                // Нормализуем очередь - убеждаемся, что у нас массив объектов с полем id
+                playersQueue = parsedQueue.map(item => {
+                    // Если item - объект с полем id, возвращаем его
+                    if (item && typeof item === 'object' && 'id' in item) {
+                        return { id: String(item.id) };
+                    }
+                    // Если item - строка или число, создаем объект с полем id
+                    return { id: String(item) };
+                });
+
+                console.log('Нормализованная очередь:', playersQueue);
             } catch (e) {
                 console.error('Ошибка при парсинге очереди игроков:', e);
             }
@@ -197,26 +210,33 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
     };
 
     // Сначала добавляем игроков в очередь, затем удаляем их с корта
-    console.log('Добавляем победителей в очередь:', winners);
-    const addWinners = async () => {
-        for (const player of winners) {
-            const rating = getPlayerRating(player.id);
-            console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
-            await addPlayerToQueue(player.id, 'end', saveTrainingState);
-        }
-    };
+    console.log('Добавляем победителей и проигравших в очередь');
 
-    const addLosers = async () => {
+    // Функция для добавления игроков в очередь без дублирования
+    const addPlayersToQueue = async () => {
+        // Сначала добавляем победителей
+        console.log('Добавляем победителей в очередь:', winners);
+        for (const player of winners) {
+            console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) в очередь`);
+            await addPlayerToQueue(player.id, 'end');
+        }
+
+        // Затем добавляем проигравших
         console.log('Добавляем проигравших в очередь:', losers);
         for (const player of losers) {
-            const rating = getPlayerRating(player.id);
-            console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
-            await addPlayerToQueue(player.id, 'end', saveTrainingState);
+            console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в очередь`);
+            await addPlayerToQueue(player.id, 'end');
+        }
+
+        // После добавления всех игроков сохраняем состояние
+        if (saveTrainingState) {
+            console.log('Сохраняем состояние тренировки после добавления всех игроков в очередь');
+            await saveTrainingState();
         }
     };
 
-    // Последовательно добавляем победителей и проигравших
-    addWinners().then(() => addLosers());
+    // Добавляем игроков в очередь
+    addPlayersToQueue();
 
     // Теперь удаляем игроков с корта
     const courtPlayers = courtElement.querySelectorAll('.court-player');
