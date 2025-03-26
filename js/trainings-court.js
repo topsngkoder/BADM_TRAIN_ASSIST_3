@@ -39,6 +39,8 @@ export function updateCourtHalfButtons(courtHalf) {
 
 // Функция для проверки заполненности корта и отображения кнопки "Начать игру"
 export function updateStartGameButton(courtContainer, onStartGame) {
+    console.log('Вызвана функция updateStartGameButton', { courtContainer, onStartGame });
+
     // Получаем ID корта
     const courtId = courtContainer.getAttribute('data-court-id');
 
@@ -68,9 +70,13 @@ export function updateStartGameButton(courtContainer, onStartGame) {
             // Добавляем обработчик для кнопки
             startGameBtn.addEventListener('click', () => {
                 console.log(`Нажата кнопка "Начать игру" для корта ${courtId}`);
+                console.log('onStartGame:', onStartGame);
                 // Запускаем игру и превращаем кнопку в таймер
                 if (onStartGame) {
+                    console.log('Вызываем onStartGame');
                     onStartGame(startGameBtn, courtId);
+                } else {
+                    console.error('onStartGame не определен');
                 }
             });
 
@@ -131,6 +137,8 @@ export function unlockCourtPlayers(courtElement) {
 
 // Функция для запуска таймера игры
 export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinish, saveTrainingState) {
+    console.log('Вызвана функция startGameTimer', { buttonElement, courtId, onGameCancel, onGameFinish, saveTrainingState });
+
     // Проверяем, не запущен ли уже таймер
     if (buttonElement.classList.contains('timer-active')) {
         console.log('Таймер уже запущен');

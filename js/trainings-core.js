@@ -4,7 +4,7 @@ import { showMessage } from './ui.js';
 import { createTrainingCard, getCourtWord } from './trainings-ui.js';
 import { initTrainingHandlers, handleDeleteTraining, initTrainingDetailsHandlers } from './trainings-handlers.js';
 import { loadTrainingState, saveTrainingState } from './trainings-state.js';
-import { updateCourtHalfButtons, updateStartGameButton, startGameTimer } from './trainings-court.js';
+import { updateCourtHalfButtons, updateStartGameButton, startGameTimer, unlockCourtPlayers } from './trainings-court.js';
 import { removePlayerFromCourt } from './trainings-players.js';
 
 // Инициализация модуля тренировок
@@ -477,7 +477,34 @@ export function initTrainingsModule() {
                     });
 
                     // Обновляем кнопку "Начать игру"
-                    updateStartGameButton(courtElement);
+                    updateStartGameButton(courtElement, (buttonElement, courtId) => {
+                        startGameTimer(buttonElement, courtId,
+                            // Обработчик отмены игры
+                            async (buttonElement, timerInterval) => {
+                                await saveTrainingState();
+                            },
+                            // Обработчик завершения игры
+                            (buttonElement, courtId, formattedTime, timerInterval) => {
+                                // Получаем текущий режим тренировки
+                                const trainingModeSelect = document.getElementById('training-mode');
+                                const currentMode = trainingModeSelect ? trainingModeSelect.value : 'single';
+
+                                // Сбрасываем кнопку в исходное состояние
+                                buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
+                                buttonElement.classList.remove('timer-active');
+                                buttonElement.classList.remove('timer-transition');
+
+                                // Инициализируем иконки Feather
+                                if (window.feather) {
+                                    feather.replace();
+                                }
+
+                                // Разблокируем изменение состава игроков
+                                unlockCourtPlayers(courtElement);
+                            },
+                            saveTrainingState
+                        );
+                    });
 
                     // Если игра была в процессе, восстанавливаем состояние игры
                     if (courtData.gameInProgress && courtData.gameStartTime) {
