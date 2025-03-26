@@ -9,34 +9,35 @@ export async function saveTrainingState() {
     try {
         console.log('Сохранение текущего состояния тренировки');
 
-        // Получаем ID текущей тренировки
-        const trainingId = sessionStorage.getItem('currentTrainingId');
+        // Получаем ID текущей тренировки из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const trainingId = urlParams.get('id');
+
         if (!trainingId) {
-            console.error('Не найден ID текущей тренировки');
+            console.error('Не найден ID текущей тренировки в URL');
             return;
         }
 
-        // Получаем текущую очередь игроков
+        // Получаем текущую очередь игроков из DOM
         let playersQueue = [];
-        const queueJson = sessionStorage.getItem('playersQueue');
-        if (queueJson) {
+        const queuePlayerCards = document.querySelectorAll('.queue-player-card');
+
+        if (queuePlayerCards.length > 0) {
+            // Собираем ID игроков из карточек в очереди
+            playersQueue = Array.from(queuePlayerCards).map(card => {
+                const playerId = card.getAttribute('data-player-id');
+                return { id: String(playerId) };
+            });
+
+            console.log('Очередь игроков из DOM:', playersQueue);
+        } else {
+            // Если в DOM нет карточек игроков, получаем очередь из базы данных
             try {
-                const parsedQueue = JSON.parse(queueJson);
-                console.log('Очередь из sessionStorage:', parsedQueue);
-
-                // Нормализуем очередь - убеждаемся, что у нас массив объектов с полем id
-                playersQueue = parsedQueue.map(item => {
-                    // Если item - объект с полем id, возвращаем его
-                    if (item && typeof item === 'object' && 'id' in item) {
-                        return { id: String(item.id) };
-                    }
-                    // Если item - строка или число, создаем объект с полем id
-                    return { id: String(item) };
-                });
-
-                console.log('Нормализованная очередь:', playersQueue);
+                playersQueue = await trainingStateApi.getPlayersQueue(trainingId);
+                console.log('Очередь игроков из базы данных:', playersQueue);
             } catch (e) {
-                console.error('Ошибка при парсинге очереди игроков:', e);
+                console.error('Ошибка при получении очереди игроков из базы данных:', e);
+                playersQueue = [];
             }
         }
 
@@ -113,9 +114,6 @@ export async function saveTrainingState() {
         await trainingStateApi.saveTrainingState(trainingId, stateData);
         console.log('Состояние тренировки успешно сохранено');
 
-        // Обновляем состояние в sessionStorage
-        sessionStorage.setItem('trainingState', JSON.stringify(stateData));
-
         return true;
     } catch (error) {
         console.error('Ошибка при сохранении состояния тренировки:', error);
@@ -140,19 +138,16 @@ export async function loadTrainingState(trainingId) {
             // Восстанавливаем режим тренировки, очередь игроков и состояние кортов
             const stateData = trainingState.state_data;
 
-            // Сохраняем данные в sessionStorage для использования в других функциях
-            if (stateData.playersQueue) {
-                sessionStorage.setItem('playersQueue', JSON.stringify(stateData.playersQueue));
+            // Добавляем ID тренировки в URL, если его там нет
+            if (!window.location.search.includes('id=')) {
+                const url = new URL(window.location);
+                url.searchParams.set('id', trainingId);
+                window.history.pushState({}, '', url);
             }
-
-            // Остальные данные будут использованы при отрисовке интерфейса
-            sessionStorage.setItem('trainingState', JSON.stringify(stateData));
 
             return stateData;
         } else {
             console.log('Сохраненное состояние не найдено, используем начальное состояние');
-            // Очищаем сохраненное состояние, если оно было
-            sessionStorage.removeItem('trainingState');
             return null;
         }
     } catch (error) {
@@ -160,9 +155,6 @@ export async function loadTrainingState(trainingId) {
 
         // Показываем сообщение об ошибке пользователю
         showMessage('Ошибка при загрузке тренировки из базы данных', 'error');
-
-        // Очищаем сохраненное состояние в случае ошибки
-        sessionStorage.removeItem('trainingState');
 
         // Выбрасываем ошибку дальше, чтобы она была обработана в вызывающем коде
         throw error;
@@ -191,23 +183,14 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
         return;
     }
 
-    // Получаем рейтинги игроков из очереди в sessionStorage
-    const getPlayerRating = (playerId) => {
-        let rating = 0;
-        const queueJson = sessionStorage.getItem('playersQueue');
-        if (queueJson) {
-            try {
-                const queue = JSON.parse(queueJson);
-                const player = queue.find(p => p.id === playerId);
-                if (player) {
-                    rating = parseInt(player.rating) || 0;
-                }
-            } catch (e) {
-                console.error('Ошибка при получении рейтинга игрока:', e);
-            }
-        }
-        return rating;
-    };
+    // Получаем ID тренировки из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const trainingId = urlParams.get('id');
+
+    if (!trainingId) {
+        console.error('Не найден ID тренировки в URL');
+        return;
+    }
 
     // Сначала добавляем игроков в очередь, затем удаляем их с корта
     console.log('Добавляем победителей и проигравших в очередь');
@@ -218,6 +201,7 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
         console.log('Добавляем победителей в очередь:', winners);
         for (const player of winners) {
             console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) в очередь`);
+            await trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
             await addPlayerToQueue(player.id, 'end');
         }
 
@@ -225,6 +209,7 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
         console.log('Добавляем проигравших в очередь:', losers);
         for (const player of losers) {
             console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в очередь`);
+            await trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
             await addPlayerToQueue(player.id, 'end');
         }
 

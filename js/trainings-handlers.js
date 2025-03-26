@@ -61,9 +61,11 @@ export function initTrainingHandlers(elements) {
                 console.error('Не найден основной интерфейс с ID "main-interface"');
             }
 
-            // Очищаем ID текущей тренировки
-            sessionStorage.removeItem('currentTrainingId');
-            console.log('ID текущей тренировки очищен');
+            // Очищаем ID тренировки из URL
+            const url = new URL(window.location);
+            url.searchParams.delete('id');
+            window.history.pushState({}, '', url);
+            console.log('ID тренировки удален из URL');
         });
     } else {
         console.error('Не найдена кнопка "Назад" с ID "back-to-trainings-btn"');

@@ -263,9 +263,6 @@ export const trainingStateApi = {
                 throw new Error(`Некорректный ID тренировки: ${trainingId}`);
             }
 
-            // Сохраняем состояние в sessionStorage в любом случае (для резервного копирования)
-            sessionStorage.setItem('trainingState', JSON.stringify(stateData));
-
             // Обновляем поле state_data в таблице trainings
             const { data, error } = await supabase
                 .from('trainings')
@@ -278,17 +275,14 @@ export const trainingStateApi = {
 
             if (error) {
                 console.error('Ошибка при обновлении состояния тренировки:', error);
-                return { success: true, message: 'Состояние сохранено только в sessionStorage' };
+                throw error;
             }
 
             console.log('Состояние тренировки успешно обновлено:', data);
             return { success: true, data };
         } catch (error) {
             console.error('Error saving training state:', error);
-
-            // В случае ошибки сохраняем состояние только в sessionStorage
-            sessionStorage.setItem('trainingState', JSON.stringify(stateData));
-            return { success: true, message: 'Состояние сохранено в sessionStorage (fallback)' };
+            throw error;
         }
     },
 
@@ -326,19 +320,133 @@ export const trainingStateApi = {
             return null;
         } catch (error) {
             console.error('Error getting training state:', error);
+            throw error;
+        }
+    },
 
-            // В случае ошибки пытаемся использовать данные из sessionStorage
-            const stateJson = sessionStorage.getItem('trainingState');
-            if (stateJson) {
-                try {
-                    const stateData = JSON.parse(stateJson);
-                    return { state_data: stateData };
-                } catch (e) {
-                    console.error('Ошибка при парсинге состояния из sessionStorage:', e);
-                    return null;
-                }
+    // Получение очереди игроков для тренировки
+    async getPlayersQueue(trainingId) {
+        try {
+            console.log(`Получение очереди игроков для тренировки с ID: ${trainingId}`);
+
+            // Получаем состояние тренировки
+            const trainingState = await this.getTrainingState(trainingId);
+
+            // Если есть состояние и в нем есть очередь игроков, возвращаем ее
+            if (trainingState && trainingState.state_data && trainingState.state_data.playersQueue) {
+                console.log('Получена очередь игроков из состояния тренировки:', trainingState.state_data.playersQueue);
+                return trainingState.state_data.playersQueue;
             }
-            return null;
+
+            // Если очереди нет, возвращаем пустой массив
+            console.log('Очередь игроков не найдена в состоянии тренировки');
+            return [];
+        } catch (error) {
+            console.error('Error getting players queue:', error);
+            throw error;
+        }
+    },
+
+    // Обновление очереди игроков для тренировки
+    async updatePlayersQueue(trainingId, playersQueue) {
+        try {
+            console.log(`Обновление очереди игроков для тренировки с ID: ${trainingId}`);
+
+            // Получаем текущее состояние тренировки
+            const trainingState = await this.getTrainingState(trainingId);
+
+            // Если состояние не найдено, создаем новое
+            let stateData = trainingState && trainingState.state_data ?
+                trainingState.state_data :
+                { trainingId, courts: [], courtCount: 0 };
+
+            // Обновляем очередь игроков
+            stateData.playersQueue = playersQueue;
+            stateData.lastUpdated = new Date().toISOString();
+
+            // Сохраняем обновленное состояние
+            await this.saveTrainingState(trainingId, stateData);
+
+            console.log('Очередь игроков успешно обновлена');
+            return true;
+        } catch (error) {
+            console.error('Error updating players queue:', error);
+            throw error;
+        }
+    },
+
+    // Добавление игрока в очередь
+    async addPlayerToQueue(trainingId, playerId, position = 'end') {
+        try {
+            console.log(`Добавление игрока с ID ${playerId} в очередь тренировки ${trainingId}, позиция: ${position}`);
+
+            // Получаем текущую очередь игроков
+            const playersQueue = await this.getPlayersQueue(trainingId);
+
+            // Преобразуем playerId в строку для сравнения
+            const playerIdStr = String(playerId);
+
+            // Проверяем, есть ли уже игрок с таким ID в очереди
+            const existingPlayerIndex = playersQueue.findIndex(p =>
+                (p && typeof p === 'object' && 'id' in p) ?
+                    String(p.id) === playerIdStr :
+                    String(p) === playerIdStr
+            );
+
+            // Если игрок уже есть в очереди, удаляем его
+            if (existingPlayerIndex !== -1) {
+                console.log(`Игрок ${playerId} уже есть в очереди, удаляем его`);
+                playersQueue.splice(existingPlayerIndex, 1);
+            }
+
+            // Добавляем игрока в очередь в зависимости от позиции
+            if (position === 'end') {
+                // Добавляем в конец очереди
+                console.log(`Добавляем игрока ${playerId} в конец очереди`);
+                playersQueue.push({ id: playerIdStr });
+            } else {
+                // Добавляем в начало очереди
+                console.log(`Добавляем игрока ${playerId} в начало очереди`);
+                playersQueue.unshift({ id: playerIdStr });
+            }
+
+            // Обновляем очередь в базе данных
+            await this.updatePlayersQueue(trainingId, playersQueue);
+
+            console.log('Игрок успешно добавлен в очередь');
+            return true;
+        } catch (error) {
+            console.error('Error adding player to queue:', error);
+            throw error;
+        }
+    },
+
+    // Удаление игрока из очереди
+    async removePlayerFromQueue(trainingId, playerId) {
+        try {
+            console.log(`Удаление игрока с ID ${playerId} из очереди тренировки ${trainingId}`);
+
+            // Получаем текущую очередь игроков
+            const playersQueue = await this.getPlayersQueue(trainingId);
+
+            // Преобразуем playerId в строку для сравнения
+            const playerIdStr = String(playerId);
+
+            // Удаляем игрока из очереди
+            const updatedQueue = playersQueue.filter(p =>
+                (p && typeof p === 'object' && 'id' in p) ?
+                    String(p.id) !== playerIdStr :
+                    String(p) !== playerIdStr
+            );
+
+            // Обновляем очередь в базе данных
+            await this.updatePlayersQueue(trainingId, updatedQueue);
+
+            console.log('Игрок успешно удален из очереди');
+            return true;
+        } catch (error) {
+            console.error('Error removing player from queue:', error);
+            throw error;
         }
     }
 };

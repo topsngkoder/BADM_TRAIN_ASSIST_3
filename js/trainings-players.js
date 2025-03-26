@@ -1,5 +1,5 @@
 // Модуль для работы с игроками и очередью
-import { playersApi } from './api.js';
+import { playersApi, trainingStateApi } from './api.js';
 import { showMessage } from './ui.js';
 import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility } from './trainings-court.js';
 
@@ -8,6 +8,16 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
     // Получаем ID игрока
     const playerId = playerCard.getAttribute('data-player-id');
     console.log(`Добавление игрока с ID ${playerId} на корт ${courtId}, половина ${half}`);
+
+    // Получаем ID тренировки из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const trainingId = urlParams.get('id');
+
+    if (!trainingId) {
+        console.error('Не найден ID тренировки в URL');
+        if (callback) callback();
+        return;
+    }
 
     // Находим половину корта
     const courtHalf = document.querySelector(`.court-half[data-court="${courtId}"][data-half="${half}"]`);
@@ -93,11 +103,11 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
             updateCourtVisibility(courtContainer);
         }
 
-        // Удаляем игрока из очереди
-        playerCard.classList.add('removing');
+        // Удаляем игрока из очереди в базе данных
+        await trainingStateApi.removePlayerFromQueue(trainingId, playerId);
 
-        // Обновляем очередь в sessionStorage - удаляем игрока
-        updateQueueInSessionStorage(playerId, 'remove');
+        // Удаляем игрока из очереди в DOM
+        playerCard.classList.add('removing');
 
         setTimeout(() => {
             playerCard.remove();
@@ -130,8 +140,13 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
         if (removeBtn) {
             removeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                removePlayerFromCourt(playerElement, playerId);
+                removePlayerFromCourt(playerElement, playerId, saveTrainingState);
             });
+        }
+
+        // Сохраняем состояние тренировки
+        if (saveTrainingState) {
+            saveTrainingState();
         }
     } catch (error) {
         console.error(`Ошибка при получении данных игрока с ID ${playerId}:`, error);
@@ -148,6 +163,15 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
     playerElement.classList.add('removing');
 
     try {
+        // Получаем ID тренировки из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const trainingId = urlParams.get('id');
+
+        if (!trainingId) {
+            console.error('Не найден ID тренировки в URL');
+            return;
+        }
+
         // Получаем актуальные данные игрока из базы данных
         const player = await playersApi.getPlayer(playerId);
 
@@ -158,6 +182,9 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
         }
 
         console.log(`Получены данные игрока из базы:`, player);
+
+        // Добавляем игрока в очередь в базе данных
+        await trainingStateApi.addPlayerToQueue(trainingId, playerId, 'start');
 
         setTimeout(() => {
             // Находим половину корта, с которой удаляется игрок
@@ -220,10 +247,6 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
                     </div>
                 `;
 
-                // Обновляем очередь в sessionStorage
-                // При удалении игрока с корта он всегда идет в начало очереди
-                updateQueueInSessionStorage(playerId, 'add', 'start');
-
                 // Добавляем карточку в начало очереди
                 queueContainer.prepend(playerCard);
 
@@ -238,18 +261,23 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
                 // Добавляем класс рейтинга к фото
                 const photoElement = playerCard.querySelector('.queue-player-photo');
                 if (photoElement) {
-                    if (playerRating >= 800) {
+                    if (rating >= 800) {
                         photoElement.classList.add('rating-red');
-                    } else if (playerRating >= 600) {
+                    } else if (rating >= 600) {
                         photoElement.classList.add('rating-orange');
-                    } else if (playerRating >= 450) {
+                    } else if (rating >= 450) {
                         photoElement.classList.add('rating-yellow');
-                    } else if (playerRating >= 300) {
+                    } else if (rating >= 300) {
                         photoElement.classList.add('rating-green');
                     } else {
                         photoElement.classList.add('rating-blue');
                     }
                 }
+            }
+
+            // Сохраняем состояние тренировки
+            if (saveTrainingState) {
+                saveTrainingState();
             }
         }, 300);
     } catch (error) {
@@ -334,15 +362,9 @@ export async function addPlayerToQueue(playerId, position = 'end', saveTrainingS
         if (position === 'end') {
             // Добавляем в конец очереди
             queueContainer.appendChild(playerElement);
-
-            // Обновляем очередь в sessionStorage
-            updateQueueInSessionStorage(playerId, 'add', 'end');
         } else {
             // Добавляем в начало очереди
             queueContainer.prepend(playerElement);
-
-            // Обновляем очередь в sessionStorage
-            updateQueueInSessionStorage(playerId, 'add', 'start');
         }
 
         // Добавляем класс для анимации
@@ -367,72 +389,3 @@ export async function addPlayerToQueue(playerId, position = 'end', saveTrainingS
     }
 }
 
-// Функция для обновления очереди в sessionStorage
-export function updateQueueInSessionStorage(playerId, action, position = null) {
-    console.log(`Обновление очереди в sessionStorage: игрок ${playerId}, действие ${action}, позиция ${position}`);
-
-    // Получаем текущую очередь из sessionStorage
-    let queue = [];
-    const queueJson = sessionStorage.getItem('playersQueue');
-
-    if (queueJson) {
-        try {
-            queue = JSON.parse(queueJson);
-            console.log('Текущая очередь из sessionStorage:', queue);
-        } catch (e) {
-            console.error('Ошибка при парсинге очереди из sessionStorage:', e);
-            queue = [];
-        }
-    }
-
-    // Преобразуем очередь в массив строковых ID для упрощения работы
-    let queueIds = queue.map(item => {
-        // Если item - объект с полем id, возвращаем id
-        if (item && typeof item === 'object' && 'id' in item) {
-            return String(item.id);
-        }
-        // Если item - строка или число, возвращаем как строку
-        return String(item);
-    });
-
-    console.log('Преобразованная очередь ID:', queueIds);
-
-    // Обновляем очередь в зависимости от действия
-    if (action === 'add') {
-        // Преобразуем playerId в строку для сравнения
-        const playerIdStr = String(playerId);
-
-        // Проверяем, есть ли уже игрок с таким ID в очереди
-        const existingPlayerIndex = queueIds.indexOf(playerIdStr);
-
-        if (existingPlayerIndex !== -1) {
-            // Если игрок уже есть в очереди, удаляем его
-            console.log(`Игрок ${playerId} уже есть в очереди, удаляем его`);
-            queueIds.splice(existingPlayerIndex, 1);
-        }
-
-        // Добавляем ID игрока в очередь в зависимости от позиции
-        if (position === 'end') {
-            // Добавляем в конец очереди (победители, затем проигравшие)
-            console.log(`Добавляем игрока ${playerId} в конец очереди`);
-            queueIds.push(playerIdStr);
-        } else {
-            // Добавляем в начало очереди (при удалении игрока с корта)
-            console.log(`Добавляем игрока ${playerId} в начало очереди`);
-            queueIds.unshift(playerIdStr);
-        }
-    } else if (action === 'remove') {
-        // Удаляем игрока из очереди
-        console.log(`Удаляем игрока ${playerId} из очереди`);
-        queueIds = queueIds.filter(id => id !== String(playerId));
-    }
-
-    // Преобразуем массив ID обратно в массив объектов
-    queue = queueIds.map(id => ({ id }));
-
-    console.log('Обновленная очередь для сохранения:', queue);
-
-    // Сохраняем обновленную очередь в sessionStorage
-    sessionStorage.setItem('playersQueue', JSON.stringify(queue));
-    console.log('Очередь обновлена в sessionStorage:', queue);
-}

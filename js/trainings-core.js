@@ -102,29 +102,35 @@ export function initTrainingsModule() {
     console.log('Загрузка тренировок');
     fetchTrainings(trainingsContainer);
 
-    // Проверяем, есть ли сохраненный ID тренировки (если пользователь обновил страницу)
-    const savedTrainingId = sessionStorage.getItem('currentTrainingId');
-    console.log('Сохраненный ID тренировки:', savedTrainingId);
+    // Проверяем, есть ли ID тренировки в URL (если пользователь обновил страницу)
+    const urlParams = new URLSearchParams(window.location.search);
+    const trainingId = urlParams.get('id');
+    console.log('ID тренировки из URL:', trainingId);
 
-    if (savedTrainingId) {
-        console.log('Загрузка тренировки по ID:', savedTrainingId);
+    if (trainingId) {
+        console.log('Загрузка тренировки по ID из URL:', trainingId);
         // Загружаем данные тренировки и открываем страницу деталей
-        trainingsApi.getTrainingById(parseInt(savedTrainingId))
+        trainingsApi.getTrainingById(parseInt(trainingId))
             .then(training => {
                 console.log('Получена тренировка по ID:', training);
                 if (training) {
                     console.log('Открытие страницы деталей тренировки');
                     openTrainingDetails(training);
                 } else {
-                    console.log('Тренировка не найдена, очищаем ID');
-                    // Если тренировка не найдена, очищаем ID
-                    sessionStorage.removeItem('currentTrainingId');
+                    console.log('Тренировка не найдена, очищаем URL');
+                    // Если тренировка не найдена, очищаем URL
+                    const url = new URL(window.location);
+                    url.searchParams.delete('id');
+                    window.history.pushState({}, '', url);
                     showMessage('Тренировка не найдена в базе данных', 'error');
                 }
             })
             .catch(error => {
                 console.error('Ошибка при загрузке тренировки:', error);
-                sessionStorage.removeItem('currentTrainingId');
+                // Очищаем URL
+                const url = new URL(window.location);
+                url.searchParams.delete('id');
+                window.history.pushState({}, '', url);
                 showMessage('Ошибка при загрузке тренировки из базы данных', 'error');
             });
     }
@@ -133,8 +139,10 @@ export function initTrainingsModule() {
     async function openTrainingDetails(training) {
         console.log('Открытие деталей тренировки:', training);
 
-        // Сохраняем ID тренировки в sessionStorage для возможности обновления данных
-        sessionStorage.setItem('currentTrainingId', training.id);
+        // Добавляем ID тренировки в URL
+        const url = new URL(window.location);
+        url.searchParams.set('id', training.id);
+        window.history.pushState({}, '', url);
 
         try {
             // Загружаем состояние тренировки
