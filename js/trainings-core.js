@@ -119,11 +119,13 @@ export function initTrainingsModule() {
                     console.log('Тренировка не найдена, очищаем ID');
                     // Если тренировка не найдена, очищаем ID
                     sessionStorage.removeItem('currentTrainingId');
+                    showMessage('Тренировка не найдена в базе данных', 'error');
                 }
             })
             .catch(error => {
                 console.error('Ошибка при загрузке тренировки:', error);
                 sessionStorage.removeItem('currentTrainingId');
+                showMessage('Ошибка при загрузке тренировки из базы данных', 'error');
             });
     }
 
@@ -134,8 +136,23 @@ export function initTrainingsModule() {
         // Сохраняем ID тренировки в sessionStorage для возможности обновления данных
         sessionStorage.setItem('currentTrainingId', training.id);
 
-        // Загружаем состояние тренировки
-        await loadTrainingState(training.id);
+        try {
+            // Загружаем состояние тренировки
+            await loadTrainingState(training.id);
+        } catch (error) {
+            console.error('Ошибка при загрузке состояния тренировки:', error);
+            showMessage('Не удалось загрузить тренировку из базы данных', 'error');
+
+            // Возвращаемся на главную страницу
+            const backBtn = document.getElementById('back-to-trainings-btn');
+            if (backBtn) {
+                backBtn.click();
+            } else {
+                // Если кнопка "Назад" не найдена, перезагружаем страницу
+                window.location.reload();
+            }
+            return; // Прерываем выполнение функции
+        }
 
         // Получаем элементы страницы
         const titleElement = document.getElementById('training-title');

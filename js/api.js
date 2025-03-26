@@ -312,19 +312,7 @@ export const trainingStateApi = {
 
             if (error) {
                 console.error('Ошибка при получении состояния тренировки:', error);
-
-                // В случае ошибки пытаемся использовать данные из sessionStorage
-                const stateJson = sessionStorage.getItem('trainingState');
-                if (stateJson) {
-                    try {
-                        const stateData = JSON.parse(stateJson);
-                        return { state_data: stateData };
-                    } catch (e) {
-                        console.error('Ошибка при парсинге состояния из sessionStorage:', e);
-                        return null;
-                    }
-                }
-                return null;
+                throw error; // Выбрасываем ошибку, чтобы она была обработана выше
             }
 
             // Если данные найдены и есть состояние, возвращаем его
@@ -333,18 +321,8 @@ export const trainingStateApi = {
                 return { state_data: data.state_data };
             }
 
-            // Если состояние не найдено, используем sessionStorage
-            console.log('Состояние тренировки не найдено в базе данных, используем sessionStorage');
-            const stateJson = sessionStorage.getItem('trainingState');
-            if (stateJson) {
-                try {
-                    const stateData = JSON.parse(stateJson);
-                    return { state_data: stateData };
-                } catch (e) {
-                    console.error('Ошибка при парсинге состояния из sessionStorage:', e);
-                    return null;
-                }
-            }
+            // Если состояние не найдено, возвращаем null
+            console.log('Состояние тренировки не найдено в базе данных');
             return null;
         } catch (error) {
             console.error('Error getting training state:', error);
