@@ -198,18 +198,25 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
 
     // Сначала добавляем игроков в очередь, затем удаляем их с корта
     console.log('Добавляем победителей в очередь:', winners);
-    winners.forEach(player => {
-        const rating = getPlayerRating(player.id);
-        console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
-        addPlayerToQueue(player.id, 'end');
-    });
+    const addWinners = async () => {
+        for (const player of winners) {
+            const rating = getPlayerRating(player.id);
+            console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
+            await addPlayerToQueue(player.id, 'end', saveTrainingState);
+        }
+    };
 
-    console.log('Добавляем проигравших в очередь:', losers);
-    losers.forEach(player => {
-        const rating = getPlayerRating(player.id);
-        console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
-        addPlayerToQueue(player.id, 'end');
-    });
+    const addLosers = async () => {
+        console.log('Добавляем проигравших в очередь:', losers);
+        for (const player of losers) {
+            const rating = getPlayerRating(player.id);
+            console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
+            await addPlayerToQueue(player.id, 'end', saveTrainingState);
+        }
+    };
+
+    // Последовательно добавляем победителей и проигравших
+    addWinners().then(() => addLosers());
 
     // Теперь удаляем игроков с корта
     const courtPlayers = courtElement.querySelectorAll('.court-player');
@@ -255,8 +262,11 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
         }
     }
 
-    // Сохраняем обновленное состояние тренировки
-    if (saveTrainingState) {
-        saveTrainingState();
-    }
+    // Сохраняем обновленное состояние тренировки еще раз после всех изменений
+    setTimeout(() => {
+        if (saveTrainingState) {
+            console.log('Сохраняем финальное состояние тренировки после всех изменений');
+            saveTrainingState();
+        }
+    }, 500); // Даем время на завершение всех анимаций и обновлений DOM
 }

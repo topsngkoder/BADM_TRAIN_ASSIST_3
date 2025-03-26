@@ -259,8 +259,8 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
 }
 
 // Функция для добавления игрока в очередь
-export async function addPlayerToQueue(playerId, position = 'end') {
-    console.log(`Добавление игрока с ID: ${playerId} в очередь`);
+export async function addPlayerToQueue(playerId, position = 'end', saveTrainingState = null) {
+    console.log(`Добавление игрока с ID: ${playerId} в очередь, позиция: ${position}`);
 
     // Проверяем входные данные
     if (!playerId) {
@@ -352,6 +352,12 @@ export async function addPlayerToQueue(playerId, position = 'end') {
         playerElement.addEventListener('click', function() {
             console.log(`Нажат игрок в очереди: ${playerFullName} (ID: ${playerId}, рейтинг: ${rating})`);
         });
+
+        // Если передана функция сохранения состояния, вызываем ее
+        if (saveTrainingState) {
+            console.log('Сохраняем состояние тренировки после добавления игрока в очередь');
+            saveTrainingState();
+        }
 
         return playerElement;
     } catch (error) {
