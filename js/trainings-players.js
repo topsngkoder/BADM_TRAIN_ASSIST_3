@@ -166,10 +166,8 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
                 updateCourtHalfButtons(courtHalf);
             }
 
-            // Обновляем кнопку "Начать игру"
-            if (courtContainer) {
-                updateStartGameButton(courtContainer);
-            }
+            // Не вызываем updateStartGameButton здесь, так как это должно делаться только в initTrainingDetailsHandlers
+            // с передачей обработчика onStartGame
 
             // Возвращаем игрока в очередь
             const queueContainer = document.querySelector('.players-queue-container');

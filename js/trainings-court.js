@@ -31,10 +31,8 @@ export function updateCourtHalfButtons(courtHalf) {
     }
 
     // Проверяем, полностью ли заполнен корт (все 4 игрока)
-    const courtContainer = courtHalf.closest('.court-container');
-    if (courtContainer) {
-        updateStartGameButton(courtContainer);
-    }
+    // Не вызываем updateStartGameButton здесь, так как это должно делаться только в initTrainingDetailsHandlers
+    // с передачей обработчика onStartGame
 }
 
 // Функция для проверки заполненности корта и отображения кнопки "Начать игру"

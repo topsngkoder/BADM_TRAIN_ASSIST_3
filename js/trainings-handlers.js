@@ -354,6 +354,8 @@ export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState)
         updateCourtHalfButtons(half);
     });
 
+    // Обновляем кнопки "Начать игру" для всех кортов после обновления видимости кнопок на половинах кортов
+
     // Инициализируем кнопки "Начать игру" для всех кортов
     const courtContainers = detailsContainer.querySelectorAll('.court-container');
     courtContainers.forEach(court => {
