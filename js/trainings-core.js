@@ -498,7 +498,7 @@ export function initTrainingsModule() {
             }
 
             // Инициализируем обработчики для деталей тренировки
-            initTrainingDetailsHandlers(detailsContainer);
+            initTrainingDetailsHandlers(detailsContainer, saveTrainingState);
         }, 100); // Небольшая задержка для уверенности, что DOM обновился
 
         // Скрываем основной интерфейс и показываем интерфейс деталей тренировки

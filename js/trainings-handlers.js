@@ -279,7 +279,7 @@ export async function handleDeleteTraining(trainingId, cardElement, trainingsCon
 }
 
 // Функция для инициализации обработчиков деталей тренировки
-export function initTrainingDetailsHandlers(detailsContainer) {
+export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState) {
     // Флаг для отслеживания процесса добавления игрока
     let isAddingPlayer = false;
 
