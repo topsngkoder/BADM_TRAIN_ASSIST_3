@@ -93,11 +93,6 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
         // Обновляем очередь в sessionStorage - удаляем игрока
         updateQueueInSessionStorage(playerId, 'remove');
 
-        // Сохраняем состояние тренировки
-        if (saveTrainingState) {
-            saveTrainingState();
-        }
-
         setTimeout(() => {
             playerCard.remove();
 
@@ -222,11 +217,6 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
                 // Обновляем очередь в sessionStorage
                 // При удалении игрока с корта он всегда идет в начало очереди
                 updateQueueInSessionStorage(playerId, 'add', 'start');
-
-                // Сохраняем состояние тренировки
-                if (saveTrainingState) {
-                    saveTrainingState();
-                }
 
                 // Добавляем карточку в начало очереди
                 queueContainer.prepend(playerCard);

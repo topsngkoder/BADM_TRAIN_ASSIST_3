@@ -150,6 +150,7 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
 
     // Сохраняем текущее состояние тренировки
     if (saveTrainingState) {
+        console.log('Сохранение состояния тренировки при начале игры');
         saveTrainingState();
     }
 

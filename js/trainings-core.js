@@ -187,9 +187,6 @@ export function initTrainingsModule() {
                 const selectedMode = e.target.value;
                 console.log('Выбран режим тренировки:', selectedMode);
                 // Здесь будет функционал для разных режимов тренировки
-
-                // Сохраняем состояние тренировки при изменении режима
-                saveTrainingState();
             });
         }
 
