@@ -23,7 +23,12 @@ export function initTrainingHandlers(elements) {
 
     // Обработчик для формы добавления тренировки
     addTrainingForm.addEventListener('submit', (event) => {
-        handleAddTraining(event, addTrainingForm, addTrainingModal, trainingsContainer);
+        handleAddTraining(event, addTrainingForm, addTrainingModal, trainingsContainer, () => {
+            // Функция обратного вызова для обновления списка тренировок
+            if (elements.fetchTrainings) {
+                elements.fetchTrainings();
+            }
+        });
     });
 
     // Инициализируем кнопку "Назад" на странице деталей тренировки
@@ -171,7 +176,7 @@ export async function openAddTrainingModal(playersSelection, addTrainingModal) {
 }
 
 // Функция для обработки добавления тренировки
-export async function handleAddTraining(event, addTrainingForm, addTrainingModal, trainingsContainer) {
+export async function handleAddTraining(event, addTrainingForm, addTrainingModal, trainingsContainer, onSuccess) {
     event.preventDefault();
 
     // Получаем данные из формы
@@ -219,8 +224,10 @@ export async function handleAddTraining(event, addTrainingForm, addTrainingModal
         // Закрываем модальное окно
         closeModal(addTrainingModal);
 
-        // Обновляем список тренировок
-        fetchTrainings(trainingsContainer);
+        // Вызываем callback для обновления списка тренировок
+        if (typeof onSuccess === 'function') {
+            onSuccess();
+        }
 
         // Показываем сообщение об успехе
         showMessage('Тренировка успешно добавлена!', 'success');

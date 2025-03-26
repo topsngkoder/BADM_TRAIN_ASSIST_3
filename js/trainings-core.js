@@ -35,6 +35,58 @@ export function initTrainingsModule() {
     const backBtn = document.getElementById('back-to-trainings-btn');
     console.log('Кнопка "Назад":', backBtn);
 
+    // Функция для загрузки тренировок
+    async function fetchTrainings(container = trainingsContainer) {
+        console.log('Загрузка тренировок');
+        try {
+            // Получаем тренировки
+            const trainings = await trainingsApi.getTrainings();
+            console.log('Получены тренировки:', trainings);
+
+            // Очистка контейнера
+            console.log('Очистка контейнера тренировок');
+            container.innerHTML = '';
+
+            // Если тренировок нет, показываем сообщение
+            if (trainings.length === 0) {
+                console.log('Тренировок нет, показываем сообщение');
+                container.innerHTML = '<p>У вас пока нет тренировок.</p>';
+                return;
+            }
+
+            // Отображение каждой тренировки
+            console.log('Отображение тренировок');
+            trainings.forEach(training => {
+                console.log('Создание карточки для тренировки:', training.id);
+                const trainingCard = createTrainingCard(
+                    training,
+                    // Обработчик клика по карточке
+                    (training) => {
+                        openTrainingDetails(training);
+                    },
+                    // Обработчик удаления тренировки
+                    (trainingId, card) => {
+                        handleDeleteTraining(trainingId, card, container);
+                    }
+                );
+                container.appendChild(trainingCard);
+            });
+
+            // Инициализируем иконки Feather после добавления всех карточек в DOM
+            console.log('Инициализация иконок Feather');
+            if (window.feather) {
+                console.log('Feather доступен, инициализируем иконки');
+                feather.replace();
+            } else {
+                console.error('Feather не доступен');
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке тренировок:', error);
+            container.innerHTML = '<p>Произошла ошибка при загрузке тренировок. Пожалуйста, попробуйте позже.</p>';
+            showMessage('Ошибка при загрузке тренировок', 'error');
+        }
+    }
+
     // Инициализация обработчиков
     console.log('Инициализация обработчиков');
     initTrainingHandlers({
@@ -42,7 +94,8 @@ export function initTrainingsModule() {
         addTrainingForm,
         playersSelection,
         addTrainingModal,
-        trainingsContainer
+        trainingsContainer,
+        fetchTrainings: () => fetchTrainings(trainingsContainer)
     });
 
     // Загрузка тренировок
@@ -72,58 +125,6 @@ export function initTrainingsModule() {
                 console.error('Ошибка при загрузке тренировки:', error);
                 sessionStorage.removeItem('currentTrainingId');
             });
-    }
-
-    // Функция для загрузки тренировок
-    async function fetchTrainings(trainingsContainer) {
-        console.log('Загрузка тренировок');
-        try {
-            // Получаем тренировки
-            const trainings = await trainingsApi.getTrainings();
-            console.log('Получены тренировки:', trainings);
-
-            // Очистка контейнера
-            console.log('Очистка контейнера тренировок');
-            trainingsContainer.innerHTML = '';
-
-            // Если тренировок нет, показываем сообщение
-            if (trainings.length === 0) {
-                console.log('Тренировок нет, показываем сообщение');
-                trainingsContainer.innerHTML = '<p>У вас пока нет тренировок.</p>';
-                return;
-            }
-
-            // Отображение каждой тренировки
-            console.log('Отображение тренировок');
-            trainings.forEach(training => {
-                console.log('Создание карточки для тренировки:', training.id);
-                const trainingCard = createTrainingCard(
-                    training, 
-                    // Обработчик клика по карточке
-                    (training) => {
-                        openTrainingDetails(training);
-                    },
-                    // Обработчик удаления тренировки
-                    (trainingId, card) => {
-                        handleDeleteTraining(trainingId, card, trainingsContainer);
-                    }
-                );
-                trainingsContainer.appendChild(trainingCard);
-            });
-
-            // Инициализируем иконки Feather после добавления всех карточек в DOM
-            console.log('Инициализация иконок Feather');
-            if (window.feather) {
-                console.log('Feather доступен, инициализируем иконки');
-                feather.replace();
-            } else {
-                console.error('Feather не доступен');
-            }
-        } catch (error) {
-            console.error('Ошибка при загрузке тренировок:', error);
-            trainingsContainer.innerHTML = '<p>Произошла ошибка при загрузке тренировок. Пожалуйста, попробуйте позже.</p>';
-            showMessage('Ошибка при загрузке тренировок', 'error');
-        }
     }
 
     // Функция для открытия страницы с деталями тренировки
