@@ -31,8 +31,41 @@ export function updateCourtHalfButtons(courtHalf) {
     }
 
     // Проверяем, полностью ли заполнен корт (все 4 игрока)
-    // Не вызываем updateStartGameButton здесь, так как это должно делаться только в initTrainingDetailsHandlers
-    // с передачей обработчика onStartGame
+    const courtContainer = courtHalf.closest('.court-container');
+    if (courtContainer) {
+        // Обновляем только видимость кнопки, но не добавляем обработчик
+        updateCourtVisibility(courtContainer);
+    }
+}
+
+// Функция для проверки заполненности корта и обновления видимости кнопки "Начать игру"
+export function updateCourtVisibility(courtContainer) {
+    // Получаем все слоты для игроков на этом корте
+    const slots = courtContainer.querySelectorAll('.court-player-slot');
+
+    // Считаем количество занятых слотов
+    let occupiedSlots = 0;
+    slots.forEach(slot => {
+        if (slot.children.length > 0) {
+            occupiedSlots++;
+        }
+    });
+
+    // Проверяем, есть ли уже кнопка "Начать игру"
+    let startGameBtn = courtContainer.querySelector('.start-game-btn');
+
+    // Если все 4 слота заняты, показываем кнопку "Начать игру"
+    if (occupiedSlots === 4) {
+        // Если кнопка уже есть, показываем ее
+        if (startGameBtn) {
+            startGameBtn.style.display = '';
+        }
+    } else {
+        // Если не все слоты заняты, скрываем кнопку
+        if (startGameBtn) {
+            startGameBtn.style.display = 'none';
+        }
+    }
 }
 
 // Функция для проверки заполненности корта и отображения кнопки "Начать игру"
@@ -135,7 +168,13 @@ export function unlockCourtPlayers(courtElement) {
 
 // Функция для запуска таймера игры
 export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinish, saveTrainingState) {
-    console.log('Вызвана функция startGameTimer', { buttonElement, courtId, onGameCancel, onGameFinish, saveTrainingState });
+    console.log('Вызвана функция startGameTimer', {
+        buttonElement,
+        courtId,
+        onGameCancel: typeof onGameCancel === 'function' ? 'Function defined' : 'Not a function',
+        onGameFinish: typeof onGameFinish === 'function' ? 'Function defined' : 'Not a function',
+        saveTrainingState: typeof saveTrainingState === 'function' ? 'Function defined' : 'Not a function'
+    });
 
     // Проверяем, не запущен ли уже таймер
     if (buttonElement.classList.contains('timer-active')) {

@@ -1,7 +1,7 @@
 // Модуль для работы с игроками и очередью
 import { playersApi } from './api.js';
 import { showMessage } from './ui.js';
-import { updateCourtHalfButtons, updateStartGameButton } from './trainings-court.js';
+import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility } from './trainings-court.js';
 
 // Функция для добавления игрока из очереди на корт
 export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callback, saveTrainingState) {
@@ -166,8 +166,10 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
                 updateCourtHalfButtons(courtHalf);
             }
 
-            // Не вызываем updateStartGameButton здесь, так как это должно делаться только в initTrainingDetailsHandlers
-            // с передачей обработчика onStartGame
+            // Обновляем видимость кнопки "Начать игру"
+            if (courtContainer) {
+                updateCourtVisibility(courtContainer);
+            }
 
             // Возвращаем игрока в очередь
             const queueContainer = document.querySelector('.players-queue-container');
