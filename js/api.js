@@ -338,6 +338,193 @@ export const trainingsApi = {
     }
 };
 
+// API для работы с состоянием тренировки
+export const trainingStateApi = {
+    // Сохранение состояния тренировки
+    async saveTrainingState(trainingId, stateData) {
+        try {
+            console.log(`Сохранение состояния тренировки с ID: ${trainingId}`);
+
+            // Проверяем, существует ли таблица training_states
+            try {
+                const { data: checkData, error: checkError } = await supabase
+                    .from('training_states')
+                    .select('id')
+                    .limit(1);
+
+                if (checkError) {
+                    console.error('Ошибка при проверке таблицы training_states:', checkError);
+
+                    // Если таблица не существует, создаем ее
+                    console.log('Таблица training_states не существует, используем sessionStorage');
+
+                    // Сохраняем состояние только в sessionStorage
+                    sessionStorage.setItem('trainingState', JSON.stringify(stateData));
+                    return { success: true, message: 'Состояние сохранено в sessionStorage' };
+                }
+            } catch (checkErr) {
+                console.error('Ошибка при проверке таблицы:', checkErr);
+
+                // Сохраняем состояние только в sessionStorage
+                sessionStorage.setItem('trainingState', JSON.stringify(stateData));
+                return { success: true, message: 'Состояние сохранено в sessionStorage' };
+            }
+
+            // Проверяем, есть ли уже сохраненное состояние для этой тренировки
+            const { data: existingState, error: getError } = await supabase
+                .from('training_states')
+                .select('id')
+                .eq('training_id', trainingId)
+                .single();
+
+            if (getError && getError.code !== 'PGRST116') { // PGRST116 - ошибка "не найдено", это нормально
+                console.error('Ошибка при проверке существующего состояния:', getError);
+                throw getError;
+            }
+
+            if (existingState) {
+                // Если состояние уже существует, обновляем его
+                console.log(`Обновление существующего состояния для тренировки ${trainingId}`);
+
+                const { data, error } = await supabase
+                    .from('training_states')
+                    .update({
+                        state_data: stateData,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('training_id', trainingId)
+                    .select();
+
+                if (error) {
+                    console.error('Ошибка при обновлении состояния тренировки:', error);
+                    throw error;
+                }
+
+                console.log('Состояние тренировки успешно обновлено:', data);
+                return data;
+            } else {
+                // Если состояния еще нет, создаем новое
+                console.log(`Создание нового состояния для тренировки ${trainingId}`);
+
+                const { data, error } = await supabase
+                    .from('training_states')
+                    .insert([{
+                        training_id: trainingId,
+                        state_data: stateData,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    }])
+                    .select();
+
+                if (error) {
+                    console.error('Ошибка при создании состояния тренировки:', error);
+                    throw error;
+                }
+
+                console.log('Состояние тренировки успешно создано:', data);
+                return data;
+            }
+        } catch (error) {
+            console.error('Error saving training state:', error);
+
+            // В случае ошибки сохраняем состояние только в sessionStorage
+            sessionStorage.setItem('trainingState', JSON.stringify(stateData));
+            return { success: true, message: 'Состояние сохранено в sessionStorage (fallback)' };
+        }
+    },
+
+    // Получение состояния тренировки
+    async getTrainingState(trainingId) {
+        try {
+            console.log(`Получение состояния тренировки с ID: ${trainingId}`);
+
+            // Проверяем, существует ли таблица training_states
+            try {
+                const { data: checkData, error: checkError } = await supabase
+                    .from('training_states')
+                    .select('id')
+                    .limit(1);
+
+                if (checkError) {
+                    console.error('Ошибка при проверке таблицы training_states:', checkError);
+
+                    // Если таблица не существует, используем данные из sessionStorage
+                    console.log('Таблица training_states не существует, используем sessionStorage');
+
+                    const stateJson = sessionStorage.getItem('trainingState');
+                    if (stateJson) {
+                        try {
+                            const stateData = JSON.parse(stateJson);
+                            return { state_data: stateData };
+                        } catch (e) {
+                            console.error('Ошибка при парсинге состояния из sessionStorage:', e);
+                            return null;
+                        }
+                    }
+                    return null;
+                }
+            } catch (checkErr) {
+                console.error('Ошибка при проверке таблицы:', checkErr);
+
+                // Используем данные из sessionStorage
+                const stateJson = sessionStorage.getItem('trainingState');
+                if (stateJson) {
+                    try {
+                        const stateData = JSON.parse(stateJson);
+                        return { state_data: stateData };
+                    } catch (e) {
+                        console.error('Ошибка при парсинге состояния из sessionStorage:', e);
+                        return null;
+                    }
+                }
+                return null;
+            }
+
+            // Получаем состояние тренировки из базы данных
+            const { data, error } = await supabase
+                .from('training_states')
+                .select('*')
+                .eq('training_id', trainingId)
+                .single();
+
+            if (error) {
+                console.error('Ошибка при получении состояния тренировки:', error);
+
+                // В случае ошибки пытаемся использовать данные из sessionStorage
+                const stateJson = sessionStorage.getItem('trainingState');
+                if (stateJson) {
+                    try {
+                        const stateData = JSON.parse(stateJson);
+                        return { state_data: stateData };
+                    } catch (e) {
+                        console.error('Ошибка при парсинге состояния из sessionStorage:', e);
+                        return null;
+                    }
+                }
+                return null;
+            }
+
+            console.log('Получено состояние тренировки:', data);
+            return data;
+        } catch (error) {
+            console.error('Error getting training state:', error);
+
+            // В случае ошибки пытаемся использовать данные из sessionStorage
+            const stateJson = sessionStorage.getItem('trainingState');
+            if (stateJson) {
+                try {
+                    const stateData = JSON.parse(stateJson);
+                    return { state_data: stateData };
+                } catch (e) {
+                    console.error('Ошибка при парсинге состояния из sessionStorage:', e);
+                    return null;
+                }
+            }
+            return null;
+        }
+    }
+};
+
 // API для работы с игроками
 export const playersApi = {
     // Получение списка игроков с сортировкой

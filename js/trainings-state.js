@@ -187,14 +187,14 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
     winners.forEach(player => {
         const rating = getPlayerRating(player.id);
         console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
-        addPlayerToQueue(player.id, player.name, rating, 'end', player.photo);
+        addPlayerToQueue(player.id, 'end');
     });
 
     console.log('Добавляем проигравших в очередь:', losers);
     losers.forEach(player => {
         const rating = getPlayerRating(player.id);
         console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) с рейтингом ${rating} в очередь`);
-        addPlayerToQueue(player.id, player.name, rating, 'end', player.photo);
+        addPlayerToQueue(player.id, 'end');
     });
 
     // Теперь удаляем игроков с корта
