@@ -87,6 +87,12 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
         // Проверяем, заполнены ли все слоты на этой половине корта
         updateCourtHalfButtons(courtHalf);
 
+        // Проверяем, заполнены ли все слоты на корте
+        const courtContainer = courtHalf.closest('.court-container');
+        if (courtContainer) {
+            updateCourtVisibility(courtContainer);
+        }
+
         // Удаляем игрока из очереди
         playerCard.classList.add('removing');
 

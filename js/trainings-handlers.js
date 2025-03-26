@@ -3,7 +3,7 @@ import { trainingsApi, playersApi } from './api.js';
 import { showMessage, openModal, closeModal } from './ui.js';
 import { saveTrainingState, handleWinnerSelection } from './trainings-state.js';
 import { addPlayerFromQueueToCourt, removePlayerFromCourt } from './trainings-players.js';
-import { updateCourtHalfButtons, updateStartGameButton, startGameTimer, unlockCourtPlayers } from './trainings-court.js';
+import { updateCourtHalfButtons, updateStartGameButton, startGameTimer, unlockCourtPlayers, updateCourtVisibility } from './trainings-court.js';
 import { showWinnerSelectionModal, openPlayerSelectionModal } from './trainings-ui.js';
 
 // Функция для инициализации обработчиков тренировок
@@ -319,6 +319,125 @@ export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState)
                 // Callback после завершения анимации
                 isAddingPlayer = false;
                 button.classList.remove('disabled');
+
+                // Обновляем кнопку "Начать игру" для этого корта
+                const courtContainer = detailsContainer.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                if (courtContainer) {
+                    console.log('Обновляем кнопку "Начать игру" после добавления игрока на корт', courtId);
+                    updateCourtVisibility(courtContainer);
+
+                    // Проверяем, все ли слоты заняты, и если да, то инициализируем кнопку "Начать игру"
+                    const slots = courtContainer.querySelectorAll('.court-player-slot');
+                    let occupiedSlots = 0;
+                    slots.forEach(slot => {
+                        if (slot.children.length > 0) {
+                            occupiedSlots++;
+                        }
+                    });
+
+                    if (occupiedSlots === 4) {
+                        console.log('Все 4 слота заняты, инициализируем кнопку "Начать игру"');
+                        updateStartGameButton(courtContainer, (buttonElement, courtId) => {
+                            console.log('Вызван обработчик нажатия кнопки "Начать игру" для корта', courtId);
+                            startGameTimer(buttonElement, courtId,
+                                // Обработчик отмены игры
+                                async (buttonElement, timerInterval) => {
+                                    console.log('Вызван обработчик отмены игры');
+                                    await saveTrainingState();
+                                },
+                                // Обработчик завершения игры
+                                (buttonElement, courtId, formattedTime, timerInterval) => {
+                                    console.log('Вызван обработчик завершения игры');
+                                    // Получаем текущий режим тренировки
+                                    const trainingModeSelect = document.getElementById('training-mode');
+                                    const currentMode = trainingModeSelect ? trainingModeSelect.value : 'single';
+
+                                    // Обрабатываем завершение игры в зависимости от режима
+                                    if (currentMode === 'single') {
+                                        // Режим "Играем один раз"
+                                        // Получаем игроков на корте
+                                        const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                                        if (!courtElement) {
+                                            console.error('Не найден элемент корта');
+                                            return;
+                                        }
+
+                                        // Получаем игроков верхней половины
+                                        const topPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="top"] .court-player'))
+                                            .map(playerElement => {
+                                                const playerId = playerElement.getAttribute('data-player-id');
+                                                const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                                const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                                                return { id: playerId, name: playerName, photo: playerPhoto };
+                                            });
+
+                                        // Получаем игроков нижней половины
+                                        const bottomPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="bottom"] .court-player'))
+                                            .map(playerElement => {
+                                                const playerId = playerElement.getAttribute('data-player-id');
+                                                const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                                const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                                                return { id: playerId, name: playerName, photo: playerPhoto };
+                                            });
+
+                                        // Проверяем, что на корте 4 игрока
+                                        if (topPlayers.length === 2 && bottomPlayers.length === 2) {
+                                            // Формируем названия команд
+                                            const topTeamName = `${topPlayers[0].name}/${topPlayers[1].name}`;
+                                            const bottomTeamName = `${bottomPlayers[0].name}/${bottomPlayers[1].name}`;
+
+                                            // Показываем модальное окно выбора победителя
+                                            showWinnerSelectionModal(courtId, topTeamName, bottomTeamName, topPlayers, bottomPlayers, formattedTime,
+                                                (courtId, winnerTeam, topPlayers, bottomPlayers) => {
+                                                    handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers, saveTrainingState);
+                                                });
+                                        } else {
+                                            // Если на корте не 4 игрока, просто показываем сообщение о завершении
+                                            showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+                                            resetGameButton();
+                                        }
+                                    } else {
+                                        // Другие режимы (пока просто показываем сообщение)
+                                        showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+                                        resetGameButton();
+                                    }
+
+                                    // Функция для сброса кнопки в исходное состояние
+                                    function resetGameButton() {
+                                        // Очищаем интервал таймера, если он есть
+                                        if (timerInterval) {
+                                            clearInterval(timerInterval);
+                                        }
+
+                                        // Удаляем атрибуты таймера
+                                        buttonElement.removeAttribute('data-timer-id');
+                                        buttonElement.removeAttribute('data-start-time');
+
+                                        // Сбрасываем внешний вид кнопки
+                                        buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
+                                        buttonElement.classList.remove('timer-active');
+                                        buttonElement.classList.remove('timer-transition');
+                                        buttonElement.style.pointerEvents = '';
+                                        buttonElement.title = '';
+
+                                        // Инициализируем иконки Feather
+                                        if (window.feather) {
+                                            feather.replace();
+                                        }
+
+                                        // Получаем элемент корта
+                                        const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                                        if (courtElement) {
+                                            // Разблокируем изменение состава игроков
+                                            unlockCourtPlayers(courtElement);
+                                        }
+                                    }
+                                },
+                                saveTrainingState
+                            );
+                        });
+                    }
+                }
             }, saveTrainingState);
         });
     });
@@ -359,15 +478,26 @@ export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState)
 
     // Инициализируем кнопки "Начать игру" для всех кортов
     const courtContainers = detailsContainer.querySelectorAll('.court-container');
+    console.log('Найдено контейнеров кортов:', courtContainers.length);
+
     courtContainers.forEach(court => {
+        console.log('Инициализация кнопки "Начать игру" для корта:', court.getAttribute('data-court-id'));
+
+        // Сначала обновляем видимость кнопки
+        updateCourtVisibility(court);
+
+        // Затем добавляем обработчик
         updateStartGameButton(court, (buttonElement, courtId) => {
-            startGameTimer(buttonElement, courtId, 
+            console.log('Вызван обработчик нажатия кнопки "Начать игру" для корта', courtId);
+            startGameTimer(buttonElement, courtId,
                 // Обработчик отмены игры
                 async (buttonElement, timerInterval) => {
+                    console.log('Вызван обработчик отмены игры');
                     await saveTrainingState();
                 },
                 // Обработчик завершения игры
                 (buttonElement, courtId, formattedTime, timerInterval) => {
+                    console.log('Вызван обработчик завершения игры');
                     // Получаем текущий режим тренировки
                     const trainingModeSelect = document.getElementById('training-mode');
                     const currentMode = trainingModeSelect ? trainingModeSelect.value : 'single';
