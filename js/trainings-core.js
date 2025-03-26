@@ -1,5 +1,5 @@
 // Основной модуль для работы с тренировками
-import { trainingsApi } from './api.js';
+import { trainingsApi, playersApi } from './api.js';
 import { showMessage } from './ui.js';
 import { createTrainingCard, getCourtWord } from './trainings-ui.js';
 import { initTrainingHandlers, handleDeleteTraining, initTrainingDetailsHandlers } from './trainings-handlers.js';
@@ -442,19 +442,19 @@ export function initTrainingsModule() {
         // Добавляем обработчики для кнопок и карточек игроков
         setTimeout(() => {
             // Если есть сохраненное состояние, восстанавливаем его
-            if (savedState && savedState.courts && savedState.courts.length > 0) {
+            if (stateData && stateData.courts && stateData.courts.length > 0) {
                 console.log('Восстанавливаем сохраненное состояние кортов');
 
                 // Устанавливаем режим тренировки
-                if (savedState.trainingMode) {
+                if (stateData.trainingMode) {
                     const trainingModeSelect = document.getElementById('training-mode');
                     if (trainingModeSelect) {
-                        trainingModeSelect.value = savedState.trainingMode;
+                        trainingModeSelect.value = stateData.trainingMode;
                     }
                 }
 
                 // Восстанавливаем состояние кортов
-                savedState.courts.forEach(courtData => {
+                stateData.courts.forEach(courtData => {
                     const courtElement = document.querySelector(`.court-container[data-court-id="${courtData.id}"]`);
                     if (!courtElement) {
                         console.error(`Не найден элемент корта с ID ${courtData.id}`);
