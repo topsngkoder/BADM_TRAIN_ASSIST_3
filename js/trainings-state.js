@@ -106,7 +106,7 @@ export async function saveTrainingState() {
 export async function loadTrainingState(trainingId) {
     try {
         console.log('Загрузка состояния тренировки:', trainingId);
-        
+
         // Пытаемся загрузить сохраненное состояние тренировки
         const trainingState = await trainingStateApi.getTrainingState(trainingId);
         console.log('Загруженное состояние тренировки:', trainingState);
@@ -125,7 +125,7 @@ export async function loadTrainingState(trainingId) {
 
             // Остальные данные будут использованы при отрисовке интерфейса
             sessionStorage.setItem('trainingState', JSON.stringify(stateData));
-            
+
             return stateData;
         } else {
             console.log('Сохраненное состояние не найдено, используем начальное состояние');
@@ -135,7 +135,10 @@ export async function loadTrainingState(trainingId) {
         }
     } catch (error) {
         console.error('Ошибка при загрузке состояния тренировки:', error);
-        showMessage('Не удалось загрузить сохраненное состояние тренировки', 'error');
+        // Не показываем сообщение об ошибке пользователю, так как это нормальная ситуация
+        // при первом открытии тренировки
+        console.log('Используем начальное состояние тренировки');
+
         // Очищаем сохраненное состояние в случае ошибки
         sessionStorage.removeItem('trainingState');
         return null;

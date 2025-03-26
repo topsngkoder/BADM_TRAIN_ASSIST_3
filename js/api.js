@@ -481,13 +481,15 @@ export const trainingStateApi = {
             }
 
             // Получаем состояние тренировки из базы данных
+            // Используем maybeSingle вместо single, чтобы избежать ошибки, если запись не найдена
             const { data, error } = await supabase
                 .from('training_states')
                 .select('*')
                 .eq('training_id', trainingId)
-                .single();
+                .maybeSingle();
 
-            if (error) {
+            // Если произошла ошибка (не связанная с отсутствием записи)
+            if (error && error.code !== 'PGRST116') {
                 console.error('Ошибка при получении состояния тренировки:', error);
 
                 // В случае ошибки пытаемся использовать данные из sessionStorage
@@ -504,8 +506,25 @@ export const trainingStateApi = {
                 return null;
             }
 
-            console.log('Получено состояние тренировки:', data);
-            return data;
+            // Если данные найдены, возвращаем их
+            if (data) {
+                console.log('Получено состояние тренировки:', data);
+                return data;
+            }
+
+            // Если данные не найдены, используем sessionStorage
+            console.log('Состояние тренировки не найдено в базе данных, используем sessionStorage');
+            const stateJson = sessionStorage.getItem('trainingState');
+            if (stateJson) {
+                try {
+                    const stateData = JSON.parse(stateJson);
+                    return { state_data: stateData };
+                } catch (e) {
+                    console.error('Ошибка при парсинге состояния из sessionStorage:', e);
+                    return null;
+                }
+            }
+            return null;
         } catch (error) {
             console.error('Error getting training state:', error);
 
