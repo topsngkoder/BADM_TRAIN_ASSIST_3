@@ -541,14 +541,9 @@ export const trainingStateApi = {
             this._localState.playersQueue = [...playersQueue];
             this._localState.lastUpdated = new Date().toISOString();
 
-            try {
-                // Сохраняем обновленное состояние в базу данных
-                await this.saveTrainingState(trainingId, this._localState);
-            } catch (saveError) {
-                console.error('Ошибка при сохранении состояния в базу данных:', saveError);
-                // Продолжаем работу с локальным состоянием
-            }
-
+            // Не сохраняем изменения в базу данных автоматически
+            // Изменения будут сохранены при нажатии кнопки "Сохранить"
+            console.log('Изменения внесены только в локальное хранилище');
             console.log('Очередь игроков успешно обновлена');
             return true;
         } catch (error) {
@@ -592,8 +587,14 @@ export const trainingStateApi = {
                 playersQueue.unshift({ id: playerIdStr });
             }
 
-            // Обновляем очередь в базе данных
-            await this.updatePlayersQueue(trainingId, playersQueue);
+            // Обновляем очередь только в локальном хранилище
+            if (this._localState.trainingId !== parseInt(trainingId)) {
+                this.initLocalState(parseInt(trainingId));
+            }
+
+            this._localState.playersQueue = [...playersQueue];
+            this._localState.lastUpdated = new Date().toISOString();
+            console.log('Изменения внесены только в локальное хранилище');
 
             console.log('Игрок успешно добавлен в очередь');
             return true;
@@ -627,8 +628,10 @@ export const trainingStateApi = {
                             String(p) !== playerIdStr
                     );
 
-                    // Обновляем очередь
-                    await this.updatePlayersQueue(trainingId, updatedQueue);
+                    // Обновляем очередь только в локальном хранилище
+                    this._localState.playersQueue = [...updatedQueue];
+                    this._localState.lastUpdated = new Date().toISOString();
+                    console.log('Изменения внесены только в локальное хранилище');
                 } catch (queueError) {
                     console.error('Ошибка при обновлении очереди:', queueError);
                     // Инициализируем локальное хранилище
@@ -648,13 +651,9 @@ export const trainingStateApi = {
 
                 this._localState.lastUpdated = new Date().toISOString();
 
-                try {
-                    // Сохраняем обновленное состояние в базу данных
-                    await this.saveTrainingState(trainingId, this._localState);
-                } catch (saveError) {
-                    console.error('Ошибка при сохранении состояния в базу данных:', saveError);
-                    // Продолжаем работу с локальным состоянием
-                }
+                // Не сохраняем изменения в базу данных автоматически
+                // Изменения будут сохранены при нажатии кнопки "Сохранить"
+                console.log('Изменения внесены только в локальное хранилище');
             }
 
             console.log('Игрок успешно удален из очереди');
@@ -708,13 +707,9 @@ export const trainingStateApi = {
             // Обновляем состояние тренировки
             this._localState.lastUpdated = new Date().toISOString();
 
-            try {
-                // Сохраняем обновленное состояние в базу данных
-                await this.saveTrainingState(trainingId, this._localState);
-            } catch (saveError) {
-                console.error('Ошибка при сохранении состояния в базу данных:', saveError);
-                // Продолжаем работу с локальным состоянием
-            }
+            // Не сохраняем изменения в базу данных автоматически
+            // Изменения будут сохранены при нажатии кнопки "Сохранить"
+            console.log('Изменения внесены только в локальное хранилище');
 
             console.log('Игрок успешно добавлен на корт');
             return true;
