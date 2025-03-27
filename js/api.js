@@ -281,12 +281,27 @@ export const trainingStateApi = {
     async saveTrainingState(trainingId, stateData) {
         try {
             console.log(`Сохранение состояния тренировки с ID: ${trainingId}`);
+            console.log('Данные состояния для сохранения:', stateData);
 
             // Преобразуем ID в число, если он передан как строка
             const numericId = parseInt(trainingId);
             if (isNaN(numericId)) {
                 throw new Error(`Некорректный ID тренировки: ${trainingId}`);
             }
+
+            // Обновляем локальное хранилище
+            this._localState = { ...stateData };
+            if (!this._localState.trainingId) {
+                this._localState.trainingId = numericId;
+            }
+
+            // Проверяем наличие очереди игроков
+            if (!stateData.playersQueue) {
+                console.warn('В сохраняемом состоянии нет очереди игроков');
+                stateData.playersQueue = [];
+            }
+
+            console.log('Очередь игроков в сохраняемом состоянии:', stateData.playersQueue);
 
             // Обновляем поле state_data в таблице trainings
             const { data, error } = await supabase
@@ -303,7 +318,7 @@ export const trainingStateApi = {
                 throw error;
             }
 
-            console.log('Состояние тренировки успешно обновлено:', data);
+            console.log('Состояние тренировки успешно обновлено в базе данных:', data);
             return { success: true, data };
         } catch (error) {
             console.error('Error saving training state:', error);
@@ -325,6 +340,7 @@ export const trainingStateApi = {
             // Проверяем, есть ли состояние в локальном хранилище
             if (this._localState.trainingId === numericId) {
                 console.log('Получено состояние тренировки из локального хранилища:', this._localState);
+                console.log('Очередь игроков в локальном хранилище:', this._localState.playersQueue);
                 return { state_data: { ...this._localState } };
             }
 
@@ -346,10 +362,21 @@ export const trainingStateApi = {
                 // Если данные найдены и есть состояние, сохраняем в локальное хранилище и возвращаем
                 if (data && data.state_data) {
                     console.log('Получено состояние тренировки из базы данных:', data);
+
+                    // Проверяем наличие очереди игроков
+                    if (!data.state_data.playersQueue) {
+                        console.warn('В полученном состоянии нет очереди игроков');
+                        data.state_data.playersQueue = [];
+                    }
+
+                    console.log('Очередь игроков в полученном состоянии:', data.state_data.playersQueue);
+
+                    // Обновляем локальное хранилище
                     this._localState = { ...data.state_data };
                     if (!this._localState.trainingId) {
                         this._localState.trainingId = numericId;
                     }
+
                     return { state_data: { ...this._localState } };
                 }
             } catch (dbError) {

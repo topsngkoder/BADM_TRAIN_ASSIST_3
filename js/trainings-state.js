@@ -105,6 +105,7 @@ export async function updateLocalTrainingState() {
 
             // Обновляем очередь в локальном хранилище
             trainingStateApi._localState.playersQueue = [...playersQueue];
+            console.log('Обновлена очередь игроков в локальном хранилище:', trainingStateApi._localState.playersQueue);
         } else {
             // Если в DOM нет карточек игроков, используем очередь из локального хранилища
             playersQueue = [...trainingStateApi._localState.playersQueue] || [];
@@ -220,12 +221,15 @@ export async function saveTrainingState() {
         const stateData = { ...trainingStateApi._localState };
         stateData.lastUpdated = new Date().toISOString();
 
-        // Сохраняем состояние в базе данных
-        // Показываем сообщение пользователю
-        showMessage('Состояние тренировки сохранено', 'success');
+        console.log('Сохраняем состояние тренировки в базу данных:', stateData);
+        console.log('Очередь игроков в сохраняемом состоянии:', stateData.playersQueue);
 
+        // Сохраняем состояние в базе данных
         await trainingStateApi.saveTrainingState(trainingId, stateData);
         console.log('Состояние тренировки успешно сохранено');
+
+        // Показываем сообщение пользователю
+        showMessage('Состояние тренировки сохранено', 'success');
 
         return true;
     } catch (error) {
@@ -280,6 +284,13 @@ export async function loadTrainingState(trainingId) {
                     console.error('Ошибка при получении очереди игроков:', queueError);
                 }
             }
+
+            // Обновляем локальное хранилище состояния тренировки
+            trainingStateApi._localState = { ...stateData };
+
+            // Выводим информацию о загруженном состоянии
+            console.log('Загружено состояние тренировки:', stateData);
+            console.log('Очередь игроков в загруженном состоянии:', stateData.playersQueue);
 
             return stateData;
         } else {

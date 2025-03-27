@@ -267,12 +267,15 @@ export function initTrainingsModule() {
                     const playerData = await playersApi.getPlayer(playerId);
                     if (playerData) {
                         playersQueue.push(playerData);
+                    } else {
+                        console.warn(`Не удалось получить данные игрока с ID ${playerId}`);
                     }
                 } catch (error) {
                     console.error(`Ошибка при получении данных игрока с ID ${playerId}:`, error);
                 }
             }
 
+            console.log('Полученные данные игроков для очереди:', playersQueue);
             players = playersQueue;
         } else {
             // Если нет сохраненной очереди, используем список игроков из тренировки
@@ -289,6 +292,13 @@ export function initTrainingsModule() {
                 return ratingB - ratingA; // Сортировка по убыванию
             });
             console.log('Отсортированные игроки по рейтингу для начальной очереди:', players);
+
+            // Сохраняем начальную очередь в локальное хранилище
+            if (players.length > 0) {
+                const playerIds = players.map(player => ({ id: String(player.id) }));
+                trainingStateApi._localState.playersQueue = playerIds;
+                console.log('Сохранена начальная очередь в локальное хранилище:', playerIds);
+            }
         }
 
         // Создаем HTML для игроков в очереди
