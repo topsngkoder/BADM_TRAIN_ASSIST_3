@@ -534,24 +534,6 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
             }
 
             startGameTimer(buttonElement, courtId,
-        };
-
-        updateStartGameButton(court, startGameHandler);
-
-        // Если есть активная игра для этого корта, автоматически запускаем таймер
-        if (activeGame) {
-            console.log('Автоматически запускаем таймер для активной игры на корте:', courtId);
-
-            // Находим кнопку "Начать игру"
-            const startGameBtn = court.querySelector('.start-game-btn');
-            if (startGameBtn) {
-                // Устанавливаем время начала игры
-                startGameBtn.setAttribute('data-start-time', activeGame.startTime);
-
-                // Запускаем таймер
-                startGameHandler(startGameBtn, courtId);
-            }
-        }
                 // Обработчик отмены игры
                 async (buttonElement, timerInterval) => {
                     console.log('Вызван обработчик отмены игры');
@@ -599,55 +581,39 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
                             const bottomTeamName = `${bottomPlayers[0].name}/${bottomPlayers[1].name}`;
 
                             // Показываем модальное окно выбора победителя
-                            showWinnerSelectionModal(courtId, topTeamName, bottomTeamName, topPlayers, bottomPlayers, formattedTime, 
+                            showWinnerSelectionModal(courtId, topTeamName, bottomTeamName, topPlayers, bottomPlayers, formattedTime,
                                 (courtId, winnerTeam, topPlayers, bottomPlayers) => {
                                     handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers, saveTrainingState);
                                 });
                         } else {
                             // Если на корте не 4 игрока, просто показываем сообщение о завершении
                             showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
-                            resetGameButton();
                         }
                     } else {
                         // Другие режимы (пока просто показываем сообщение)
                         showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
-                        resetGameButton();
-                    }
-
-                    // Функция для сброса кнопки в исходное состояние
-                    function resetGameButton() {
-                        // Очищаем интервал таймера, если он есть
-                        if (timerInterval) {
-                            clearInterval(timerInterval);
-                        }
-
-                        // Удаляем атрибуты таймера
-                        buttonElement.removeAttribute('data-timer-id');
-                        buttonElement.removeAttribute('data-start-time');
-
-                        // Сбрасываем внешний вид кнопки
-                        buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
-                        buttonElement.classList.remove('timer-active');
-                        buttonElement.classList.remove('timer-transition');
-                        buttonElement.style.pointerEvents = '';
-                        buttonElement.title = '';
-
-                        // Инициализируем иконки Feather
-                        if (window.feather) {
-                            feather.replace();
-                        }
-
-                        // Получаем элемент корта
-                        const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
-                        if (courtElement) {
-                            // Разблокируем изменение состава игроков
-                            unlockCourtPlayers(courtElement);
-                        }
                     }
                 },
                 saveTrainingState
             );
-        });
+        };
+
+        updateStartGameButton(court, startGameHandler);
+
+        // Если есть активная игра для этого корта, автоматически запускаем таймер
+        if (activeGame) {
+            console.log('Автоматически запускаем таймер для активной игры на корте:', courtId);
+
+            // Находим кнопку "Начать игру"
+            const startGameBtn = court.querySelector('.start-game-btn');
+            if (startGameBtn) {
+                // Устанавливаем время начала игры
+                startGameBtn.setAttribute('data-start-time', activeGame.startTime);
+
+                // Запускаем таймер
+                startGameHandler(startGameBtn, courtId);
+            }
+        }
     });
 
     // Инициализируем иконки Feather
