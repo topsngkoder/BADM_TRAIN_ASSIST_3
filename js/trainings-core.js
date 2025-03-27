@@ -38,6 +38,30 @@ export function initTrainingsModule() {
     const backBtn = document.getElementById('back-to-trainings-btn');
     console.log('Кнопка "Назад":', backBtn);
 
+    // Добавляем обработчик для кнопки "Назад"
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            console.log('Нажата кнопка "Назад"');
+
+            // Скрываем интерфейс деталей тренировки
+            const trainingDetailsInterface = document.getElementById('training-details-interface');
+            if (trainingDetailsInterface) {
+                trainingDetailsInterface.style.display = 'none';
+            }
+
+            // Показываем основной интерфейс
+            const mainInterface = document.getElementById('main-interface');
+            if (mainInterface) {
+                mainInterface.style.display = 'block';
+            }
+
+            // Очищаем URL
+            const url = new URL(window.location);
+            url.searchParams.delete('id');
+            window.history.pushState({}, '', url);
+        });
+    }
+
     // Функция для загрузки тренировок
     async function fetchTrainings(container = trainingsContainer) {
         console.log('Загрузка тренировок');
@@ -147,6 +171,29 @@ export function initTrainingsModule() {
         url.searchParams.set('id', training.id);
         window.history.pushState({}, '', url);
 
+        // Скрываем основной интерфейс и показываем интерфейс деталей тренировки
+        console.log('Скрываем основной интерфейс и показываем интерфейс деталей тренировки');
+
+        const mainInterface = document.getElementById('main-interface');
+        console.log('Основной интерфейс:', mainInterface);
+        if (mainInterface) {
+            mainInterface.style.display = 'none';
+            console.log('Основной интерфейс скрыт');
+        } else {
+            console.error('Не найден основной интерфейс с ID "main-interface"');
+        }
+
+        const trainingDetailsInterface = document.getElementById('training-details-interface');
+        console.log('Интерфейс деталей тренировки:', trainingDetailsInterface);
+        if (trainingDetailsInterface) {
+            trainingDetailsInterface.style.display = 'block';
+            trainingDetailsInterface.style.width = '100%';
+            trainingDetailsInterface.style.maxWidth = '100%';
+            console.log('Интерфейс деталей тренировки показан');
+        } else {
+            console.error('Не найден интерфейс деталей тренировки с ID "training-details-interface"');
+        }
+
         try {
             // Загружаем состояние тренировки
             await loadTrainingState(training.id);
@@ -154,15 +201,8 @@ export function initTrainingsModule() {
             console.error('Ошибка при загрузке состояния тренировки:', error);
             showMessage('Не удалось загрузить тренировку из базы данных', 'error');
 
-            // Возвращаемся на главную страницу
-            const backBtn = document.getElementById('back-to-trainings-btn');
-            if (backBtn) {
-                backBtn.click();
-            } else {
-                // Если кнопка "Назад" не найдена, перезагружаем страницу
-                window.location.reload();
-            }
-            return; // Прерываем выполнение функции
+            // Продолжаем выполнение функции, чтобы отобразить хотя бы базовую информацию о тренировке
+            console.log('Продолжаем отображение деталей тренировки без загруженного состояния');
         }
 
         // Получаем элементы страницы
@@ -623,29 +663,6 @@ export function initTrainingsModule() {
             // Инициализируем обработчики для деталей тренировки
             initTrainingDetailsHandlers(detailsContainer, saveTrainingState);
         }, 100); // Небольшая задержка для уверенности, что DOM обновился
-
-        // Скрываем основной интерфейс и показываем интерфейс деталей тренировки
-        console.log('Скрываем основной интерфейс и показываем интерфейс деталей тренировки');
-
-        const mainInterface = document.getElementById('main-interface');
-        console.log('Основной интерфейс:', mainInterface);
-        if (mainInterface) {
-            mainInterface.style.display = 'none';
-            console.log('Основной интерфейс скрыт');
-        } else {
-            console.error('Не найден основной интерфейс с ID "main-interface"');
-        }
-
-        const trainingDetailsInterface = document.getElementById('training-details-interface');
-        console.log('Интерфейс деталей тренировки:', trainingDetailsInterface);
-        if (trainingDetailsInterface) {
-            trainingDetailsInterface.style.display = 'block';
-            trainingDetailsInterface.style.width = '100%';
-            trainingDetailsInterface.style.maxWidth = '100%';
-            console.log('Интерфейс деталей тренировки показан');
-        } else {
-            console.error('Не найден интерфейс деталей тренировки с ID "training-details-interface"');
-        }
 
         // Убедимся, что контейнер деталей тренировки имеет правильную ширину и высоту
         const trainingDetailsContainer = document.getElementById('training-details-container');
