@@ -103,8 +103,8 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
             updateCourtVisibility(courtContainer);
         }
 
-        // Удаляем игрока из очереди в базе данных
-        await trainingStateApi.removePlayerFromQueue(trainingId, playerId);
+        // Удаляем игрока из очереди в локальном состоянии
+        trainingStateApi.removePlayerFromQueue(playerId);
 
         // Добавляем игрока на корт в локальном состоянии
         const slotIndex = Array.from(emptySlot.parentNode.children).indexOf(emptySlot) + 1;
