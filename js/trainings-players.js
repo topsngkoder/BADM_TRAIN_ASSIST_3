@@ -107,28 +107,24 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
         await trainingStateApi.removePlayerFromQueue(trainingId, playerId);
 
         // Удаляем игрока из очереди в DOM
-        playerCard.classList.add('removing');
+        playerCard.remove();
 
-        setTimeout(() => {
-            playerCard.remove();
-
-            // Проверяем, остались ли еще игроки в очереди
-            const remainingPlayers = document.querySelectorAll('.queue-player-card');
-            if (remainingPlayers.length === 0) {
-                const queueContainer = document.querySelector('.players-queue-container');
-                if (queueContainer) {
-                    // Очищаем контейнер и добавляем сообщение
-                    queueContainer.innerHTML = '';
-                    const noPlayersMessage = document.createElement('p');
-                    noPlayersMessage.className = 'no-players-message';
-                    noPlayersMessage.textContent = 'Нет игроков в очереди';
-                    queueContainer.appendChild(noPlayersMessage);
-                }
+        // Проверяем, остались ли еще игроки в очереди
+        const remainingPlayers = document.querySelectorAll('.queue-player-card');
+        if (remainingPlayers.length === 0) {
+            const queueContainer = document.querySelector('.players-queue-container');
+            if (queueContainer) {
+                // Очищаем контейнер и добавляем сообщение
+                queueContainer.innerHTML = '';
+                const noPlayersMessage = document.createElement('p');
+                noPlayersMessage.className = 'no-players-message';
+                noPlayersMessage.textContent = 'Нет игроков в очереди';
+                queueContainer.appendChild(noPlayersMessage);
             }
+        }
 
-            // Вызываем callback после завершения анимации
-            if (callback) callback();
-        }, 300);
+        // Вызываем callback сразу
+        if (callback) callback();
 
         // Инициализируем иконки Feather для новых элементов
         if (window.feather) {
@@ -159,9 +155,6 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
 export async function removePlayerFromCourt(playerElement, playerId, saveTrainingState) {
     console.log(`Удаление игрока с ID ${playerId} с корта`);
 
-    // Анимация удаления
-    playerElement.classList.add('removing');
-
     try {
         // Получаем ID тренировки из URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -186,13 +179,12 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
         // Добавляем игрока в очередь в базе данных
         await trainingStateApi.addPlayerToQueue(trainingId, playerId, 'start');
 
-        setTimeout(() => {
-            // Находим половину корта, с которой удаляется игрок
-            const courtHalf = playerElement.closest('.court-half');
-            const courtContainer = playerElement.closest('.court-container');
+        // Находим половину корта, с которой удаляется игрок
+        const courtHalf = playerElement.closest('.court-half');
+        const courtContainer = playerElement.closest('.court-container');
 
-            // Удаляем элемент игрока
-            playerElement.remove();
+        // Удаляем элемент игрока
+        playerElement.remove();
 
             // Обновляем видимость кнопок на половине корта
             if (courtHalf) {
@@ -250,14 +242,6 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
                 // Добавляем карточку в начало очереди
                 queueContainer.prepend(playerCard);
 
-                // Анимация появления
-                setTimeout(() => {
-                    playerCard.classList.add('added');
-                    setTimeout(() => {
-                        playerCard.classList.remove('added');
-                    }, 300);
-                }, 10);
-
                 // Добавляем класс рейтинга к фото
                 const photoElement = playerCard.querySelector('.queue-player-photo');
                 if (photoElement) {
@@ -279,7 +263,6 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
             if (saveTrainingState) {
                 saveTrainingState();
             }
-        }, 300);
     } catch (error) {
         console.error(`Ошибка при удалении игрока с ID ${playerId}:`, error);
         showMessage('Ошибка при удалении игрока', 'error');
@@ -367,8 +350,7 @@ export async function addPlayerToQueue(playerId, position = 'end', saveTrainingS
             queueContainer.prepend(playerElement);
         }
 
-        // Добавляем класс для анимации
-        playerElement.classList.add('added');
+        // Без анимации
 
         // Добавляем обработчик для перетаскивания игрока на корт
         playerElement.addEventListener('click', function() {
