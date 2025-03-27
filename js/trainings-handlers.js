@@ -287,7 +287,6 @@ export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState)
 
     // Обработчики для кнопок "Добавить из очереди"
     const addFromQueueButtons = detailsContainer.querySelectorAll('.add-from-queue-btn');
-    console.log('Найдено кнопок добавления из очереди:', addFromQueueButtons.length);
 
     addFromQueueButtons.forEach(button => {
         button.addEventListener('click', (e) => {
@@ -295,13 +294,11 @@ export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState)
 
             // Если процесс добавления уже идет, игнорируем клик
             if (isAddingPlayer) {
-                console.log('Процесс добавления игрока уже идет, игнорируем клик');
                 return;
             }
 
             const courtId = button.getAttribute('data-court');
             const half = button.getAttribute('data-half');
-            console.log(`Нажата кнопка добавления из очереди на корт ${courtId}, половина ${half}`);
 
             // Проверяем, есть ли игроки в очереди
             const queuePlayers = detailsContainer.querySelectorAll('.queue-player-card:not(.removing)');
@@ -322,7 +319,7 @@ export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState)
                 isAddingPlayer = false;
                 button.classList.remove('disabled');
 
-                // Обновляем кнопку "Начать игру" для этого корта
+                // Обновляем кнопку "Начать игру" для этого корта без сохранения состояния
                 const courtContainer = detailsContainer.querySelector(`.court-container[data-court-id="${courtId}"]`);
                 if (courtContainer) {
                     console.log('Обновляем кнопку "Начать игру" после добавления игрока на корт', courtId);
@@ -440,7 +437,7 @@ export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState)
                         });
                     }
                 }
-            }, saveTrainingState);
+            }, null);
         });
     });
 
@@ -464,7 +461,7 @@ export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState)
 
             // Создаем модальное окно для выбора игрока
             openPlayerSelectionModal(courtId, half, queuePlayers, (playerCard, courtId, half) => {
-                addPlayerFromQueueToCourt(playerCard, courtId, half, null, saveTrainingState);
+                addPlayerFromQueueToCourt(playerCard, courtId, half, null, null);
             });
         });
     });

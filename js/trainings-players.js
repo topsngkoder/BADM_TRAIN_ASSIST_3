@@ -140,10 +140,7 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
             });
         }
 
-        // Сохраняем состояние тренировки
-        if (saveTrainingState) {
-            saveTrainingState();
-        }
+        // Не сохраняем состояние тренировки при добавлении игрока из очереди
     } catch (error) {
         console.error(`Ошибка при получении данных игрока с ID ${playerId}:`, error);
         showMessage('Ошибка при получении данных игрока', 'error');

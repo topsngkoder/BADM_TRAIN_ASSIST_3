@@ -40,11 +40,9 @@ export function updateCourtHalfButtons(courtHalf) {
 
 // Функция для проверки заполненности корта и обновления видимости кнопки "Начать игру"
 export function updateCourtVisibility(courtContainer) {
-    console.log('Вызвана функция updateCourtVisibility', { courtContainer });
 
     // Получаем все слоты для игроков на этом корте
     const slots = courtContainer.querySelectorAll('.court-player-slot');
-    console.log('Найдено слотов:', slots.length);
 
     // Считаем количество занятых слотов
     let occupiedSlots = 0;
@@ -53,28 +51,21 @@ export function updateCourtVisibility(courtContainer) {
             occupiedSlots++;
         }
     });
-    console.log('Занято слотов:', occupiedSlots);
 
     // Проверяем, есть ли уже кнопка "Начать игру"
     let startGameBtn = courtContainer.querySelector('.start-game-btn');
-    console.log('Найдена кнопка "Начать игру":', !!startGameBtn);
 
     // Если все 4 слота заняты, показываем кнопку "Начать игру"
     if (occupiedSlots === 4) {
-        console.log('Все 4 слота заняты, показываем кнопку "Начать игру"');
         // Если кнопка уже есть, показываем ее
         if (startGameBtn) {
             startGameBtn.style.display = '';
-            console.log('Кнопка "Начать игру" показана');
         } else {
-            console.log('Кнопка "Начать игру" не найдена, но должна быть создана в updateStartGameButton');
         }
     } else {
-        console.log('Не все слоты заняты, скрываем кнопку "Начать игру"');
         // Если не все слоты заняты, скрываем кнопку
         if (startGameBtn) {
             startGameBtn.style.display = 'none';
-            console.log('Кнопка "Начать игру" скрыта');
         }
     }
 }
@@ -115,10 +106,8 @@ export function updateStartGameButton(courtContainer, onStartGame) {
                 console.log('onStartGame:', onStartGame);
                 // Запускаем игру и превращаем кнопку в таймер
                 if (onStartGame) {
-                    console.log('Вызываем onStartGame');
                     onStartGame(startGameBtn, courtId);
                 } else {
-                    console.error('onStartGame не определен');
                 }
             });
 
