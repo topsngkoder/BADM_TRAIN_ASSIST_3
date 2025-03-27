@@ -104,12 +104,12 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
         }
 
         // Удаляем игрока из очереди в локальном состоянии
-        trainingStateApi.removePlayerFromQueue(playerId);
+        await trainingStateApi.removePlayerFromQueue(trainingId, playerId);
 
         // Добавляем игрока на корт в локальном состоянии
         const slotIndex = Array.from(emptySlot.parentNode.children).indexOf(emptySlot) + 1;
         const position = `${half}${slotIndex}`;
-        trainingStateApi.addPlayerToCourt(courtId, position, playerId);
+        await trainingStateApi.addPlayerToCourt(trainingId, courtId, position, playerId);
 
         // Удаляем игрока из очереди в DOM
         playerCard.remove();

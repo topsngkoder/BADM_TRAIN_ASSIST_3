@@ -448,6 +448,58 @@ export const trainingStateApi = {
             console.error('Error removing player from queue:', error);
             throw error;
         }
+    },
+
+    // Добавление игрока на корт
+    async addPlayerToCourt(trainingId, courtId, position, playerId) {
+        try {
+            console.log(`Добавление игрока ${playerId} на корт ${courtId}, позиция: ${position}`);
+
+            // Получаем текущее состояние тренировки
+            const trainingState = await this.getTrainingState(trainingId);
+
+            // Если состояние не найдено, создаем новое
+            let stateData = trainingState && trainingState.state_data ?
+                trainingState.state_data :
+                { trainingId, courts: [], courtCount: 0, playersQueue: [] };
+
+            // Находим нужный корт или создаем новый
+            let court = stateData.courts.find(c => c.id === courtId);
+            if (!court) {
+                court = {
+                    id: courtId,
+                    topPlayers: [],
+                    bottomPlayers: [],
+                    gameInProgress: false,
+                    gameStartTime: null
+                };
+                stateData.courts.push(court);
+            }
+
+            // Преобразуем playerId в строку
+            const playerIdStr = String(playerId);
+
+            // Добавляем игрока на нужную позицию
+            if (position.startsWith('top')) {
+                const playerIndex = parseInt(position.replace('top', '')) - 1;
+                if (!court.topPlayers) court.topPlayers = [];
+                court.topPlayers[playerIndex] = { id: playerIdStr };
+            } else if (position.startsWith('bottom')) {
+                const playerIndex = parseInt(position.replace('bottom', '')) - 1;
+                if (!court.bottomPlayers) court.bottomPlayers = [];
+                court.bottomPlayers[playerIndex] = { id: playerIdStr };
+            }
+
+            // Обновляем состояние тренировки
+            stateData.lastUpdated = new Date().toISOString();
+            await this.saveTrainingState(trainingId, stateData);
+
+            console.log('Игрок успешно добавлен на корт');
+            return true;
+        } catch (error) {
+            console.error('Error adding player to court:', error);
+            throw error;
+        }
     }
 };
 
@@ -455,6 +507,14 @@ export const trainingStateApi = {
 export const playersApi = {
     // Локальное хранилище игроков
     _localPlayers: {},
+
+    // Локальное состояние тренировки
+    _localState: {
+        courts: [],
+        playersQueue: [],
+        courtCount: 0,
+        lastUpdated: null
+    },
 
     // Инициализация локального хранилища игроков
     initLocalPlayers() {
