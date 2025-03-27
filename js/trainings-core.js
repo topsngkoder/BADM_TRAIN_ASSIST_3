@@ -9,7 +9,7 @@ import { removePlayerFromCourt } from './trainings-players.js';
 
 // Инициализация модуля тренировок
 export function initTrainingsModule() {
-    console.log('Инициализация модуля тренировок');
+    console.log('Инициализация модуля  тренировок');
 
     // DOM элементы
     const addTrainingBtn = document.getElementById('add-training-btn');
