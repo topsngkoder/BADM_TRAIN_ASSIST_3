@@ -401,16 +401,16 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
         console.log('Добавляем победителей в очередь:', winners);
         for (const player of winners) {
             console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) в очередь`);
-            trainingStateApi.addPlayerToQueue(player.id, 'end');
-            await addPlayerToQueue(player.id, 'end');
+            trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
+            await addPlayerToQueue(player.id, 'end', trainingId);
         }
 
         // Затем добавляем проигравших
         console.log('Добавляем проигравших в очередь:', losers);
         for (const player of losers) {
             console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в очередь`);
-            trainingStateApi.addPlayerToQueue(player.id, 'end');
-            await addPlayerToQueue(player.id, 'end');
+            trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
+            await addPlayerToQueue(player.id, 'end', trainingId);
         }
 
         // Обновляем локальное состояние тренировки

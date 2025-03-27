@@ -205,8 +205,16 @@ export async function removePlayerFromCourt(playerElement, playerId) {
             }
         }
 
+        // Получаем ID тренировки из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const trainingId = urlParams.get('id');
+
         // Добавляем игрока в очередь в локальном состоянии
-        trainingStateApi.addPlayerToQueue(playerId, 'start');
+        if (trainingId) {
+            trainingStateApi.addPlayerToQueue(trainingId, playerId, 'start');
+        } else {
+            console.error('Не найден ID тренировки в URL при добавлении игрока в очередь');
+        }
 
         // Удаляем элемент игрока
         playerElement.remove();
@@ -300,13 +308,23 @@ export async function removePlayerFromCourt(playerElement, playerId) {
 }
 
 // Функция для добавления игрока в очередь
-export async function addPlayerToQueue(playerId, position = 'end') {
+export async function addPlayerToQueue(playerId, position = 'end', trainingId = null) {
     console.log(`Добавление игрока с ID: ${playerId} в очередь, позиция: ${position}`);
 
     // Проверяем входные данные
     if (!playerId) {
         console.error('Не указан ID игрока');
         return null;
+    }
+
+    // Если trainingId не передан, получаем его из URL
+    if (!trainingId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        trainingId = urlParams.get('id');
+        if (!trainingId) {
+            console.error('Не найден ID тренировки в URL при добавлении игрока в очередь');
+            return null;
+        }
     }
 
     try {
