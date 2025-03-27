@@ -179,14 +179,6 @@ export async function updateLocalTrainingState() {
         trainingStateApi._localState.courtCount = courtCount;
         trainingStateApi._localState.lastUpdated = new Date().toISOString();
 
-        // Пытаемся сохранить состояние в базу данных
-        try {
-            await trainingStateApi.saveTrainingState(trainingId, trainingStateApi._localState);
-        } catch (saveError) {
-            console.error('Ошибка при сохранении состояния в базу данных:', saveError);
-            // Продолжаем работу с локальным состоянием
-        }
-
         console.log('Локальное состояние тренировки успешно обновлено');
         return true;
     } catch (error) {
@@ -224,9 +216,9 @@ export async function saveTrainingState() {
         console.log('Сохраняем состояние тренировки в базу данных:', stateData);
         console.log('Очередь игроков в сохраняемом состоянии:', stateData.playersQueue);
 
-        // Сохраняем состояние в базе данных
+        // Сохраняем состояние в базу данных
         await trainingStateApi.saveTrainingState(trainingId, stateData);
-        console.log('Состояние тренировки успешно сохранено');
+        console.log('Состояние тренировки успешно сохранено в базу данных');
 
         // Показываем сообщение пользователю
         showMessage('Состояние тренировки сохранено', 'success');
@@ -250,13 +242,13 @@ export async function loadTrainingState(trainingId) {
         // Инициализируем локальное хранилище состояния тренировки
         trainingStateApi.initLocalState(parseInt(trainingId));
 
-        // Пытаемся загрузить сохраненное состояние тренировки
+        // Пытаемся загрузить состояние тренировки из базы данных
         const trainingState = await trainingStateApi.getTrainingState(trainingId);
         console.log('Загруженное состояние тренировки:', trainingState);
 
         if (trainingState && trainingState.state_data) {
-            // Если есть сохраненное состояние, используем его
-            console.log('Используем сохраненное состояние тренировки');
+            // Если есть состояние, используем его
+            console.log('Используем загруженное состояние тренировки');
 
             // Восстанавливаем режим тренировки, очередь игроков и состояние кортов
             const stateData = trainingState.state_data;
@@ -279,6 +271,14 @@ export async function loadTrainingState(trainingId) {
                     if (playersQueue && playersQueue.length > 0) {
                         console.log('Получена очередь игроков:', playersQueue);
                         stateData.playersQueue = playersQueue;
+
+                        // Обновляем состояние в базе данных
+                        try {
+                            await trainingStateApi.saveTrainingState(trainingId, stateData);
+                            console.log('Обновлено состояние с очередью игроков в базе данных');
+                        } catch (saveError) {
+                            console.error('Ошибка при сохранении состояния с очередью игроков:', saveError);
+                        }
                     }
                 } catch (queueError) {
                     console.error('Ошибка при получении очереди игроков:', queueError);

@@ -378,13 +378,7 @@ export const trainingStateApi = {
                 throw new Error(`Некорректный ID тренировки: ${trainingId}`);
             }
 
-            // Проверяем, есть ли состояние в локальном хранилище
-            if (this._localState.trainingId === numericId) {
-                console.log('Получено состояние тренировки из локального хранилища:', this._localState);
-                console.log('Очередь игроков в локальном хранилище:', this._localState.playersQueue);
-                return { state_data: { ...this._localState } };
-            }
-
+            // Всегда пытаемся сначала получить состояние из базы данных
             try {
                 // Получаем тренировку с состоянием из базы данных
                 const { data, error } = await supabase
@@ -394,14 +388,8 @@ export const trainingStateApi = {
                     .single();
 
                 if (error) {
-                    console.error('Ошибка при получении состояния тренировки:', error);
-                    // Если ошибка, инициализируем локальное состояние
-                    this.initLocalState(numericId);
-                    return { state_data: { ...this._localState } };
-                }
-
-                // Если данные найдены и есть состояние, сохраняем в локальное хранилище и возвращаем
-                if (data && data.state_data) {
+                    console.error('Ошибка при получении состояния тренировки из базы данных:', error);
+                } else if (data && data.state_data) {
                     console.log('Получено состояние тренировки из базы данных:', data);
 
                     // Проверяем наличие очереди игроков
@@ -424,8 +412,24 @@ export const trainingStateApi = {
                 console.error('Ошибка при запросе к базе данных:', dbError);
             }
 
-            // Если состояние не найдено, инициализируем локальное состояние
-            console.log('Состояние тренировки не найдено, инициализируем локальное состояние');
+            // Если состояние не найдено в базе данных, проверяем локальное хранилище
+            if (this._localState.trainingId === numericId) {
+                console.log('Используем состояние тренировки из локального хранилища:', this._localState);
+                console.log('Очередь игроков в локальном хранилище:', this._localState.playersQueue);
+
+                // Сохраняем локальное состояние в базу данных
+                try {
+                    await this.saveTrainingState(numericId, this._localState);
+                    console.log('Локальное состояние сохранено в базу данных');
+                } catch (saveError) {
+                    console.error('Ошибка при сохранении локального состояния в базу данных:', saveError);
+                }
+
+                return { state_data: { ...this._localState } };
+            }
+
+            // Если состояние не найдено ни в базе данных, ни в локальном хранилище, создаем новое
+            console.log('Состояние тренировки не найдено, создаем новое состояние');
 
             // Получаем данные тренировки
             try {
@@ -468,10 +472,19 @@ export const trainingStateApi = {
 
             // Если не удалось получить данные тренировки, используем пустое состояние
             this.initLocalState(numericId);
+
+            // Сохраняем пустое состояние в базу данных
+            try {
+                await this.saveTrainingState(numericId, this._localState);
+                console.log('Пустое состояние сохранено в базу данных');
+            } catch (saveError) {
+                console.error('Ошибка при сохранении пустого состояния в базу данных:', saveError);
+            }
+
             return { state_data: { ...this._localState } };
         } catch (error) {
             console.error('Error getting training state:', error);
-            // Инициализируем локальное состояние в случае ошибки
+            // Инициализируем локальное хранилище в случае ошибки
             if (trainingId) {
                 this.initLocalState(parseInt(trainingId));
             }
