@@ -201,6 +201,7 @@ export async function removePlayerFromCourt(playerElement, playerId) {
                 const position = `${half}${slotIndex}`;
                 // Удаляем игрока с корта в локальном состоянии
                 trainingStateApi.removePlayerFromCourt(courtId, position);
+                console.log(`Игрок удален с корта ${courtId}, позиция ${position}`);
             }
         }
 

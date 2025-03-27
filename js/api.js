@@ -717,6 +717,48 @@ export const trainingStateApi = {
             console.error('Error adding player to court:', error);
             return false;
         }
+    },
+
+    // Удаление игрока с корта
+    removePlayerFromCourt(courtId, position) {
+        try {
+            console.log(`Удаление игрока с корта ${courtId}, позиция: ${position}`);
+
+            // Находим нужный корт
+            let court = this._localState.courts.find(c => c.id === courtId);
+            if (!court) {
+                console.error(`Корт с ID ${courtId} не найден`);
+                return false;
+            }
+
+            // Удаляем игрока с нужной позиции
+            if (position.startsWith('top')) {
+                const playerIndex = parseInt(position.replace('top', '')) - 1;
+                if (court.topPlayers && playerIndex >= 0 && playerIndex < court.topPlayers.length) {
+                    console.log(`Удаляем игрока с позиции top${playerIndex + 1}`);
+                    court.topPlayers[playerIndex] = null;
+                }
+            } else if (position.startsWith('bottom')) {
+                const playerIndex = parseInt(position.replace('bottom', '')) - 1;
+                if (court.bottomPlayers && playerIndex >= 0 && playerIndex < court.bottomPlayers.length) {
+                    console.log(`Удаляем игрока с позиции bottom${playerIndex + 1}`);
+                    court.bottomPlayers[playerIndex] = null;
+                }
+            }
+
+            // Обновляем состояние тренировки
+            this._localState.lastUpdated = new Date().toISOString();
+
+            // Не сохраняем изменения в базу данных автоматически
+            // Изменения будут сохранены при нажатии кнопки "Сохранить"
+            console.log('Изменения внесены только в локальное хранилище');
+
+            console.log('Игрок успешно удален с корта');
+            return true;
+        } catch (error) {
+            console.error('Error removing player from court:', error);
+            return false;
+        }
     }
 };
 
