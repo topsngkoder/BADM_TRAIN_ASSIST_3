@@ -386,11 +386,8 @@ export async function addPlayerToQueue(playerId, position = 'end') {
             console.log(`Нажат игрок в очереди: ${playerFullName} (ID: ${playerId}, рейтинг: ${rating})`);
         });
 
-        // Если передана функция сохранения состояния, вызываем ее
-        if (saveTrainingState) {
-            console.log('Сохраняем состояние тренировки после добавления игрока в очередь');
-            saveTrainingState();
-        }
+        // Не сохраняем состояние автоматически после добавления игрока в очередь
+        // Сохранение будет происходить только после добавления всех игроков
 
         return playerElement;
     } catch (error) {

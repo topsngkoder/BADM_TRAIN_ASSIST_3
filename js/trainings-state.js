@@ -415,6 +415,26 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
 
         // Обновляем локальное состояние тренировки
         await updateLocalTrainingState();
+
+        // Сохраняем состояние в базу данных после добавления всех игроков
+        try {
+            console.log('Сохраняем состояние в базу данных после добавления всех игроков');
+            // Получаем текущее состояние из локального хранилища
+            const stateData = { ...trainingStateApi._localState };
+            stateData.lastUpdated = new Date().toISOString();
+
+            // Сохраняем в базу данных
+            await trainingStateApi.saveTrainingState(trainingId, stateData);
+
+            // Обновляем локальное хранилище
+            trainingStateApi._localState = { ...stateData };
+
+            console.log('Состояние успешно сохранено в базу данных');
+            showMessage('Состояние тренировки сохранено в базе данных', 'success');
+        } catch (error) {
+            console.error('Ошибка при сохранении состояния в базу данных:', error);
+            showMessage('Ошибка при сохранении состояния в базу данных', 'error');
+        }
     };
 
     // Добавляем игроков в очередь
@@ -473,11 +493,6 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
         }
     }
 
-    // Сохраняем обновленное состояние тренировки еще раз после всех изменений
-    setTimeout(() => {
-        if (saveTrainingState) {
-            console.log('Сохраняем финальное состояние тренировки после всех изменений');
-            saveTrainingState();
-        }
-    }, 500); // Даем время на завершение всех анимаций и обновлений DOM
+    // Не сохраняем состояние еще раз, так как оно уже сохранено после добавления всех игроков в очередь
+    console.log('Все изменения уже сохранены в базу данных');
 }
