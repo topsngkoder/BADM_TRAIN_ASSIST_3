@@ -85,6 +85,11 @@ export async function updateLocalTrainingState() {
             return false;
         }
 
+        // Проверяем, инициализировано ли локальное хранилище
+        if (trainingStateApi._localState.trainingId !== parseInt(trainingId)) {
+            trainingStateApi.initLocalState(parseInt(trainingId));
+        }
+
         // Получаем текущую очередь игроков из DOM
         let playersQueue = [];
         const queuePlayerCards = document.querySelectorAll('.queue-player-card');
@@ -97,20 +102,21 @@ export async function updateLocalTrainingState() {
             });
 
             console.log('Очередь игроков из DOM:', playersQueue);
+
+            // Обновляем очередь в локальном хранилище
+            trainingStateApi._localState.playersQueue = [...playersQueue];
         } else {
-            // Если в DOM нет карточек игроков, получаем очередь из базы данных
-            try {
-                playersQueue = await trainingStateApi.getPlayersQueue(trainingId);
-                console.log('Очередь игроков из базы данных:', playersQueue);
-            } catch (e) {
-                console.error('Ошибка при получении очереди игроков из базы данных:', e);
-                playersQueue = [];
-            }
+            // Если в DOM нет карточек игроков, используем очередь из локального хранилища
+            playersQueue = [...trainingStateApi._localState.playersQueue] || [];
+            console.log('Очередь игроков из локального хранилища:', playersQueue);
         }
 
         // Получаем текущий режим тренировки
         const trainingModeSelect = document.getElementById('training-mode');
         const trainingMode = trainingModeSelect ? trainingModeSelect.value : 'single';
+
+        // Обновляем режим тренировки в локальном хранилище
+        trainingStateApi._localState.trainingMode = trainingMode;
 
         // Собираем данные о кортах и игроках на них
         const courts = [];
@@ -166,6 +172,19 @@ export async function updateLocalTrainingState() {
 
         // Получаем общее количество кортов
         const courtCount = courtElements.length;
+
+        // Обновляем данные в локальном хранилище
+        trainingStateApi._localState.courts = [...courts];
+        trainingStateApi._localState.courtCount = courtCount;
+        trainingStateApi._localState.lastUpdated = new Date().toISOString();
+
+        // Пытаемся сохранить состояние в базу данных
+        try {
+            await trainingStateApi.saveTrainingState(trainingId, trainingStateApi._localState);
+        } catch (saveError) {
+            console.error('Ошибка при сохранении состояния в базу данных:', saveError);
+            // Продолжаем работу с локальным состоянием
+        }
 
         console.log('Локальное состояние тренировки успешно обновлено');
         return true;
@@ -224,6 +243,9 @@ export async function loadTrainingState(trainingId) {
 
         // Инициализируем локальное хранилище игроков
         playersApi.initLocalPlayers();
+
+        // Инициализируем локальное хранилище состояния тренировки
+        trainingStateApi.initLocalState(parseInt(trainingId));
 
         // Пытаемся загрузить сохраненное состояние тренировки
         const trainingState = await trainingStateApi.getTrainingState(trainingId);

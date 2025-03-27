@@ -252,6 +252,31 @@ export const trainingsApi = {
 
 // API для работы с состоянием тренировки
 export const trainingStateApi = {
+    // Локальное хранилище состояния тренировки
+    _localState: {
+        trainingId: null,
+        courts: [],
+        playersQueue: [],
+        courtCount: 0,
+        lastUpdated: null
+    },
+
+    // Инициализация локального состояния
+    initLocalState(trainingId) {
+        console.log(`Инициализация локального состояния для тренировки ${trainingId}`);
+        this._localState = {
+            trainingId,
+            courts: [],
+            playersQueue: [],
+            courtCount: 0,
+            lastUpdated: new Date().toISOString()
+        };
+    },
+
+    // Получение локального состояния
+    getLocalState() {
+        return { ...this._localState };
+    },
     // Сохранение состояния тренировки
     async saveTrainingState(trainingId, stateData) {
         try {
@@ -297,30 +322,51 @@ export const trainingStateApi = {
                 throw new Error(`Некорректный ID тренировки: ${trainingId}`);
             }
 
-            // Получаем тренировку с состоянием из базы данных
-            const { data, error } = await supabase
-                .from('trainings')
-                .select('state_data')
-                .eq('id', numericId)
-                .single();
-
-            if (error) {
-                console.error('Ошибка при получении состояния тренировки:', error);
-                throw error; // Выбрасываем ошибку, чтобы она была обработана выше
+            // Проверяем, есть ли состояние в локальном хранилище
+            if (this._localState.trainingId === numericId) {
+                console.log('Получено состояние тренировки из локального хранилища:', this._localState);
+                return { state_data: { ...this._localState } };
             }
 
-            // Если данные найдены и есть состояние, возвращаем его
-            if (data && data.state_data) {
-                console.log('Получено состояние тренировки:', data);
-                return { state_data: data.state_data };
+            try {
+                // Получаем тренировку с состоянием из базы данных
+                const { data, error } = await supabase
+                    .from('trainings')
+                    .select('state_data')
+                    .eq('id', numericId)
+                    .single();
+
+                if (error) {
+                    console.error('Ошибка при получении состояния тренировки:', error);
+                    // Если ошибка, инициализируем локальное состояние
+                    this.initLocalState(numericId);
+                    return { state_data: { ...this._localState } };
+                }
+
+                // Если данные найдены и есть состояние, сохраняем в локальное хранилище и возвращаем
+                if (data && data.state_data) {
+                    console.log('Получено состояние тренировки из базы данных:', data);
+                    this._localState = { ...data.state_data };
+                    if (!this._localState.trainingId) {
+                        this._localState.trainingId = numericId;
+                    }
+                    return { state_data: { ...this._localState } };
+                }
+            } catch (dbError) {
+                console.error('Ошибка при запросе к базе данных:', dbError);
             }
 
-            // Если состояние не найдено, возвращаем null
-            console.log('Состояние тренировки не найдено в базе данных');
-            return null;
+            // Если состояние не найдено, инициализируем локальное состояние
+            console.log('Состояние тренировки не найдено, инициализируем локальное состояние');
+            this.initLocalState(numericId);
+            return { state_data: { ...this._localState } };
         } catch (error) {
             console.error('Error getting training state:', error);
-            throw error;
+            // Инициализируем локальное состояние в случае ошибки
+            if (trainingId) {
+                this.initLocalState(parseInt(trainingId));
+            }
+            return { state_data: { ...this._localState } };
         }
     },
 
@@ -329,21 +375,31 @@ export const trainingStateApi = {
         try {
             console.log(`Получение очереди игроков для тренировки с ID: ${trainingId}`);
 
-            // Получаем состояние тренировки
-            const trainingState = await this.getTrainingState(trainingId);
+            // Проверяем, есть ли очередь в локальном хранилище
+            if (this._localState.trainingId === parseInt(trainingId) && this._localState.playersQueue) {
+                console.log('Получена очередь игроков из локального хранилища:', this._localState.playersQueue);
+                return [...this._localState.playersQueue];
+            }
 
-            // Если есть состояние и в нем есть очередь игроков, возвращаем ее
-            if (trainingState && trainingState.state_data && trainingState.state_data.playersQueue) {
-                console.log('Получена очередь игроков из состояния тренировки:', trainingState.state_data.playersQueue);
-                return trainingState.state_data.playersQueue;
+            try {
+                // Получаем состояние тренировки
+                const trainingState = await this.getTrainingState(trainingId);
+
+                // Если есть состояние и в нем есть очередь игроков, возвращаем ее
+                if (trainingState && trainingState.state_data && trainingState.state_data.playersQueue) {
+                    console.log('Получена очередь игроков из состояния тренировки:', trainingState.state_data.playersQueue);
+                    return [...trainingState.state_data.playersQueue];
+                }
+            } catch (stateError) {
+                console.error('Ошибка при получении состояния тренировки:', stateError);
             }
 
             // Если очереди нет, возвращаем пустой массив
-            console.log('Очередь игроков не найдена в состоянии тренировки');
+            console.log('Очередь игроков не найдена, возвращаем пустой массив');
             return [];
         } catch (error) {
             console.error('Error getting players queue:', error);
-            throw error;
+            return [];
         }
     },
 
@@ -352,26 +408,30 @@ export const trainingStateApi = {
         try {
             console.log(`Обновление очереди игроков для тренировки с ID: ${trainingId}`);
 
-            // Получаем текущее состояние тренировки
-            const trainingState = await this.getTrainingState(trainingId);
+            // Преобразуем ID в число
+            const numericId = parseInt(trainingId);
 
-            // Если состояние не найдено, создаем новое
-            let stateData = trainingState && trainingState.state_data ?
-                trainingState.state_data :
-                { trainingId, courts: [], courtCount: 0 };
+            // Обновляем очередь в локальном хранилище
+            if (this._localState.trainingId !== numericId) {
+                this.initLocalState(numericId);
+            }
 
-            // Обновляем очередь игроков
-            stateData.playersQueue = playersQueue;
-            stateData.lastUpdated = new Date().toISOString();
+            this._localState.playersQueue = [...playersQueue];
+            this._localState.lastUpdated = new Date().toISOString();
 
-            // Сохраняем обновленное состояние
-            await this.saveTrainingState(trainingId, stateData);
+            try {
+                // Сохраняем обновленное состояние в базу данных
+                await this.saveTrainingState(trainingId, this._localState);
+            } catch (saveError) {
+                console.error('Ошибка при сохранении состояния в базу данных:', saveError);
+                // Продолжаем работу с локальным состоянием
+            }
 
             console.log('Очередь игроков успешно обновлена');
             return true;
         } catch (error) {
             console.error('Error updating players queue:', error);
-            throw error;
+            return false;
         }
     },
 
@@ -426,27 +486,60 @@ export const trainingStateApi = {
         try {
             console.log(`Удаление игрока с ID ${playerId} из очереди тренировки ${trainingId}`);
 
-            // Получаем текущую очередь игроков
-            const playersQueue = await this.getPlayersQueue(trainingId);
+            // Преобразуем ID в число
+            const numericId = parseInt(trainingId);
 
-            // Преобразуем playerId в строку для сравнения
-            const playerIdStr = String(playerId);
+            // Проверяем, инициализировано ли локальное хранилище
+            if (this._localState.trainingId !== numericId) {
+                try {
+                    // Получаем текущую очередь игроков
+                    const playersQueue = await this.getPlayersQueue(trainingId);
 
-            // Удаляем игрока из очереди
-            const updatedQueue = playersQueue.filter(p =>
-                (p && typeof p === 'object' && 'id' in p) ?
-                    String(p.id) !== playerIdStr :
-                    String(p) !== playerIdStr
-            );
+                    // Преобразуем playerId в строку для сравнения
+                    const playerIdStr = String(playerId);
 
-            // Обновляем очередь в базе данных
-            await this.updatePlayersQueue(trainingId, updatedQueue);
+                    // Удаляем игрока из очереди
+                    const updatedQueue = playersQueue.filter(p =>
+                        (p && typeof p === 'object' && 'id' in p) ?
+                            String(p.id) !== playerIdStr :
+                            String(p) !== playerIdStr
+                    );
+
+                    // Обновляем очередь
+                    await this.updatePlayersQueue(trainingId, updatedQueue);
+                } catch (queueError) {
+                    console.error('Ошибка при обновлении очереди:', queueError);
+                    // Инициализируем локальное хранилище
+                    this.initLocalState(numericId);
+                }
+            } else {
+                // Если локальное хранилище уже инициализировано
+                // Преобразуем playerId в строку для сравнения
+                const playerIdStr = String(playerId);
+
+                // Удаляем игрока из очереди
+                this._localState.playersQueue = this._localState.playersQueue.filter(p =>
+                    (p && typeof p === 'object' && 'id' in p) ?
+                        String(p.id) !== playerIdStr :
+                        String(p) !== playerIdStr
+                );
+
+                this._localState.lastUpdated = new Date().toISOString();
+
+                try {
+                    // Сохраняем обновленное состояние в базу данных
+                    await this.saveTrainingState(trainingId, this._localState);
+                } catch (saveError) {
+                    console.error('Ошибка при сохранении состояния в базу данных:', saveError);
+                    // Продолжаем работу с локальным состоянием
+                }
+            }
 
             console.log('Игрок успешно удален из очереди');
             return true;
         } catch (error) {
             console.error('Error removing player from queue:', error);
-            throw error;
+            return false;
         }
     },
 
@@ -455,16 +548,16 @@ export const trainingStateApi = {
         try {
             console.log(`Добавление игрока ${playerId} на корт ${courtId}, позиция: ${position}`);
 
-            // Получаем текущее состояние тренировки
-            const trainingState = await this.getTrainingState(trainingId);
+            // Преобразуем ID в число
+            const numericId = parseInt(trainingId);
 
-            // Если состояние не найдено, создаем новое
-            let stateData = trainingState && trainingState.state_data ?
-                trainingState.state_data :
-                { trainingId, courts: [], courtCount: 0, playersQueue: [] };
+            // Проверяем, инициализировано ли локальное хранилище
+            if (this._localState.trainingId !== numericId) {
+                this.initLocalState(numericId);
+            }
 
             // Находим нужный корт или создаем новый
-            let court = stateData.courts.find(c => c.id === courtId);
+            let court = this._localState.courts.find(c => c.id === courtId);
             if (!court) {
                 court = {
                     id: courtId,
@@ -473,7 +566,7 @@ export const trainingStateApi = {
                     gameInProgress: false,
                     gameStartTime: null
                 };
-                stateData.courts.push(court);
+                this._localState.courts.push(court);
             }
 
             // Преобразуем playerId в строку
@@ -491,14 +584,21 @@ export const trainingStateApi = {
             }
 
             // Обновляем состояние тренировки
-            stateData.lastUpdated = new Date().toISOString();
-            await this.saveTrainingState(trainingId, stateData);
+            this._localState.lastUpdated = new Date().toISOString();
+
+            try {
+                // Сохраняем обновленное состояние в базу данных
+                await this.saveTrainingState(trainingId, this._localState);
+            } catch (saveError) {
+                console.error('Ошибка при сохранении состояния в базу данных:', saveError);
+                // Продолжаем работу с локальным состоянием
+            }
 
             console.log('Игрок успешно добавлен на корт');
             return true;
         } catch (error) {
             console.error('Error adding player to court:', error);
-            throw error;
+            return false;
         }
     }
 };
