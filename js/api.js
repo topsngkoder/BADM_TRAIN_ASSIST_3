@@ -1010,7 +1010,7 @@ export const playersApi = {
     // Обновление состояния игры на корте
     updateGameState(courtId, gameInProgress, gameStartTime = null) {
         try {
-            console.log(`Обновление состояния игры на корте ${courtId}: ${gameInProgress ? 'в процессе' : 'завершена'}`);
+            console.log(`Обновление состояния игры на корте ${courtId}: ${gameInProgress ? 'в процессе' : 'завершына'}`);
 
             // Получаем текущие данные кортов
             const courts = [...this._localState.courts];
