@@ -1,5 +1,6 @@
 // Модуль для работы с кортами
 import { showMessage } from './ui.js';
+import { trainingStateApi } from './api.js';
 
 // Функция для обновления видимости кнопок на половине корта
 export function updateCourtHalfButtons(courtHalf) {

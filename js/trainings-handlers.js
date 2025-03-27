@@ -1,5 +1,5 @@
 // Модуль для обработчиков событий тренировок
-import { trainingsApi, playersApi } from './api.js';
+import { trainingsApi, playersApi, trainingStateApi } from './api.js';
 import { showMessage, openModal, closeModal } from './ui.js';
 import { saveTrainingState, handleWinnerSelection } from './trainings-state.js';
 import { addPlayerFromQueueToCourt, removePlayerFromCourt } from './trainings-players.js';
