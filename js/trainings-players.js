@@ -152,8 +152,7 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
             });
         }
 
-        // Показываем сообщение о необходимости сохранить изменения
-        showMessage('Изменения внесены в локальное хранилище. Нажмите "Сохранить", чтобы сохранить их в базе данных.', 'info');
+        // Не показываем сообщение о необходимости сохранить изменения
     } catch (error) {
         console.error(`Ошибка при получении данных игрока с ID ${playerId}:`, error);
         showMessage('Ошибка при получении данных игрока', 'error');
@@ -292,8 +291,7 @@ export async function removePlayerFromCourt(playerElement, playerId) {
             });
         }
 
-        // Показываем сообщение о необходимости сохранить изменения
-        showMessage('Изменения внесены в локальное хранилище. Нажмите "Сохранить", чтобы сохранить их в базе данных.', 'info');
+        // Не показываем сообщение о необходимости сохранить изменения
     } catch (error) {
         console.error(`Ошибка при удалении игрока с ID ${playerId}:`, error);
         showMessage('Ошибка при удалении игрока', 'error');
