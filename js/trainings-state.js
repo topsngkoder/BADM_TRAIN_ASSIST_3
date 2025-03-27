@@ -294,21 +294,61 @@ export async function loadTrainingState(trainingId) {
 
             return stateData;
         } else {
-            console.log('Сохраненное состояние не найдено, используем начальное состояние');
+            console.log('Сохраненное состояние не найдено, создаем начальное состояние');
 
-            // Пытаемся получить очередь игроков отдельно
+            // Получаем данные тренировки
             try {
-                console.log('Получаем очередь игроков отдельно');
-                const playersQueue = await trainingStateApi.getPlayersQueue(trainingId);
-                if (playersQueue && playersQueue.length > 0) {
-                    console.log('Получена очередь игроков:', playersQueue);
-                    return { playersQueue };
+                const training = await trainingsApi.getTrainingById(trainingId);
+                if (training) {
+                    console.log('Получены данные тренировки:', training);
+
+                    // Создаем начальное состояние
+                    const initialState = {
+                        trainingId: parseInt(trainingId),
+                        courts: [],
+                        playersQueue: [],
+                        courtCount: training.court_count || 1,
+                        trainingMode: 'single',
+                        lastUpdated: new Date().toISOString()
+                    };
+
+                    // Если у тренировки есть игроки, добавляем их в очередь
+                    if (training.player_ids && Array.isArray(training.player_ids) && training.player_ids.length > 0) {
+                        initialState.playersQueue = training.player_ids.map(id => ({ id: String(id) }));
+                        console.log('Добавлены игроки в очередь:', initialState.playersQueue);
+                    }
+
+                    // Сохраняем начальное состояние в базу данных
+                    try {
+                        await trainingStateApi.saveTrainingState(trainingId, initialState);
+                        console.log('Начальное состояние сохранено в базу данных');
+                    } catch (saveError) {
+                        console.error('Ошибка при сохранении начального состояния:', saveError);
+                    }
+
+                    // Обновляем локальное хранилище
+                    trainingStateApi._localState = { ...initialState };
+
+                    return initialState;
                 }
-            } catch (queueError) {
-                console.error('Ошибка при получении очереди игроков:', queueError);
+            } catch (trainingError) {
+                console.error('Ошибка при получении данных тренировки:', trainingError);
             }
 
-            return null;
+            // Если не удалось получить данные тренировки, создаем пустое состояние
+            const emptyState = {
+                trainingId: parseInt(trainingId),
+                courts: [],
+                playersQueue: [],
+                courtCount: 1,
+                trainingMode: 'single',
+                lastUpdated: new Date().toISOString()
+            };
+
+            // Обновляем локальное хранилище
+            trainingStateApi._localState = { ...emptyState };
+
+            return emptyState;
         }
     } catch (error) {
         console.error('Ошибка при загрузке состояния тренировки:', error);
