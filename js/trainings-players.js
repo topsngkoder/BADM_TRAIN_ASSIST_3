@@ -172,6 +172,7 @@ export async function removePlayerFromCourt(playerElement, playerId) {
 
         if (!trainingId) {
             console.error('Не найден ID тренировки в URL');
+            playerElement.remove();
             return;
         }
 
@@ -205,16 +206,8 @@ export async function removePlayerFromCourt(playerElement, playerId) {
             }
         }
 
-        // Получаем ID тренировки из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const trainingId = urlParams.get('id');
-
         // Добавляем игрока в очередь в локальном состоянии
-        if (trainingId) {
-            trainingStateApi.addPlayerToQueue(trainingId, playerId, 'start');
-        } else {
-            console.error('Не найден ID тренировки в URL при добавлении игрока в очередь');
-        }
+        trainingStateApi.addPlayerToQueue(trainingId, playerId, 'start');
 
         // Удаляем элемент игрока
         playerElement.remove();
@@ -226,17 +219,17 @@ export async function removePlayerFromCourt(playerElement, playerId) {
 
         // Обновляем видимость кнопки "Начать игру"
         if (courtContainer) {
-                updateCourtVisibility(courtContainer);
-            }
+            updateCourtVisibility(courtContainer);
+        }
 
-            // Возвращаем игрока в очередь
-            const queueContainer = document.querySelector('.players-queue-container');
-            if (queueContainer) {
-                // Проверяем, есть ли сообщение "Нет игроков в очереди"
-                const noPlayersMessage = queueContainer.querySelector('.no-players-message');
-                if (noPlayersMessage) {
-                    noPlayersMessage.remove();
-                }
+        // Возвращаем игрока в очередь
+        const queueContainer = document.querySelector('.players-queue-container');
+        if (queueContainer) {
+            // Проверяем, есть ли сообщение "Нет игроков в очереди"
+            const noPlayersMessage = queueContainer.querySelector('.no-players-message');
+            if (noPlayersMessage) {
+                noPlayersMessage.remove();
+            }
 
                 // Формируем полное имя
                 const playerFullName = `${player.last_name} ${player.first_name}`;
@@ -292,15 +285,15 @@ export async function removePlayerFromCourt(playerElement, playerId) {
                 }
             }
 
-            // Обновляем локальное состояние тренировки
-            if (typeof window.updateLocalTrainingState === 'function') {
-                window.updateLocalTrainingState().catch(error => {
-                    console.error('Ошибка при обновлении локального состояния:', error);
-                });
-            }
+        // Обновляем локальное состояние тренировки
+        if (typeof window.updateLocalTrainingState === 'function') {
+            window.updateLocalTrainingState().catch(error => {
+                console.error('Ошибка при обновлении локального состояния:', error);
+            });
+        }
 
-            // Показываем сообщение о необходимости сохранить изменения
-            showMessage('Изменения внесены в локальное хранилище. Нажмите "Сохранить", чтобы сохранить их в базе данных.', 'info');
+        // Показываем сообщение о необходимости сохранить изменения
+        showMessage('Изменения внесены в локальное хранилище. Нажмите "Сохранить", чтобы сохранить их в базе данных.', 'info');
     } catch (error) {
         console.error(`Ошибка при удалении игрока с ID ${playerId}:`, error);
         showMessage('Ошибка при удалении игрока', 'error');
