@@ -194,9 +194,13 @@ export function initTrainingsModule() {
             console.error('Не найден интерфейс деталей тренировки с ID "training-details-interface"');
         }
 
+        // Переменная для хранения состояния тренировки
+        let stateData = null;
+
         try {
             // Загружаем состояние тренировки
-            await loadTrainingState(training.id);
+            stateData = await loadTrainingState(training.id);
+            console.log('Состояние тренировки загружено:', stateData);
         } catch (error) {
             console.error('Ошибка при загрузке состояния тренировки:', error);
             showMessage('Не удалось загрузить тренировку из базы данных', 'error');
@@ -268,8 +272,7 @@ export function initTrainingsModule() {
         // Получаем список игроков для тренировки
         let players = [];
 
-        // Загружаем состояние тренировки из Supabase
-        const stateData = await loadTrainingState(training.id);
+        // Состояние тренировки уже загружено выше
 
         // Добавляем кнопку "Сохранить" в заголовок
         const saveButton = document.createElement('button');
