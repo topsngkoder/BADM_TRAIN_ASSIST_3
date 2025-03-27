@@ -220,8 +220,7 @@ export async function saveTrainingState() {
         await trainingStateApi.saveTrainingState(trainingId, stateData);
         console.log('Состояние тренировки успешно сохранено в базу данных');
 
-        // Показываем сообщение пользователю
-        showMessage('Состояние тренировки сохранено', 'success');
+        // Не показываем сообщение пользователю при каждом сохранении
 
         return true;
     } catch (error) {
@@ -430,7 +429,6 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
             trainingStateApi._localState = { ...stateData };
 
             console.log('Состояние успешно сохранено в базу данных');
-            showMessage('Состояние тренировки сохранено в базе данных', 'success');
         } catch (error) {
             console.error('Ошибка при сохранении состояния в базу данных:', error);
             showMessage('Ошибка при сохранении состояния в базу данных', 'error');
