@@ -1,8 +1,75 @@
 // Модуль для работы с состоянием тренировки
-import { trainingStateApi } from './api.js';
+import { trainingStateApi, playersApi } from './api.js';
 import { showMessage } from './ui.js';
 import { updateCourtHalfButtons, unlockCourtPlayers } from './trainings-court.js';
 import { addPlayerToQueue } from './trainings-players.js';
+
+// Функция для загрузки данных игроков в локальное хранилище
+async function loadPlayersToLocalStorage(stateData) {
+    console.log('Загрузка данных игроков в локальное хранилище');
+
+    try {
+        // Получаем уникальные ID игроков из очереди и кортов
+        const playerIds = new Set();
+
+        // Добавляем ID игроков из очереди
+        if (stateData.playersQueue && Array.isArray(stateData.playersQueue)) {
+            stateData.playersQueue.forEach(player => {
+                if (player && player.id) {
+                    playerIds.add(player.id);
+                }
+            });
+        }
+
+        // Добавляем ID игроков с кортов
+        if (stateData.courts && Array.isArray(stateData.courts)) {
+            stateData.courts.forEach(court => {
+                // Игроки на верхней половине корта
+                if (court.topPlayers && Array.isArray(court.topPlayers)) {
+                    court.topPlayers.forEach(player => {
+                        if (player && player.id) {
+                            playerIds.add(player.id);
+                        }
+                    });
+                }
+
+                // Игроки на нижней половине корта
+                if (court.bottomPlayers && Array.isArray(court.bottomPlayers)) {
+                    court.bottomPlayers.forEach(player => {
+                        if (player && player.id) {
+                            playerIds.add(player.id);
+                        }
+                    });
+                }
+            });
+        }
+
+        console.log('Найдено уникальных ID игроков:', playerIds.size);
+
+        // Загружаем данные каждого игрока
+        const playerPromises = Array.from(playerIds).map(async playerId => {
+            try {
+                const player = await playersApi.getPlayer(playerId);
+                if (player) {
+                    console.log(`Игрок с ID ${playerId} загружен в локальное хранилище`);
+                } else {
+                    console.warn(`Не удалось загрузить игрока с ID ${playerId}`);
+                }
+                return player;
+            } catch (error) {
+                console.error(`Ошибка при загрузке игрока с ID ${playerId}:`, error);
+                return null;
+            }
+        });
+
+        // Ждем загрузки всех игроков
+        await Promise.all(playerPromises);
+
+        console.log('Все игроки загружены в локальное хранилище');
+    } catch (error) {
+        console.error('Ошибка при загрузке игроков в локальное хранилище:', error);
+    }
+}
 
 // Функция для сохранения текущего состояния тренировки в локальное хранилище
 export async function updateLocalTrainingState() {
@@ -155,6 +222,9 @@ export async function loadTrainingState(trainingId) {
     try {
         console.log('Загрузка состояния тренировки:', trainingId);
 
+        // Инициализируем локальное хранилище игроков
+        playersApi.initLocalPlayers();
+
         // Пытаемся загрузить сохраненное состояние тренировки
         const trainingState = await trainingStateApi.getTrainingState(trainingId);
         console.log('Загруженное состояние тренировки:', trainingState);
@@ -172,6 +242,9 @@ export async function loadTrainingState(trainingId) {
                 url.searchParams.set('id', trainingId);
                 window.history.pushState({}, '', url);
             }
+
+            // Загружаем данные игроков в локальное хранилище
+            await loadPlayersToLocalStorage(stateData);
 
             // Если в состоянии нет очереди игроков, получаем ее отдельно
             if (!stateData.playersQueue || !Array.isArray(stateData.playersQueue) || stateData.playersQueue.length === 0) {

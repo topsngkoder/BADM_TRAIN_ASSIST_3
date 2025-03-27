@@ -6,6 +6,24 @@ import { addPlayerFromQueueToCourt, removePlayerFromCourt } from './trainings-pl
 import { updateCourtHalfButtons, updateStartGameButton, startGameTimer, unlockCourtPlayers, updateCourtVisibility } from './trainings-court.js';
 import { showWinnerSelectionModal, openPlayerSelectionModal } from './trainings-ui.js';
 
+// Функция для загрузки всех игроков в локальное хранилище
+async function loadAllPlayersToLocalStorage() {
+    console.log('Загрузка всех игроков в локальное хранилище');
+    try {
+        // Инициализируем локальное хранилище игроков
+        playersApi.initLocalPlayers();
+
+        // Получаем всех игроков из базы данных
+        const players = await playersApi.getPlayers();
+
+        console.log(`Загружено ${players.length} игроков в локальное хранилище`);
+        return players;
+    } catch (error) {
+        console.error('Ошибка при загрузке игроков в локальное хранилище:', error);
+        return [];
+    }
+}
+
 // Функция для инициализации обработчиков тренировок
 export function initTrainingHandlers(elements) {
     const {
@@ -85,7 +103,10 @@ export function initTrainingHandlers(elements) {
 // Функция для открытия модального окна добавления тренировки
 export async function openAddTrainingModal(playersSelection, addTrainingModal) {
     try {
-        // Загружаем список игроков для выбора
+        // Загружаем всех игроков в локальное хранилище
+        await loadAllPlayersToLocalStorage();
+
+        // Загружаем список игроков для выбора (теперь они будут в локальном хранилище)
         const players = await playersApi.getPlayers('name');
 
         // Очищаем контейнер выбора игроков
@@ -281,7 +302,12 @@ export async function handleDeleteTraining(trainingId, cardElement, trainingsCon
 }
 
 // Функция для инициализации обработчиков деталей тренировки
-export function initTrainingDetailsHandlers(detailsContainer, saveTrainingState) {
+export async function initTrainingDetailsHandlers(detailsContainer, saveTrainingState) {
+    console.log('Инициализация обработчиков деталей тренировки');
+
+    // Загружаем всех игроков в локальное хранилище
+    await loadAllPlayersToLocalStorage();
+
     // Флаг для отслеживания процесса добавления игрока
     let isAddingPlayer = false;
 

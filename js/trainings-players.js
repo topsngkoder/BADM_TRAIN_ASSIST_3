@@ -46,16 +46,16 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
     }
 
     try {
-        // Получаем актуальные данные игрока из базы данных
+        // Получаем данные игрока из локального хранилища или базы данных
         const player = await playersApi.getPlayer(playerId);
 
         if (!player) {
-            console.error(`Игрок с ID ${playerId} не найден в базе данных`);
+            console.error(`Игрок с ID ${playerId} не найден`);
             if (callback) callback();
             return;
         }
 
-        console.log(`Получены данные игрока из базы:`, player);
+        console.log(`Получены данные игрока:`, player);
 
         // Формируем полное имя и получаем фамилию
         const playerFullName = `${player.last_name} ${player.first_name}`;
@@ -175,16 +175,16 @@ export async function removePlayerFromCourt(playerElement, playerId) {
             return;
         }
 
-        // Получаем актуальные данные игрока из базы данных
+        // Получаем данные игрока из локального хранилища или базы данных
         const player = await playersApi.getPlayer(playerId);
 
         if (!player) {
-            console.error(`Игрок с ID ${playerId} не найден в базе данных`);
+            console.error(`Игрок с ID ${playerId} не найден`);
             playerElement.remove();
             return;
         }
 
-        console.log(`Получены данные игрока из базы:`, player);
+        console.log(`Получены данные игрока:`, player);
 
         // Находим половину корта и позицию игрока
         const courtHalf = playerElement.closest('.court-half');
@@ -309,15 +309,15 @@ export async function addPlayerToQueue(playerId, position = 'end') {
     }
 
     try {
-        // Получаем актуальные данные игрока из базы данных
+        // Получаем данные игрока из локального хранилища или базы данных
         const player = await playersApi.getPlayer(playerId);
 
         if (!player) {
-            console.error(`Игрок с ID ${playerId} не найден в базе данных`);
+            console.error(`Игрок с ID ${playerId} не найден`);
             return null;
         }
 
-        console.log(`Получены данные игрока из базы:`, player);
+        console.log(`Получены данные игрока:`, player);
 
         // Формируем полное имя
         const playerFullName = `${player.last_name} ${player.first_name}`;

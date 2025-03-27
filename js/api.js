@@ -453,27 +453,98 @@ export const trainingStateApi = {
 
 // API для работы с игроками
 export const playersApi = {
+    // Локальное хранилище игроков
+    _localPlayers: {},
+
+    // Инициализация локального хранилища игроков
+    initLocalPlayers() {
+        console.log('Инициализация локального хранилища игроков');
+        this._localPlayers = {};
+    },
+
+    // Получение игрока из локального хранилища
+    getLocalPlayer(playerId) {
+        console.log(`Получение игрока с ID ${playerId} из локального хранилища`);
+        return this._localPlayers[playerId] || null;
+    },
+
+    // Добавление игрока в локальное хранилище
+    addLocalPlayer(player) {
+        if (!player || !player.id) return;
+        console.log(`Добавление игрока с ID ${player.id} в локальное хранилище`);
+        this._localPlayers[player.id] = player;
+    },
+
+    // Получение всех игроков из локального хранилища
+    getAllLocalPlayers() {
+        return Object.values(this._localPlayers);
+    },
+
     // Получение списка игроков с сортировкой
     async getPlayers(sortType = 'rating') {
         try {
             let query = supabase.from('players').select('*');
-            
+
             if (sortType === 'rating') {
                 query = query.order('rating', { ascending: false });
             } else {
                 query = query.order('last_name', { ascending: true });
             }
-            
+
             const { data, error } = await query;
-            
+
             if (error) throw error;
+
+            // Добавляем полученных игроков в локальное хранилище
+            if (data && data.length > 0) {
+                data.forEach(player => this.addLocalPlayer(player));
+            }
+
             return data;
         } catch (error) {
             console.error('Error fetching players:', error);
             throw error;
         }
     },
-    
+
+    // Получение данных игрока по ID
+    async getPlayer(playerId) {
+        try {
+            console.log(`Получение данных игрока с ID ${playerId}`);
+
+            // Сначала проверяем локальное хранилище
+            const localPlayer = this.getLocalPlayer(playerId);
+            if (localPlayer) {
+                console.log(`Игрок с ID ${playerId} найден в локальном хранилище:`, localPlayer);
+                return localPlayer;
+            }
+
+            // Если игрока нет в локальном хранилище, запрашиваем из базы данных
+            console.log(`Игрок с ID ${playerId} не найден в локальном хранилище, запрашиваем из базы данных`);
+            const { data, error } = await supabase
+                .from('players')
+                .select('*')
+                .eq('id', playerId)
+                .single();
+
+            if (error) {
+                console.error(`Ошибка при получении игрока с ID ${playerId}:`, error);
+                return null;
+            }
+
+            if (data) {
+                // Добавляем игрока в локальное хранилище
+                this.addLocalPlayer(data);
+                return data;
+            }
+
+            return null;
+        } catch (error) {
+            console.error(`Ошибка при получении игрока с ID ${playerId}:`, error);
+            return null;
+        }
+    },
+
     // Добавление нового игрока
     async addPlayer(playerData) {
         try {
@@ -481,8 +552,14 @@ export const playersApi = {
                 .from('players')
                 .insert([playerData])
                 .select();
-                
+
             if (error) throw error;
+
+            // Добавляем нового игрока в локальное хранилище
+            if (data && data.length > 0) {
+                this.addLocalPlayer(data[0]);
+            }
+
             return data;
         } catch (error) {
             console.error('Error adding player:', error);
