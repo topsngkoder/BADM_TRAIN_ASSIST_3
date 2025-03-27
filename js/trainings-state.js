@@ -211,15 +211,14 @@ export async function saveTrainingState() {
             return false;
         }
 
-        // Формируем объект с данными состояния
-        const stateData = {
-            trainingId,
-            trainingMode,
-            playersQueue,
-            courts,
-            courtCount,
-            lastUpdated: new Date().toISOString()
-        };
+        // Проверяем, инициализировано ли локальное хранилище
+        if (trainingStateApi._localState.trainingId !== parseInt(trainingId)) {
+            trainingStateApi.initLocalState(parseInt(trainingId));
+        }
+
+        // Получаем данные из локального хранилища
+        const stateData = { ...trainingStateApi._localState };
+        stateData.lastUpdated = new Date().toISOString();
 
         // Сохраняем состояние в базе данных
         // Показываем сообщение пользователю

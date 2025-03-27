@@ -624,14 +624,12 @@ export const playersApi = {
 
     // Получение игрока из локального хранилища
     getLocalPlayer(playerId) {
-        console.log(`Получение игрока с ID ${playerId} из локального хранилища`);
         return this._localPlayers[playerId] || null;
     },
 
     // Добавление игрока в локальное хранилище
     addLocalPlayer(player) {
         if (!player || !player.id) return;
-        console.log(`Добавление игрока с ID ${player.id} в локальное хранилище`);
         this._localPlayers[player.id] = player;
     },
 
