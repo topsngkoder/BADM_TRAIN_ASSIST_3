@@ -193,9 +193,52 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         lockCourtPlayers(courtElementForLock);
     }
 
+    // Проверяем, есть ли уже сохраненное время начала игры
+    let startTime;
+    const savedStartTimeMs = buttonElement.getAttribute('data-start-time');
+
+    if (savedStartTimeMs) {
+        // Используем сохраненное время начала игры
+        startTime = new Date(parseInt(savedStartTimeMs));
+        console.log('Используем сохраненное время начала игры:', startTime);
+    } else {
+        // Сохраняем новое время начала игры
+        startTime = new Date();
+        buttonElement.setAttribute('data-start-time', startTime.getTime());
+        console.log('Сохраняем новое время начала игры:', startTime);
+    }
+
     // Обновляем локальное состояние тренировки и сохраняем в базу данных
     if (typeof window.updateLocalTrainingState === 'function') {
         console.log('Обновление локального состояния тренировки при начале игры');
+
+        // Сохраняем информацию о запущенной игре в локальном состоянии
+        if (trainingStateApi._localState) {
+            // Если нет массива активных игр, создаем его
+            if (!trainingStateApi._localState.activeGames) {
+                trainingStateApi._localState.activeGames = [];
+            }
+
+            // Проверяем, есть ли уже информация об этой игре
+            const existingGameIndex = trainingStateApi._localState.activeGames.findIndex(
+                game => game.courtId === courtId
+            );
+
+            if (existingGameIndex !== -1) {
+                // Обновляем существующую информацию
+                console.log('Обновляем информацию о существующей игре в локальном состоянии');
+            } else {
+                // Добавляем информацию о новой игре
+                trainingStateApi._localState.activeGames.push({
+                    courtId: courtId,
+                    startTime: startTime.getTime()
+                });
+
+                console.log('Добавлена информация о запущенной игре в локальное состояние:',
+                    trainingStateApi._localState.activeGames);
+            }
+        }
+
         window.updateLocalTrainingState()
             .then(() => {
                 console.log('Локальное состояние тренировки успешно обновлено');
@@ -266,11 +309,7 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         finishGame(buttonElement, timerInterval);
     });
 
-    // Сохраняем время начала игры
-    const startTime = new Date();
-    buttonElement.setAttribute('data-start-time', startTime.getTime());
-
-    // Запускаем таймер
+    // Запускаем таймер с использованием сохраненного времени начала игры
     const timerInterval = setInterval(() => {
         // Получаем текущее время
         const currentTime = new Date();
@@ -305,20 +344,32 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         // Останавливаем таймер
         clearInterval(timerInterval);
 
+        // Получаем ID корта
+        const courtId = buttonElement.getAttribute('data-court-id');
+
+        // Удаляем информацию о запущенной игре из локального состояния
+        if (trainingStateApi._localState && trainingStateApi._localState.activeGames) {
+            const activeGames = trainingStateApi._localState.activeGames;
+            const gameIndex = activeGames.findIndex(game => game.courtId === courtId);
+            if (gameIndex !== -1) {
+                activeGames.splice(gameIndex, 1);
+                console.log('Удалена информация о запущенной игре из локального состояния:', courtId);
+            }
+        }
+
         // Возвращаем кнопку в исходное состояние
         buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
         buttonElement.classList.remove('timer-active');
         buttonElement.classList.remove('timer-transition');
         buttonElement.style.pointerEvents = '';
         buttonElement.title = '';
+        buttonElement.removeAttribute('data-timer-id');
+        buttonElement.removeAttribute('data-start-time');
 
         // Инициализируем иконки Feather
         if (window.feather) {
             feather.replace();
         }
-
-        // Получаем ID корта
-        const courtId = buttonElement.getAttribute('data-court-id');
 
         // Получаем элемент корта
         const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
@@ -338,6 +389,19 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         // Останавливаем таймер
         clearInterval(timerInterval);
 
+        // Получаем ID корта
+        const courtId = buttonElement.getAttribute('data-court-id');
+
+        // Удаляем информацию о запущенной игре из локального состояния
+        if (trainingStateApi._localState && trainingStateApi._localState.activeGames) {
+            const activeGames = trainingStateApi._localState.activeGames;
+            const gameIndex = activeGames.findIndex(game => game.courtId === courtId);
+            if (gameIndex !== -1) {
+                activeGames.splice(gameIndex, 1);
+                console.log('Удалена информация о запущенной игре из локального состояния:', courtId);
+            }
+        }
+
         // Получаем время игры
         const startTimeMs = parseInt(buttonElement.getAttribute('data-start-time'));
         const endTimeMs = new Date().getTime();
@@ -349,9 +413,6 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
 
         // Форматируем время
         const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-        // Получаем ID корта
-        const courtId = buttonElement.getAttribute('data-court-id');
 
         // Вызываем переданный обработчик завершения игры
         if (onGameFinish) {

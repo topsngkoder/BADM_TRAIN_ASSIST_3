@@ -505,16 +505,53 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
     const courtContainers = detailsContainer.querySelectorAll('.court-container');
     console.log('Найдено контейнеров кортов:', courtContainers.length);
 
+    // Проверяем, есть ли активные игры в состоянии тренировки
+    const activeGames = trainingStateApi._localState && trainingStateApi._localState.activeGames
+        ? trainingStateApi._localState.activeGames
+        : [];
+
+    console.log('Активные игры в состоянии тренировки:', activeGames);
+
     courtContainers.forEach(court => {
-        console.log('Инициализация кнопки "Начать игру" для корта:', court.getAttribute('data-court-id'));
+        const courtId = court.getAttribute('data-court-id');
+        console.log('Инициализация кнопки "Начать игру" для корта:', courtId);
 
         // Сначала обновляем видимость кнопки
         updateCourtVisibility(court);
 
+        // Проверяем, есть ли активная игра для этого корта
+        const activeGame = activeGames.find(game => game.courtId === courtId);
+
         // Затем добавляем обработчик
-        updateStartGameButton(court, (buttonElement, courtId) => {
+        const startGameHandler = (buttonElement, courtId) => {
             console.log('Вызван обработчик нажатия кнопки "Начать игру" для корта', courtId);
+
+            // Если есть активная игра для этого корта, восстанавливаем таймер
+            if (activeGame) {
+                console.log('Восстанавливаем таймер для активной игры на корте:', courtId);
+                // Устанавливаем время начала игры
+                buttonElement.setAttribute('data-start-time', activeGame.startTime);
+            }
+
             startGameTimer(buttonElement, courtId,
+        };
+
+        updateStartGameButton(court, startGameHandler);
+
+        // Если есть активная игра для этого корта, автоматически запускаем таймер
+        if (activeGame) {
+            console.log('Автоматически запускаем таймер для активной игры на корте:', courtId);
+
+            // Находим кнопку "Начать игру"
+            const startGameBtn = court.querySelector('.start-game-btn');
+            if (startGameBtn) {
+                // Устанавливаем время начала игры
+                startGameBtn.setAttribute('data-start-time', activeGame.startTime);
+
+                // Запускаем таймер
+                startGameHandler(startGameBtn, courtId);
+            }
+        }
                 // Обработчик отмены игры
                 async (buttonElement, timerInterval) => {
                     console.log('Вызван обработчик отмены игры');
