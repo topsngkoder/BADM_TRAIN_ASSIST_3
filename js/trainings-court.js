@@ -193,10 +193,12 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         lockCourtPlayers(courtElementForLock);
     }
 
-    // Сохраняем текущее состояние тренировки
-    if (saveTrainingState) {
-        console.log('Сохранение состояния тренировки при начале игры');
-        saveTrainingState();
+    // Обновляем локальное состояние тренировки
+    if (typeof window.updateLocalTrainingState === 'function') {
+        console.log('Обновление локального состояния тренировки при начале игры');
+        window.updateLocalTrainingState().catch(error => {
+            console.error('Ошибка при обновлении локального состояния:', error);
+        });
     }
 
     // Создаем контейнер для таймера и кнопок

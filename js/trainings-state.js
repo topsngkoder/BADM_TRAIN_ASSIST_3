@@ -4,10 +4,10 @@ import { showMessage } from './ui.js';
 import { updateCourtHalfButtons, unlockCourtPlayers } from './trainings-court.js';
 import { addPlayerToQueue } from './trainings-players.js';
 
-// Функция для сохранения текущего состояния тренировки
-export async function saveTrainingState() {
+// Функция для сохранения текущего состояния тренировки в локальное хранилище
+export async function updateLocalTrainingState() {
     try {
-        console.log('Сохранение текущего состояния тренировки');
+        console.log('Обновление локального состояния тренировки');
 
         // Получаем ID текущей тренировки из URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -15,7 +15,7 @@ export async function saveTrainingState() {
 
         if (!trainingId) {
             console.error('Не найден ID текущей тренировки в URL');
-            return;
+            return false;
         }
 
         // Получаем текущую очередь игроков из DOM
@@ -91,14 +91,39 @@ export async function saveTrainingState() {
                 id: courtId,
                 name: courtName,
                 gameInProgress: isGameInProgress,
-                topPlayers: isGameInProgress ? topPlayers : [],
-                bottomPlayers: isGameInProgress ? bottomPlayers : [],
+                topPlayers: topPlayers,
+                bottomPlayers: bottomPlayers,
                 gameStartTime
             });
         });
 
         // Получаем общее количество кортов
         const courtCount = courtElements.length;
+
+        console.log('Локальное состояние тренировки успешно обновлено');
+        return true;
+    } catch (error) {
+        console.error('Ошибка при обновлении локального состояния тренировки:', error);
+        return false;
+    }
+}
+
+// Функция для сохранения текущего состояния тренировки в базу данных
+export async function saveTrainingState() {
+    try {
+        console.log('Сохранение текущего состояния тренировки в базу данных');
+
+        // Сначала обновляем локальное состояние
+        await updateLocalTrainingState();
+
+        // Получаем ID текущей тренировки из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const trainingId = urlParams.get('id');
+
+        if (!trainingId) {
+            console.error('Не найден ID текущей тренировки в URL');
+            return false;
+        }
 
         // Формируем объект с данными состояния
         const stateData = {
@@ -111,12 +136,15 @@ export async function saveTrainingState() {
         };
 
         // Сохраняем состояние в базе данных
+        // Показываем сообщение пользователю
+        showMessage('Состояние тренировки сохранено', 'success');
+
         await trainingStateApi.saveTrainingState(trainingId, stateData);
         console.log('Состояние тренировки успешно сохранено');
 
         return true;
     } catch (error) {
-        console.error('Ошибка при сохранении состояния тренировки:', error);
+        console.error('Ошибка при сохранении состояния тренировки в базу данных:', error);
         showMessage('Не удалось сохранить состояние тренировки', 'error');
         return false;
     }
@@ -189,7 +217,7 @@ export async function loadTrainingState(trainingId) {
 }
 
 // Функция для обработки выбора победителя
-export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers, saveTrainingState) {
+export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers) {
     // Определяем победителей и проигравших
     let winners, losers;
 
@@ -240,11 +268,8 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
             await addPlayerToQueue(player.id, 'end');
         }
 
-        // После добавления всех игроков сохраняем состояние
-        if (saveTrainingState) {
-            console.log('Сохраняем состояние тренировки после добавления всех игроков в очередь');
-            await saveTrainingState();
-        }
+        // Обновляем локальное состояние тренировки
+        await updateLocalTrainingState();
     };
 
     // Добавляем игроков в очередь
@@ -280,7 +305,16 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
             clearInterval(parseInt(timerId));
         }
 
-        startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
+    
+
+    // Обновляем локальное состояние тренировки после всех изменений
+    updateLocalTrainingState().catch(error => {
+        console.error('Ошибка при обновлении локального состояния:', error);
+    });
+
+    // Показываем сообщение о необходимости сохранить изменения
+    showMessage('Изменения внесены в локальное хранилище. Нажмите "Сохранить", чтобы сохранить их в базе данных.', 'info');
+    startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
         startGameBtn.classList.remove('timer-active');
         startGameBtn.classList.remove('timer-transition');
         startGameBtn.style.pointerEvents = '';

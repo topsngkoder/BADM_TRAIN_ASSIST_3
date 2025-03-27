@@ -30,6 +30,7 @@ header {
     align-items: center;
     margin-bottom: 10px;
     flex-shrink: 0;
+    gap: 10px;
 }
 
 /* Переключатель сортировки */
@@ -514,6 +515,26 @@ input:focus {
     justify-content: center;
     border-radius: 50%;
     transition: background-color 0.2s;
+}
+
+.save-btn {
+    background-color: #3498db;
+    color: white;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    border: none;
+    cursor: pointer;
+}
+
+.save-btn:hover {
+    background-color: #2980b9;
+    color: white;
 }
 
 .close-btn:hover {

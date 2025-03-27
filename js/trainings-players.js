@@ -4,7 +4,7 @@ import { showMessage } from './ui.js';
 import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility } from './trainings-court.js';
 
 // Функция для добавления игрока из очереди на корт
-export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callback, saveTrainingState) {
+export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callback) {
     // Получаем ID игрока
     const playerId = playerCard.getAttribute('data-player-id');
     console.log(`Добавление игрока с ID ${playerId} на корт ${courtId}, половина ${half}`);
@@ -106,8 +106,20 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
         // Удаляем игрока из очереди в базе данных
         await trainingStateApi.removePlayerFromQueue(trainingId, playerId);
 
+        // Добавляем игрока на корт в локальном состоянии
+        const slotIndex = Array.from(emptySlot.parentNode.children).indexOf(emptySlot) + 1;
+        const position = `${half}${slotIndex}`;
+        trainingStateApi.addPlayerToCourt(courtId, position, playerId);
+
         // Удаляем игрока из очереди в DOM
         playerCard.remove();
+
+        // Обновляем локальное состояние
+        if (typeof window.updateLocalTrainingState === 'function') {
+            window.updateLocalTrainingState().catch(error => {
+                console.error('Ошибка при обновлении локального состояния:', error);
+            });
+        }
 
         // Проверяем, остались ли еще игроки в очереди
         const remainingPlayers = document.querySelectorAll('.queue-player-card');
@@ -136,11 +148,12 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
         if (removeBtn) {
             removeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                removePlayerFromCourt(playerElement, playerId, saveTrainingState);
+                removePlayerFromCourt(playerElement, playerId);
             });
         }
 
-        // Не сохраняем состояние тренировки при добавлении игрока из очереди
+        // Показываем сообщение о необходимости сохранить изменения
+        showMessage('Изменения внесены в локальное хранилище. Нажмите "Сохранить", чтобы сохранить их в базе данных.', 'info');
     } catch (error) {
         console.error(`Ошибка при получении данных игрока с ID ${playerId}:`, error);
         showMessage('Ошибка при получении данных игрока', 'error');
@@ -149,7 +162,7 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
 }
 
 // Функция для удаления игрока с корта
-export async function removePlayerFromCourt(playerElement, playerId, saveTrainingState) {
+export async function removePlayerFromCourt(playerElement, playerId) {
     console.log(`Удаление игрока с ID ${playerId} с корта`);
 
     try {
@@ -173,23 +186,37 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
 
         console.log(`Получены данные игрока из базы:`, player);
 
-        // Добавляем игрока в очередь в базе данных
-        await trainingStateApi.addPlayerToQueue(trainingId, playerId, 'start');
-
-        // Находим половину корта, с которой удаляется игрок
+        // Находим половину корта и позицию игрока
         const courtHalf = playerElement.closest('.court-half');
         const courtContainer = playerElement.closest('.court-container');
+        const courtId = courtContainer ? courtContainer.getAttribute('data-court-id') : null;
+        const half = courtHalf ? courtHalf.getAttribute('data-half') : null;
+
+        if (courtId && half) {
+            // Находим позицию игрока на корте
+            const slot = playerElement.closest('.court-player-slot');
+            const slotIndex = slot ? Array.from(slot.parentNode.children).indexOf(slot) + 1 : null;
+
+            if (slotIndex) {
+                const position = `${half}${slotIndex}`;
+                // Удаляем игрока с корта в локальном состоянии
+                trainingStateApi.removePlayerFromCourt(courtId, position);
+            }
+        }
+
+        // Добавляем игрока в очередь в локальном состоянии
+        trainingStateApi.addPlayerToQueue(playerId, 'start');
 
         // Удаляем элемент игрока
         playerElement.remove();
 
-            // Обновляем видимость кнопок на половине корта
-            if (courtHalf) {
-                updateCourtHalfButtons(courtHalf);
-            }
+        // Обновляем видимость кнопок на половине корта
+        if (courtHalf) {
+            updateCourtHalfButtons(courtHalf);
+        }
 
-            // Обновляем видимость кнопки "Начать игру"
-            if (courtContainer) {
+        // Обновляем видимость кнопки "Начать игру"
+        if (courtContainer) {
                 updateCourtVisibility(courtContainer);
             }
 
@@ -256,10 +283,15 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
                 }
             }
 
-            // Сохраняем состояние тренировки
-            if (saveTrainingState) {
-                saveTrainingState();
+            // Обновляем локальное состояние тренировки
+            if (typeof window.updateLocalTrainingState === 'function') {
+                window.updateLocalTrainingState().catch(error => {
+                    console.error('Ошибка при обновлении локального состояния:', error);
+                });
             }
+
+            // Показываем сообщение о необходимости сохранить изменения
+            showMessage('Изменения внесены в локальное хранилище. Нажмите "Сохранить", чтобы сохранить их в базе данных.', 'info');
     } catch (error) {
         console.error(`Ошибка при удалении игрока с ID ${playerId}:`, error);
         showMessage('Ошибка при удалении игрока', 'error');
@@ -267,7 +299,7 @@ export async function removePlayerFromCourt(playerElement, playerId, saveTrainin
 }
 
 // Функция для добавления игрока в очередь
-export async function addPlayerToQueue(playerId, position = 'end', saveTrainingState = null) {
+export async function addPlayerToQueue(playerId, position = 'end') {
     console.log(`Добавление игрока с ID: ${playerId} в очередь, позиция: ${position}`);
 
     // Проверяем входные данные

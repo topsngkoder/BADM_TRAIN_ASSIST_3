@@ -3,9 +3,12 @@ import { trainingsApi, playersApi } from './api.js';
 import { showMessage } from './ui.js';
 import { createTrainingCard, getCourtWord } from './trainings-ui.js';
 import { initTrainingHandlers, handleDeleteTraining, initTrainingDetailsHandlers } from './trainings-handlers.js';
-import { loadTrainingState, saveTrainingState } from './trainings-state.js';
+import { loadTrainingState, saveTrainingState, updateLocalTrainingState } from './trainings-state.js';
 import { updateCourtHalfButtons, updateStartGameButton, startGameTimer, unlockCourtPlayers } from './trainings-court.js';
 import { removePlayerFromCourt } from './trainings-players.js';
+
+// Делаем функцию updateLocalTrainingState доступной глобально
+window.updateLocalTrainingState = updateLocalTrainingState;
 
 // Инициализация модуля тренировок
 export function initTrainingsModule() {
@@ -227,6 +230,29 @@ export function initTrainingsModule() {
 
         // Загружаем состояние тренировки из Supabase
         const stateData = await loadTrainingState(training.id);
+
+        // Добавляем кнопку "Сохранить" в заголовок
+        const saveButton = document.createElement('button');
+        saveButton.id = 'save-training-state-btn';
+        saveButton.className = 'save-btn';
+        saveButton.innerHTML = '<i data-feather="save"></i> Сохранить';
+        saveButton.title = 'Сохранить состояние тренировки в базу данных';
+
+        // Добавляем обработчик для кнопки "Сохранить"
+        saveButton.addEventListener('click', async () => {
+            console.log('Нажата кнопка "Сохранить"');
+            await saveTrainingState();
+        });
+
+        // Добавляем кнопку в заголовок
+        const headerElement = document.querySelector('#training-details-section .section-header');
+        if (headerElement) {
+            // Проверяем, есть ли уже кнопка "Сохранить"
+            const existingSaveButton = headerElement.querySelector('#save-training-state-btn');
+            if (!existingSaveButton) {
+                headerElement.appendChild(saveButton);
+            }
+        }
 
         if (stateData && stateData.playersQueue && stateData.playersQueue.length > 0) {
             // Если есть сохраненная очередь игроков в состоянии, используем ее

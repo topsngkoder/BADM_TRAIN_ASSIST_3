@@ -489,6 +489,160 @@ export const playersApi = {
             throw error;
         }
     },
+
+    // Получение данных кортов из локального состояния
+    getCourts() {
+        console.log('Получение данных кортов из локального состояния');
+        return [...this._localState.courts];
+    },
+
+    // Обновление данных кортов в локальном состоянии
+    updateCourts(courts) {
+        console.log('Обновление данных кортов в локальном состоянии');
+        this._localState.courts = [...courts];
+        this._localState.lastUpdated = new Date().toISOString();
+        console.log('Данные кортов обновлены:', this._localState.courts);
+        return true;
+    },
+
+    // Обновление количества кортов в локальном состоянии
+    updateCourtCount(count) {
+        console.log(`Обновление количества кортов: ${count}`);
+        this._localState.courtCount = count;
+        this._localState.lastUpdated = new Date().toISOString();
+        return true;
+    },
+
+    // Добавление игрока на корт
+    addPlayerToCourt(courtId, position, playerId) {
+        try {
+            console.log(`Добавление игрока ${playerId} на корт ${courtId}, позиция: ${position}`);
+
+            // Получаем текущие данные кортов
+            const courts = [...this._localState.courts];
+
+            // Находим нужный корт
+            const courtIndex = courts.findIndex(c => c.id === courtId);
+
+            if (courtIndex === -1) {
+                // Если корт не найден, создаем новый
+                console.log(`Корт ${courtId} не найден, создаем новый`);
+                const newCourt = {
+                    id: courtId,
+                    topPlayers: [],
+                    bottomPlayers: [],
+                    gameInProgress: false,
+                    gameStartTime: null
+                };
+
+                // Добавляем игрока на нужную позицию
+                if (position.startsWith('top')) {
+                    const playerIndex = parseInt(position.replace('top', '')) - 1;
+                    newCourt.topPlayers[playerIndex] = { id: String(playerId) };
+                } else if (position.startsWith('bottom')) {
+                    const playerIndex = parseInt(position.replace('bottom', '')) - 1;
+                    newCourt.bottomPlayers[playerIndex] = { id: String(playerId) };
+                }
+
+                courts.push(newCourt);
+            } else {
+                // Если корт найден, добавляем игрока на нужную позицию
+                const court = courts[courtIndex];
+
+                if (position.startsWith('top')) {
+                    const playerIndex = parseInt(position.replace('top', '')) - 1;
+                    if (!court.topPlayers) court.topPlayers = [];
+                    court.topPlayers[playerIndex] = { id: String(playerId) };
+                } else if (position.startsWith('bottom')) {
+                    const playerIndex = parseInt(position.replace('bottom', '')) - 1;
+                    if (!court.bottomPlayers) court.bottomPlayers = [];
+                    court.bottomPlayers[playerIndex] = { id: String(playerId) };
+                }
+            }
+
+            // Обновляем данные кортов в локальном состоянии
+            this.updateCourts(courts);
+
+            console.log('Игрок успешно добавлен на корт');
+            return true;
+        } catch (error) {
+            console.error('Error adding player to court:', error);
+            throw error;
+        }
+    },
+
+    // Удаление игрока с корта
+    removePlayerFromCourt(courtId, position) {
+        try {
+            console.log(`Удаление игрока с корта ${courtId}, позиция: ${position}`);
+
+            // Получаем текущие данные кортов
+            const courts = [...this._localState.courts];
+
+            // Находим нужный корт
+            const courtIndex = courts.findIndex(c => c.id === courtId);
+
+            if (courtIndex === -1) {
+                console.log(`Корт ${courtId} не найден`);
+                return false;
+            }
+
+            // Удаляем игрока с нужной позиции
+            const court = courts[courtIndex];
+
+            if (position.startsWith('top')) {
+                const playerIndex = parseInt(position.replace('top', '')) - 1;
+                if (court.topPlayers && court.topPlayers[playerIndex]) {
+                    court.topPlayers[playerIndex] = null;
+                }
+            } else if (position.startsWith('bottom')) {
+                const playerIndex = parseInt(position.replace('bottom', '')) - 1;
+                if (court.bottomPlayers && court.bottomPlayers[playerIndex]) {
+                    court.bottomPlayers[playerIndex] = null;
+                }
+            }
+
+            // Обновляем данные кортов в локальном состоянии
+            this.updateCourts(courts);
+
+            console.log('Игрок успешно удален с корта');
+            return true;
+        } catch (error) {
+            console.error('Error removing player from court:', error);
+            throw error;
+        }
+    },
+
+    // Обновление состояния игры на корте
+    updateGameState(courtId, gameInProgress, gameStartTime = null) {
+        try {
+            console.log(`Обновление состояния игры на корте ${courtId}: ${gameInProgress ? 'в процессе' : 'завершена'}`);
+
+            // Получаем текущие данные кортов
+            const courts = [...this._localState.courts];
+
+            // Находим нужный корт
+            const courtIndex = courts.findIndex(c => c.id === courtId);
+
+            if (courtIndex === -1) {
+                console.log(`Корт ${courtId} не найден`);
+                return false;
+            }
+
+            // Обновляем состояние игры
+            courts[courtIndex].gameInProgress = gameInProgress;
+            courts[courtIndex].gameStartTime = gameStartTime;
+
+            // Обновляем данные кортов в локальном состоянии
+            this.updateCourts(courts);
+
+            console.log('Состояние игры успешно обновлено');
+            return true;
+        } catch (error) {
+            console.error('Error updating game state:', error);
+            throw error;
+        }
+    },
     
     // Обновление данных игрока
     async updatePlayer(playerId, playerData) {
