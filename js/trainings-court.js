@@ -379,6 +379,16 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
             unlockCourtPlayers(courtElement);
         }
 
+        // Обновляем локальное состояние тренировки
+        if (typeof window.updateLocalTrainingState === 'function') {
+            try {
+                await window.updateLocalTrainingState();
+                console.log('Локальное состояние тренировки успешно обновлено после отмены игры');
+            } catch (error) {
+                console.error('Ошибка при обновлении локального состояния после отмены игры:', error);
+            }
+        }
+
         // Вызываем переданный обработчик отмены игры
         if (onGameCancel) {
             await onGameCancel(buttonElement, timerInterval);

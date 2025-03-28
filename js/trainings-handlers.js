@@ -368,6 +368,18 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
                                 // Обработчик отмены игры
                                 async (buttonElement, timerInterval) => {
                                     console.log('Вызван обработчик отмены игры');
+
+                                    // Обновляем локальное состояние перед сохранением
+                                    if (typeof window.updateLocalTrainingState === 'function') {
+                                        try {
+                                            await window.updateLocalTrainingState();
+                                            console.log('Локальное состояние тренировки успешно обновлено после отмены игры');
+                                        } catch (error) {
+                                            console.error('Ошибка при обновлении локального состояния после отмены игры:', error);
+                                        }
+                                    }
+
+                                    // Сохраняем состояние в базу данных
                                     await saveTrainingState();
                                 },
                                 // Обработчик завершения игры
@@ -537,6 +549,18 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
                 // Обработчик отмены игры
                 async (buttonElement, timerInterval) => {
                     console.log('Вызван обработчик отмены игры');
+
+                    // Обновляем локальное состояние перед сохранением
+                    if (typeof window.updateLocalTrainingState === 'function') {
+                        try {
+                            await window.updateLocalTrainingState();
+                            console.log('Локальное состояние тренировки успешно обновлено после отмены игры');
+                        } catch (error) {
+                            console.error('Ошибка при обновлении локального состояния после отмены игры:', error);
+                        }
+                    }
+
+                    // Сохраняем состояние в базу данных
                     await saveTrainingState();
                 },
                 // Обработчик завершения игры
