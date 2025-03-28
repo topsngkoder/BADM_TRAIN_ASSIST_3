@@ -701,6 +701,9 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
         // Сбрасываем кнопку "Начать игру"
         resetGameButton(courtElement);
 
+        // Разблокируем возможность удалять оставшихся игроков с корта
+        unlockCourtPlayers(courtElement);
+
         // Обновляем состояние корта после удаления игроков
         setTimeout(() => {
             // Обновляем видимость кнопок на всех половинах корта
