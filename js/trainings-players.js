@@ -1,7 +1,7 @@
 // Модуль для работы с игроками и очередью
 import { playersApi, trainingStateApi } from './api.js';
 import { showMessage } from './ui.js';
-import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility } from './trainings-court.js';
+import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility, startGameTimer } from './trainings-court.js';
 
 // Функция для добавления игрока из очереди на корт
 export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callback) {
@@ -157,6 +157,23 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
         const courtContainer = courtHalf.closest('.court-container');
         if (courtContainer) {
             updateCourtVisibility(courtContainer);
+
+            // Проверяем, все ли слоты заняты, и если да, то инициализируем кнопку "Начать игру"
+            const allSlots = courtContainer.querySelectorAll('.court-player-slot');
+            let occupiedSlots = 0;
+            allSlots.forEach(slot => {
+                if (slot.children.length > 0) {
+                    occupiedSlots++;
+                }
+            });
+
+            if (occupiedSlots === 4) {
+                console.log('Все 4 слота заняты, инициализируем кнопку "Начать игру"');
+                updateStartGameButton(courtContainer, (buttonElement, courtId) => {
+                    console.log('Вызван обработчик нажатия кнопки "Начать игру" для корта', courtId);
+                    startGameTimer(buttonElement, courtId);
+                });
+            }
         }
 
         // Вызываем callback сразу после добавления в DOM
