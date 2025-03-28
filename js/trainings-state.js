@@ -41,7 +41,7 @@ async function loadPlayersToLocalStorage(stateData) {
                         }
                     });
                 }
-            });
+            }); 
         }
 
         console.log('Найдено уникальных ID игроков:', playerIds.size);
