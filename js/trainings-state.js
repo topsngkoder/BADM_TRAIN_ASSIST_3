@@ -365,7 +365,7 @@ export async function loadTrainingState(trainingId) {
 }
 
 // Функция для обработки выбора победителя
-export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers) {
+export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers, saveTrainingState) {
     // Определяем победителей и проигравших
     let winners, losers;
 
@@ -395,6 +395,24 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
         return;
     }
 
+    // Получаем текущий режим тренировки
+    const trainingModeSelect = document.getElementById('training-mode');
+    const currentMode = trainingModeSelect ? trainingModeSelect.value : 'single';
+
+    // Обрабатываем в зависимости от режима тренировки
+    if (currentMode === 'max-two-wins') {
+        // Режим "Не больше двух побед"
+        handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trainingId, saveTrainingState);
+    } else {
+        // Стандартный режим "Играем один раз"
+        handleSingleGameMode(courtId, courtElement, winners, losers, trainingId, saveTrainingState);
+    }
+}
+
+// Функция для обработки режима "Играем один раз"
+async function handleSingleGameMode(courtId, courtElement, winners, losers, trainingId, saveTrainingState) {
+    console.log('Обработка режима "Играем один раз"');
+
     // Сначала добавляем игроков в очередь, затем удаляем их с корта
     console.log('Добавляем победителей и проигравших в очередь');
 
@@ -422,17 +440,22 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
         // Сохраняем состояние в базу данных после добавления всех игроков
         try {
             console.log('Сохраняем состояние в базу данных после добавления всех игроков');
-            // Получаем текущее состояние из локального хранилища
-            const stateData = { ...trainingStateApi._localState };
-            stateData.lastUpdated = new Date().toISOString();
+            if (saveTrainingState && typeof saveTrainingState === 'function') {
+                await saveTrainingState();
+                console.log('Состояние успешно сохранено в базу данных');
+            } else {
+                // Получаем текущее состояние из локального хранилища
+                const stateData = { ...trainingStateApi._localState };
+                stateData.lastUpdated = new Date().toISOString();
 
-            // Сохраняем в базу данных
-            await trainingStateApi.saveTrainingState(trainingId, stateData);
+                // Сохраняем в базу данных
+                await trainingStateApi.saveTrainingState(trainingId, stateData);
 
-            // Обновляем локальное хранилище
-            trainingStateApi._localState = { ...stateData };
+                // Обновляем локальное хранилище
+                trainingStateApi._localState = { ...stateData };
 
-            console.log('Состояние успешно сохранено в базу данных');
+                console.log('Состояние успешно сохранено в базу данных');
+            }
         } catch (error) {
             console.error('Ошибка при сохранении состояния в базу данных:', error);
             showMessage('Ошибка при сохранении состояния в базу данных', 'error');
@@ -440,7 +463,7 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
     };
 
     // Добавляем игроков в очередь
-    addPlayersToQueue();
+    await addPlayersToQueue();
 
     // Теперь удаляем игроков с корта
     const courtPlayers = courtElement.querySelectorAll('.court-player');
@@ -464,6 +487,156 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
     }, 350);
 
     // Сбрасываем кнопку "Начать игру"
+    resetGameButton(courtElement);
+
+    // Обновляем локальное состояние тренировки после всех изменений
+    updateLocalTrainingState().catch(error => {
+        console.error('Ошибка при обновлении локального состояния:', error);
+    });
+
+}
+
+// Функция для обработки режима "Не больше двух побед"
+async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trainingId, saveTrainingState) {
+    console.log('Обработка режима "Не больше двух побед"');
+
+    // Проверяем, есть ли у победителей уже одна победа (значок "2-я игра")
+    const winnersHaveBadge = winners.some(player => {
+        const playerElement = courtElement.querySelector(`.court-player[data-player-id="${player.id}"]`);
+        return playerElement && playerElement.querySelector('.second-game-badge');
+    });
+
+    if (winnersHaveBadge) {
+        // Если у победителей уже есть значок "2-я игра", это их вторая победа
+        console.log('Победители выиграли вторую игру подряд, все игроки отправляются в очередь');
+
+        // Функция для добавления игроков в очередь
+        const addPlayersToQueue = async () => {
+            // Сначала добавляем победителей в конец очереди
+            console.log('Добавляем победителей в конец очереди:', winners);
+            for (const player of winners) {
+                console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) в конец очереди`);
+                trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
+                await addPlayerToQueue(player.id, 'end', trainingId);
+            }
+
+            // Затем добавляем проигравших в конец очереди
+            console.log('Добавляем проигравших в конец очереди:', losers);
+            for (const player of losers) {
+                console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в конец очереди`);
+                trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
+                await addPlayerToQueue(player.id, 'end', trainingId);
+            }
+
+            // Обновляем локальное состояние тренировки
+            await updateLocalTrainingState();
+
+            // Сохраняем состояние в базу данных
+            if (saveTrainingState && typeof saveTrainingState === 'function') {
+                await saveTrainingState();
+                console.log('Состояние успешно сохранено в базу данных');
+            }
+        };
+
+        // Добавляем игроков в очередь
+        await addPlayersToQueue();
+
+        // Удаляем всех игроков с корта
+        const courtPlayers = courtElement.querySelectorAll('.court-player');
+        courtPlayers.forEach(player => {
+            player.classList.add('removing');
+            setTimeout(() => {
+                player.remove();
+            }, 300);
+        });
+
+        // Разблокируем изменение состава игроков
+        unlockCourtPlayers(courtElement);
+
+        // Обновляем состояние корта после удаления игроков
+        setTimeout(() => {
+            // Обновляем видимость кнопок на всех половинах корта
+            const courtHalves = courtElement.querySelectorAll('.court-half');
+            courtHalves.forEach(half => {
+                updateCourtHalfButtons(half);
+            });
+        }, 350);
+
+        // Сбрасываем кнопку "Начать игру"
+        resetGameButton(courtElement);
+    } else {
+        // Если у победителей нет значка "2-я игра", это их первая победа
+        console.log('Победители выиграли первую игру, добавляем значок "2-я игра" и отправляем проигравших в очередь');
+
+        // Добавляем значок "2-я игра" победителям
+        winners.forEach(player => {
+            const playerElement = courtElement.querySelector(`.court-player[data-player-id="${player.id}"]`);
+            if (playerElement) {
+                const photoContainer = playerElement.querySelector('.court-player-photo-container');
+                if (photoContainer && !photoContainer.querySelector('.second-game-badge')) {
+                    const badge = document.createElement('div');
+                    badge.className = 'second-game-badge';
+                    badge.textContent = '2';
+                    photoContainer.appendChild(badge);
+                }
+            }
+        });
+
+        // Функция для добавления проигравших в очередь
+        const addLosersToQueue = async () => {
+            // Добавляем проигравших в конец очереди
+            console.log('Добавляем проигравших в конец очереди:', losers);
+            for (const player of losers) {
+                console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в конец очереди`);
+                trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
+                await addPlayerToQueue(player.id, 'end', trainingId);
+            }
+
+            // Обновляем локальное состояние тренировки
+            await updateLocalTrainingState();
+
+            // Сохраняем состояние в базу данных
+            if (saveTrainingState && typeof saveTrainingState === 'function') {
+                await saveTrainingState();
+                console.log('Состояние успешно сохранено в базу данных');
+            }
+        };
+
+        // Добавляем проигравших в очередь
+        await addLosersToQueue();
+
+        // Удаляем проигравших с корта
+        losers.forEach(player => {
+            const playerElement = courtElement.querySelector(`.court-player[data-player-id="${player.id}"]`);
+            if (playerElement) {
+                playerElement.classList.add('removing');
+                setTimeout(() => {
+                    playerElement.remove();
+                }, 300);
+            }
+        });
+
+        // Сбрасываем кнопку "Начать игру"
+        resetGameButton(courtElement);
+
+        // Обновляем состояние корта после удаления игроков
+        setTimeout(() => {
+            // Обновляем видимость кнопок на всех половинах корта
+            const courtHalves = courtElement.querySelectorAll('.court-half');
+            courtHalves.forEach(half => {
+                updateCourtHalfButtons(half);
+            });
+        }, 350);
+    }
+
+    // Обновляем локальное состояние тренировки после всех изменений
+    updateLocalTrainingState().catch(error => {
+        console.error('Ошибка при обновлении локального состояния:', error);
+    });
+}
+
+// Функция для сброса кнопки "Начать игру"
+function resetGameButton(courtElement) {
     const startGameBtn = courtElement.querySelector('.start-game-btn');
     if (startGameBtn) {
         // Очищаем интервал таймера, если он есть
@@ -472,16 +645,7 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
             clearInterval(parseInt(timerId));
         }
 
-    
-
-    // Обновляем локальное состояние тренировки после всех изменений
-    updateLocalTrainingState().catch(error => {
-        console.error('Ошибка при обновлении локального состояния:', error);
-    });
-
-    // Показываем сообщение о необходимости сохранить изменения
-    showMessage('Изменения внесены в локальное хранилище. Нажмите "Сохранить", чтобы сохранить их в базе данных.', 'info');
-    startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
+        startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
         startGameBtn.classList.remove('timer-active');
         startGameBtn.classList.remove('timer-transition');
         startGameBtn.style.pointerEvents = '';
@@ -494,7 +658,4 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
             feather.replace();
         }
     }
-
-    // Не сохраняем состояние еще раз, так как оно уже сохранено после добавления всех игроков в очередь
-    console.log('Все изменения уже сохранены в базу данных');
 }

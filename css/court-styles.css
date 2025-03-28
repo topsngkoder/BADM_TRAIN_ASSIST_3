@@ -19,6 +19,29 @@
     border: 2px solid #2ecc71;
 }
 
+/* Стили для значка "2-я игра" */
+.second-game-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+}
+
+.court-player-photo-container {
+    position: relative;
+}
+
 .court-container.game-in-progress .court-half {
     background-color: rgba(46, 204, 113, 0.05);
 }

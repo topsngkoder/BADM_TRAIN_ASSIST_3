@@ -389,58 +389,47 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
                                     const trainingModeSelect = document.getElementById('training-mode');
                                     const currentMode = trainingModeSelect ? trainingModeSelect.value : 'single';
 
-                                    // Обрабатываем завершение игры в зависимости от режима
-                                    if (currentMode === 'single') {
-                                        // Режим "Играем один раз"
-                                        // Получаем игроков на корте
-                                        const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
-                                        if (!courtElement) {
-                                            console.error('Не найден элемент корта');
-                                            return;
-                                        }
-
-                                        // Получаем игроков верхней половины
-                                        const topPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="top"] .court-player'))
-                                            .map(playerElement => {
-                                                const playerId = playerElement.getAttribute('data-player-id');
-                                                const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
-                                                const playerPhoto = playerElement.querySelector('.court-player-photo').src;
-                                                return { id: playerId, name: playerName, photo: playerPhoto };
-                                            });
-
-                                        // Получаем игроков нижней половины
-                                        const bottomPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="bottom"] .court-player'))
-                                            .map(playerElement => {
-                                                const playerId = playerElement.getAttribute('data-player-id');
-                                                const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
-                                                const playerPhoto = playerElement.querySelector('.court-player-photo').src;
-                                                return { id: playerId, name: playerName, photo: playerPhoto };
-                                            });
-
-                                        // Проверяем, что на корте 4 игрока
-                                        if (topPlayers.length === 2 && bottomPlayers.length === 2) {
-                                            // Формируем названия команд
-                                            const topTeamName = `${topPlayers[0].name}/${topPlayers[1].name}`;
-                                            const bottomTeamName = `${bottomPlayers[0].name}/${bottomPlayers[1].name}`;
-
-                                            // Показываем модальное окно выбора победителя
-                                            showWinnerSelectionModal(courtId, topTeamName, bottomTeamName, topPlayers, bottomPlayers, formattedTime,
-                                                (courtId, winnerTeam, topPlayers, bottomPlayers) => {
-                                                    handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers, saveTrainingState);
-                                                });
-                                        } else {
-                                            // Если на корте не 4 игрока, просто показываем сообщение о завершении
-                                            showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
-                                            resetGameButton();
-                                        }
-                                    } else {
-                                        // Другие режимы (пока просто показываем сообщение)
-                                        showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
-                                        resetGameButton();
+                                    // Получаем игроков на корте (для любого режима)
+                                    const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                                    if (!courtElement) {
+                                        console.error('Не найден элемент корта');
+                                        return;
                                     }
 
-                                    // Функция для сброса кнопки в исходное состояние
-                                    function resetGameButton() {
+                                    // Получаем игроков верхней половины
+                                    const topPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="top"] .court-player'))
+                                        .map(playerElement => {
+                                            const playerId = playerElement.getAttribute('data-player-id');
+                                            const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                            const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                                            return { id: playerId, name: playerName, photo: playerPhoto };
+                                        });
+
+                                    // Получаем игроков нижней половины
+                                    const bottomPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="bottom"] .court-player'))
+                                        .map(playerElement => {
+                                            const playerId = playerElement.getAttribute('data-player-id');
+                                            const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                            const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                                            return { id: playerId, name: playerName, photo: playerPhoto };
+                                        });
+
+                                    // Проверяем, что на корте 4 игрока
+                                    if (topPlayers.length === 2 && bottomPlayers.length === 2) {
+                                        // Формируем названия команд
+                                        const topTeamName = `${topPlayers[0].name}/${topPlayers[1].name}`;
+                                        const bottomTeamName = `${bottomPlayers[0].name}/${bottomPlayers[1].name}`;
+
+                                        // Показываем модальное окно выбора победителя
+                                        showWinnerSelectionModal(courtId, topTeamName, bottomTeamName, topPlayers, bottomPlayers, formattedTime,
+                                            (courtId, winnerTeam, topPlayers, bottomPlayers) => {
+                                                handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers, saveTrainingState);
+                                            });
+                                    } else {
+                                        // Если на корте не 4 игрока, просто показываем сообщение о завершении
+                                        showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+
+                                        // Сбрасываем кнопку в исходное состояние
                                         // Очищаем интервал таймера, если он есть
                                         if (timerInterval) {
                                             clearInterval(timerInterval);
@@ -570,33 +559,30 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
                     const trainingModeSelect = document.getElementById('training-mode');
                     const currentMode = trainingModeSelect ? trainingModeSelect.value : 'single';
 
-                    // Обрабатываем завершение игры в зависимости от режима
-                    if (currentMode === 'single') {
-                        // Режим "Играем один раз"
-                        // Получаем игроков на корте
-                        const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
-                        if (!courtElement) {
-                            console.error('Не найден элемент корта');
-                            return;
-                        }
+                    // Получаем игроков на корте (для любого режима)
+                    const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                    if (!courtElement) {
+                        console.error('Не найден элемент корта');
+                        return;
+                    }
 
-                        // Получаем игроков верхней половины
-                        const topPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="top"] .court-player'))
-                            .map(playerElement => {
-                                const playerId = playerElement.getAttribute('data-player-id');
-                                const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
-                                const playerPhoto = playerElement.querySelector('.court-player-photo').src;
-                                return { id: playerId, name: playerName, photo: playerPhoto };
-                            });
+                    // Получаем игроков верхней половины
+                    const topPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="top"] .court-player'))
+                        .map(playerElement => {
+                            const playerId = playerElement.getAttribute('data-player-id');
+                            const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                            const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                            return { id: playerId, name: playerName, photo: playerPhoto };
+                        });
 
-                        // Получаем игроков нижней половины
-                        const bottomPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="bottom"] .court-player'))
-                            .map(playerElement => {
-                                const playerId = playerElement.getAttribute('data-player-id');
-                                const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
-                                const playerPhoto = playerElement.querySelector('.court-player-photo').src;
-                                return { id: playerId, name: playerName, photo: playerPhoto };
-                            });
+                    // Получаем игроков нижней половины
+                    const bottomPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="bottom"] .court-player'))
+                        .map(playerElement => {
+                            const playerId = playerElement.getAttribute('data-player-id');
+                            const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                            const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                            return { id: playerId, name: playerName, photo: playerPhoto };
+                        });
 
                         // Проверяем, что на корте 4 игрока
                         if (topPlayers.length === 2 && bottomPlayers.length === 2) {
@@ -613,10 +599,6 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
                             // Если на корте не 4 игрока, просто показываем сообщение о завершении
                             showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
                         }
-                    } else {
-                        // Другие режимы (пока просто показываем сообщение)
-                        showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
-                    }
                 },
                 saveTrainingState
             );
