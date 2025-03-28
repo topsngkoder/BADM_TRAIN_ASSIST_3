@@ -107,6 +107,9 @@ export function updateStartGameButton(courtContainer, onStartGame) {
             startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
             startGameBtn.setAttribute('data-court-id', courtId);
 
+            // Очищаем атрибут data-start-time, чтобы таймер начинался с нуля
+            startGameBtn.removeAttribute('data-start-time');
+
             // Добавляем обработчик для кнопки
             startGameBtn.addEventListener('click', () => {
                 console.log(`Нажата кнопка "Начать игру" для корта ${courtId}`);
@@ -200,20 +203,15 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         lockCourtPlayers(courtElementForLock);
     }
 
-    // Проверяем, есть ли уже сохраненное время начала игры
-    let startTime;
-    const savedStartTimeMs = buttonElement.getAttribute('data-start-time');
+    // Всегда начинаем таймер с текущего времени, игнорируя сохраненное время
+    let startTime = new Date();
 
-    if (savedStartTimeMs) {
-        // Используем сохраненное время начала игры
-        startTime = new Date(parseInt(savedStartTimeMs));
-        console.log('Используем сохраненное время начала игры:', startTime);
-    } else {
-        // Сохраняем новое время начала игры
-        startTime = new Date();
-        buttonElement.setAttribute('data-start-time', startTime.getTime());
-        console.log('Сохраняем новое время начала игры:', startTime);
-    }
+    // Очищаем предыдущее сохраненное время, если оно есть
+    buttonElement.removeAttribute('data-start-time');
+
+    // Устанавливаем новое время начала игры
+    buttonElement.setAttribute('data-start-time', startTime.getTime());
+    console.log('Сохраняем новое время начала игры:', startTime);
 
     // Обновляем локальное состояние тренировки и сохраняем в базу данных
     if (typeof window.updateLocalTrainingState === 'function') {
