@@ -426,37 +426,43 @@ export async function removePlayerFromCourt(playerElement, playerId) {
 
         // Обновляем player_ids в таблице trainings
         try {
-            // Получаем текущие player_ids из тренировки
-            const { data: trainingData, error: trainingError } = await supabase
+            const numericId = parseInt(playerId);
+
+            // Используем промисы вместо await
+            supabase
                 .from('trainings')
                 .select('player_ids')
                 .eq('id', parseInt(trainingId))
-                .single();
-
-            if (trainingError) {
-                console.error('Ошибка при получении данных тренировки:', trainingError);
-            } else if (trainingData) {
-                // Создаем новый массив player_ids, добавляя нового игрока
-                let playerIds = trainingData.player_ids || [];
-
-                // Добавляем нового игрока, избегая дубликатов
-                const numericId = parseInt(playerId);
-                if (!playerIds.includes(numericId)) {
-                    playerIds.push(numericId);
-
-                    // Обновляем player_ids в базе данных
-                    const { error: updateError } = await supabase
-                        .from('trainings')
-                        .update({ player_ids: playerIds })
-                        .eq('id', parseInt(trainingId));
-
-                    if (updateError) {
-                        console.error('Ошибка при обновлении player_ids:', updateError);
-                    } else {
-                        console.log('player_ids успешно обновлены:', playerIds);
+                .single()
+                .then(({ data: trainingData, error: trainingError }) => {
+                    if (trainingError) {
+                        console.error('Ошибка при получении данных тренировки:', trainingError);
+                        return;
                     }
-                }
-            }
+
+                    if (trainingData) {
+                        // Создаем новый массив player_ids, добавляя нового игрока
+                        let playerIds = trainingData.player_ids || [];
+
+                        // Добавляем нового игрока, избегая дубликатов
+                        if (!playerIds.includes(numericId)) {
+                            playerIds.push(numericId);
+
+                            // Обновляем player_ids в базе данных
+                            supabase
+                                .from('trainings')
+                                .update({ player_ids: playerIds })
+                                .eq('id', parseInt(trainingId))
+                                .then(({ error: updateError }) => {
+                                    if (updateError) {
+                                        console.error('Ошибка при обновлении player_ids:', updateError);
+                                    } else {
+                                        console.log('player_ids успешно обновлены:', playerIds);
+                                    }
+                                });
+                        }
+                    }
+                });
         } catch (error) {
             console.error('Ошибка при обновлении player_ids:', error);
         }
@@ -648,39 +654,46 @@ export async function openAddPlayersToTrainingModal() {
 
                 // Обновляем player_ids в таблице trainings
                 try {
-                    // Получаем текущие player_ids из тренировки
-                    const { data: trainingData, error: trainingError } = await supabase
+                    // Преобразуем ID игроков в числа
+                    const numericPlayerIds = selectedPlayers.map(id => parseInt(id));
+
+                    // Используем промисы вместо await
+                    supabase
                         .from('trainings')
                         .select('player_ids')
                         .eq('id', parseInt(trainingId))
-                        .single();
+                        .single()
+                        .then(({ data: trainingData, error: trainingError }) => {
+                            if (trainingError) {
+                                console.error('Ошибка при получении данных тренировки:', trainingError);
+                                return;
+                            }
 
-                    if (trainingError) {
-                        console.error('Ошибка при получении данных тренировки:', trainingError);
-                    } else if (trainingData) {
-                        // Создаем новый массив player_ids, добавляя новых игроков
-                        let playerIds = trainingData.player_ids || [];
+                            if (trainingData) {
+                                // Создаем новый массив player_ids, добавляя новых игроков
+                                let playerIds = trainingData.player_ids || [];
 
-                        // Добавляем новых игроков, избегая дубликатов
-                        selectedPlayers.forEach(playerId => {
-                            const numericId = parseInt(playerId);
-                            if (!playerIds.includes(numericId)) {
-                                playerIds.push(numericId);
+                                // Добавляем новых игроков, избегая дубликатов
+                                numericPlayerIds.forEach(numericId => {
+                                    if (!playerIds.includes(numericId)) {
+                                        playerIds.push(numericId);
+                                    }
+                                });
+
+                                // Обновляем player_ids в базе данных
+                                supabase
+                                    .from('trainings')
+                                    .update({ player_ids: playerIds })
+                                    .eq('id', parseInt(trainingId))
+                                    .then(({ error: updateError }) => {
+                                        if (updateError) {
+                                            console.error('Ошибка при обновлении player_ids:', updateError);
+                                        } else {
+                                            console.log('player_ids успешно обновлены:', playerIds);
+                                        }
+                                    });
                             }
                         });
-
-                        // Обновляем player_ids в базе данных
-                        const { error: updateError } = await supabase
-                            .from('trainings')
-                            .update({ player_ids: playerIds })
-                            .eq('id', parseInt(trainingId));
-
-                        if (updateError) {
-                            console.error('Ошибка при обновлении player_ids:', updateError);
-                        } else {
-                            console.log('player_ids успешно обновлены:', playerIds);
-                        }
-                    }
                 } catch (error) {
                     console.error('Ошибка при обновлении player_ids:', error);
                 }

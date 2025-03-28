@@ -138,32 +138,43 @@ export async function updateLocalTrainingState() {
 
                         // Обновляем player_ids в таблице trainings
                         if (allPlayerIds.size > 0) {
-                            // Получаем текущие player_ids из тренировки
-                            const { data: trainingData, error: trainingError } = await supabase
+                            const playerIdsArray = Array.from(allPlayerIds);
+
+                            // Используем промисы вместо await, так как мы в синхронном контексте
+                            supabase
                                 .from('trainings')
                                 .select('player_ids')
                                 .eq('id', parseInt(trainingId))
-                                .single();
+                                .single()
+                                .then(({ data: trainingData, error: trainingError }) => {
+                                    if (trainingError) {
+                                        console.error('Ошибка при получении данных тренировки:', trainingError);
+                                        return;
+                                    }
 
-                            if (trainingError) {
-                                console.error('Ошибка при получении данных тренировки:', trainingError);
-                            } else if (trainingData) {
-                                // Объединяем текущие player_ids с новыми
-                                const currentPlayerIds = trainingData.player_ids || [];
-                                currentPlayerIds.forEach(id => allPlayerIds.add(id));
+                                    if (trainingData) {
+                                        // Объединяем текущие player_ids с новыми
+                                        const currentPlayerIds = trainingData.player_ids || [];
+                                        const updatedPlayerIds = new Set([...playerIdsArray]);
 
-                                const playerIdsArray = Array.from(allPlayerIds);
-                                const { error } = await supabase
-                                    .from('trainings')
-                                    .update({ player_ids: playerIdsArray })
-                                    .eq('id', parseInt(trainingId));
+                                        currentPlayerIds.forEach(id => updatedPlayerIds.add(id));
 
-                                if (error) {
-                                    console.error('Ошибка при обновлении player_ids:', error);
-                                } else {
-                                    console.log('player_ids успешно обновлены:', playerIdsArray);
-                                }
-                            }
+                                        const finalPlayerIds = Array.from(updatedPlayerIds);
+
+                                        // Обновляем player_ids в базе данных
+                                        supabase
+                                            .from('trainings')
+                                            .update({ player_ids: finalPlayerIds })
+                                            .eq('id', parseInt(trainingId))
+                                            .then(({ error }) => {
+                                                if (error) {
+                                                    console.error('Ошибка при обновлении player_ids:', error);
+                                                } else {
+                                                    console.log('player_ids успешно обновлены:', finalPlayerIds);
+                                                }
+                                            });
+                                    }
+                                });
                         }
                     } catch (playerIdsError) {
                         console.error('Ошибка при обновлении player_ids:', playerIdsError);
