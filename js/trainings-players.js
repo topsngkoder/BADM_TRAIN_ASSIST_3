@@ -4,6 +4,9 @@ import { showMessage, openModal, closeModal } from './ui.js';
 import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility, startGameTimer, unlockCourtPlayers } from './trainings-court.js';
 import { saveTrainingState, saveTrainingStateWithoutUpdate } from './trainings-state.js';
 
+// Получаем доступ к глобальному экземпляру Supabase
+const supabase = window.supabaseClient;
+
 // Добавляем функцию withoutUpdate к объекту saveTrainingState
 saveTrainingState.withoutUpdate = saveTrainingStateWithoutUpdate;
 
@@ -421,6 +424,43 @@ export async function removePlayerFromCourt(playerElement, playerId) {
                 }
             }
 
+        // Обновляем player_ids в таблице trainings
+        try {
+            // Получаем текущие player_ids из тренировки
+            const { data: trainingData, error: trainingError } = await supabase
+                .from('trainings')
+                .select('player_ids')
+                .eq('id', parseInt(trainingId))
+                .single();
+
+            if (trainingError) {
+                console.error('Ошибка при получении данных тренировки:', trainingError);
+            } else if (trainingData) {
+                // Создаем новый массив player_ids, добавляя нового игрока
+                let playerIds = trainingData.player_ids || [];
+
+                // Добавляем нового игрока, избегая дубликатов
+                const numericId = parseInt(playerId);
+                if (!playerIds.includes(numericId)) {
+                    playerIds.push(numericId);
+
+                    // Обновляем player_ids в базе данных
+                    const { error: updateError } = await supabase
+                        .from('trainings')
+                        .update({ player_ids: playerIds })
+                        .eq('id', parseInt(trainingId));
+
+                    if (updateError) {
+                        console.error('Ошибка при обновлении player_ids:', updateError);
+                    } else {
+                        console.log('player_ids успешно обновлены:', playerIds);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка при обновлении player_ids:', error);
+        }
+
         // Обновляем локальное состояние тренировки асинхронно
         setTimeout(() => {
             if (typeof window.updateLocalTrainingState === 'function') {
@@ -604,6 +644,45 @@ export async function openAddPlayersToTrainingModal() {
                 // Добавляем выбранных игроков в очередь
                 for (const playerId of selectedPlayers) {
                     await addPlayerToQueue(playerId, 'end', trainingId);
+                }
+
+                // Обновляем player_ids в таблице trainings
+                try {
+                    // Получаем текущие player_ids из тренировки
+                    const { data: trainingData, error: trainingError } = await supabase
+                        .from('trainings')
+                        .select('player_ids')
+                        .eq('id', parseInt(trainingId))
+                        .single();
+
+                    if (trainingError) {
+                        console.error('Ошибка при получении данных тренировки:', trainingError);
+                    } else if (trainingData) {
+                        // Создаем новый массив player_ids, добавляя новых игроков
+                        let playerIds = trainingData.player_ids || [];
+
+                        // Добавляем новых игроков, избегая дубликатов
+                        selectedPlayers.forEach(playerId => {
+                            const numericId = parseInt(playerId);
+                            if (!playerIds.includes(numericId)) {
+                                playerIds.push(numericId);
+                            }
+                        });
+
+                        // Обновляем player_ids в базе данных
+                        const { error: updateError } = await supabase
+                            .from('trainings')
+                            .update({ player_ids: playerIds })
+                            .eq('id', parseInt(trainingId));
+
+                        if (updateError) {
+                            console.error('Ошибка при обновлении player_ids:', updateError);
+                        } else {
+                            console.log('player_ids успешно обновлены:', playerIds);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка при обновлении player_ids:', error);
                 }
 
                 // Закрываем модальное окно

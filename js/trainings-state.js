@@ -4,6 +4,9 @@ import { showMessage } from './ui.js';
 import { updateCourtHalfButtons, unlockCourtPlayers } from './trainings-court.js';
 import { addPlayerToQueue } from './trainings-players.js';
 
+// Получаем доступ к глобальному экземпляру Supabase
+const supabase = window.supabaseClient;
+
 // Функция для загрузки данных игроков в локальное хранилище
 async function loadPlayersToLocalStorage(stateData) {
     console.log('Загрузка данных игроков в локальное хранилище');
@@ -135,18 +138,32 @@ export async function updateLocalTrainingState() {
 
                         // Обновляем player_ids в таблице trainings
                         if (allPlayerIds.size > 0) {
-                            const playerIdsArray = Array.from(allPlayerIds);
-                            supabase
+                            // Получаем текущие player_ids из тренировки
+                            const { data: trainingData, error: trainingError } = await supabase
                                 .from('trainings')
-                                .update({ player_ids: playerIdsArray })
+                                .select('player_ids')
                                 .eq('id', parseInt(trainingId))
-                                .then(({ data, error }) => {
-                                    if (error) {
-                                        console.error('Ошибка при обновлении player_ids:', error);
-                                    } else {
-                                        console.log('player_ids успешно обновлены:', playerIdsArray);
-                                    }
-                                });
+                                .single();
+
+                            if (trainingError) {
+                                console.error('Ошибка при получении данных тренировки:', trainingError);
+                            } else if (trainingData) {
+                                // Объединяем текущие player_ids с новыми
+                                const currentPlayerIds = trainingData.player_ids || [];
+                                currentPlayerIds.forEach(id => allPlayerIds.add(id));
+
+                                const playerIdsArray = Array.from(allPlayerIds);
+                                const { error } = await supabase
+                                    .from('trainings')
+                                    .update({ player_ids: playerIdsArray })
+                                    .eq('id', parseInt(trainingId));
+
+                                if (error) {
+                                    console.error('Ошибка при обновлении player_ids:', error);
+                                } else {
+                                    console.log('player_ids успешно обновлены:', playerIdsArray);
+                                }
+                            }
                         }
                     } catch (playerIdsError) {
                         console.error('Ошибка при обновлении player_ids:', playerIdsError);
