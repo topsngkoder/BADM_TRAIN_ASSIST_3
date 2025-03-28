@@ -131,9 +131,13 @@ export async function updateLocalTrainingState() {
                         const topHalf = courtElement.querySelector('.court-half[data-half="top"]');
                         const topPlayers = Array.from(topHalf.querySelectorAll('.court-player'))
                             .map(playerElement => {
+                                // Проверяем наличие значка "2-я игра"
+                                const hasSecondGameBadge = !!playerElement.querySelector('.second-game-badge');
+
                                 return {
                                     id: playerElement.getAttribute('data-player-id'),
-                                    name: playerElement.querySelector('.court-player-name').textContent
+                                    name: playerElement.querySelector('.court-player-name').textContent,
+                                    hasSecondGameBadge: hasSecondGameBadge
                                 };
                             });
 
@@ -141,9 +145,13 @@ export async function updateLocalTrainingState() {
                         const bottomHalf = courtElement.querySelector('.court-half[data-half="bottom"]');
                         const bottomPlayers = Array.from(bottomHalf.querySelectorAll('.court-player'))
                             .map(playerElement => {
+                                // Проверяем наличие значка "2-я игра"
+                                const hasSecondGameBadge = !!playerElement.querySelector('.second-game-badge');
+
                                 return {
                                     id: playerElement.getAttribute('data-player-id'),
-                                    name: playerElement.querySelector('.court-player-name').textContent
+                                    name: playerElement.querySelector('.court-player-name').textContent,
+                                    hasSecondGameBadge: hasSecondGameBadge
                                 };
                             });
 

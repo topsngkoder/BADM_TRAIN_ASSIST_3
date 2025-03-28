@@ -576,9 +576,13 @@ export function initTrainingsModule() {
                                 // Получаем фото игрока или используем заглушку
                                 const photoUrl = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(playerLastName)}&background=3498db&color=fff&size=150`;
 
+                                // Проверяем, есть ли у игрока значок "2-я игра"
+                                const hasSecondGameBadge = player.hasSecondGameBadge === true;
+
                                 playerElement.innerHTML = `
                                     <div class="court-player-photo-container">
                                         <img src="${photoUrl}" alt="${playerName}" class="court-player-photo">
+                                        ${hasSecondGameBadge ? '<div class="second-game-badge">2</div>' : ''}
                                     </div>
                                     <div class="court-player-name">${playerLastName}</div>
                                     <button class="remove-player-btn" aria-label="Удалить игрока">
@@ -652,9 +656,13 @@ export function initTrainingsModule() {
                                 // Получаем фото игрока или используем заглушку
                                 const photoUrl = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(playerLastName)}&background=3498db&color=fff&size=150`;
 
+                                // Проверяем, есть ли у игрока значок "2-я игра"
+                                const hasSecondGameBadge = player.hasSecondGameBadge === true;
+
                                 playerElement.innerHTML = `
                                     <div class="court-player-photo-container">
                                         <img src="${photoUrl}" alt="${playerName}" class="court-player-photo">
+                                        ${hasSecondGameBadge ? '<div class="second-game-badge">2</div>' : ''}
                                     </div>
                                     <div class="court-player-name">${playerLastName}</div>
                                     <button class="remove-player-btn" aria-label="Удалить игрока">
