@@ -1,7 +1,8 @@
 // Модуль для работы с игроками и очередью
 import { playersApi, trainingStateApi } from './api.js';
 import { showMessage } from './ui.js';
-import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility, startGameTimer } from './trainings-court.js';
+import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility, startGameTimer, unlockCourtPlayers } from './trainings-court.js';
+import { saveTrainingState } from './trainings-state.js';
 
 // Функция для добавления игрока из очереди на корт
 export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callback) {
@@ -171,7 +172,53 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
                 console.log('Все 4 слота заняты, инициализируем кнопку "Начать игру"');
                 updateStartGameButton(courtContainer, (buttonElement, courtId) => {
                     console.log('Вызван обработчик нажатия кнопки "Начать игру" для корта', courtId);
-                    startGameTimer(buttonElement, courtId);
+                    startGameTimer(buttonElement, courtId,
+                        // Обработчик отмены игры
+                        async (buttonElement, timerInterval) => {
+                            console.log('Вызван обработчик отмены игры');
+
+                            // Обновляем локальное состояние перед сохранением
+                            if (typeof window.updateLocalTrainingState === 'function') {
+                                try {
+                                    await window.updateLocalTrainingState();
+                                    console.log('Локальное состояние тренировки успешно обновлено после отмены игры');
+                                } catch (error) {
+                                    console.error('Ошибка при обновлении локального состояния после отмены игры:', error);
+                                }
+                            }
+
+                            // Сохраняем состояние в базу данных
+                            await saveTrainingState();
+                        },
+                        // Обработчик завершения игры
+                        async (buttonElement, courtId, formattedTime, timerInterval) => {
+                            console.log('Вызван обработчик завершения игры');
+
+                            // Обновляем локальное состояние перед сохранением
+                            if (typeof window.updateLocalTrainingState === 'function') {
+                                try {
+                                    await window.updateLocalTrainingState();
+                                    console.log('Локальное состояние тренировки успешно обновлено после завершения игры');
+                                } catch (error) {
+                                    console.error('Ошибка при обновлении локального состояния после завершения игры:', error);
+                                }
+                            }
+
+                            // Сохраняем состояние в базу данных
+                            await saveTrainingState();
+
+                            // Показываем сообщение о завершении игры
+                            showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+
+                            // Разблокируем изменение состава игроков
+                            const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                            if (courtElement) {
+                                unlockCourtPlayers(courtElement);
+                            }
+                        },
+                        // Функция сохранения состояния
+                        saveTrainingState
+                    );
                 });
             }
         }
