@@ -46,27 +46,39 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
     }
 
     try {
-        // Получаем данные игрока из локального хранилища или базы данных
-        const player = await playersApi.getPlayer(playerId);
+        // Получаем данные игрока из карточки в очереди, чтобы избежать запроса к API
+        const playerNameElement = playerCard.querySelector('.queue-player-name');
+        const playerRatingElement = playerCard.querySelector('.queue-player-rating');
+        const playerPhotoElement = playerCard.querySelector('.queue-player-photo');
 
-        if (!player) {
-            console.error(`Игрок с ID ${playerId} не найден`);
-            if (callback) callback();
-            return;
+        let playerFullName = '';
+        let playerLastName = '';
+        let playerPhoto = '';
+        let playerRatingClass = 'rating-blue';
+        let rating = 0;
+
+        // Если данные есть в карточке, используем их
+        if (playerNameElement) {
+            playerFullName = playerNameElement.textContent.trim();
+            const nameParts = playerFullName.split(' ');
+            playerLastName = nameParts[0] || '';
         }
 
-        console.log(`Получены данные игрока:`, player);
+        if (playerPhotoElement) {
+            playerPhoto = playerPhotoElement.src;
+        } else {
+            playerPhoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(playerFullName)}&background=3498db&color=fff&size=150`;
+        }
 
-        // Формируем полное имя и получаем фамилию
-        const playerFullName = `${player.last_name} ${player.first_name}`;
-        const playerLastName = player.last_name;
-
-        // Определяем URL фото
-        const playerPhoto = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(playerFullName)}&background=3498db&color=fff&size=150`;
+        if (playerRatingElement) {
+            const ratingText = playerRatingElement.textContent.trim();
+            const ratingMatch = ratingText.match(/\d+/);
+            if (ratingMatch) {
+                rating = parseInt(ratingMatch[0]);
+            }
+        }
 
         // Определяем класс рейтинга
-        let playerRatingClass = 'rating-blue';
-        const rating = player.rating;
         if (rating >= 800) {
             playerRatingClass = 'rating-red';
         } else if (rating >= 600) {
@@ -75,6 +87,33 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
             playerRatingClass = 'rating-yellow';
         } else if (rating >= 300) {
             playerRatingClass = 'rating-green';
+        }
+
+        // Если не удалось получить данные из карточки, запрашиваем из API
+        if (!playerFullName) {
+            const player = await playersApi.getPlayer(playerId);
+            if (!player) {
+                console.error(`Игрок с ID ${playerId} не найден`);
+                if (callback) callback();
+                return;
+            }
+
+            playerFullName = `${player.last_name} ${player.first_name}`;
+            playerLastName = player.last_name;
+            playerPhoto = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(playerFullName)}&background=3498db&color=fff&size=150`;
+            rating = player.rating;
+
+            // Определяем класс рейтинга
+            playerRatingClass = 'rating-blue';
+            if (rating >= 800) {
+                playerRatingClass = 'rating-red';
+            } else if (rating >= 600) {
+                playerRatingClass = 'rating-orange';
+            } else if (rating >= 450) {
+                playerRatingClass = 'rating-yellow';
+            } else if (rating >= 300) {
+                playerRatingClass = 'rating-green';
+            }
         }
 
         // Создаем элемент игрока на корте
@@ -91,8 +130,25 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
             </button>
         `;
 
+        // Удаляем игрока из очереди в DOM сразу для мгновенной реакции
+        playerCard.remove();
+
         // Добавляем игрока в слот
         emptySlot.appendChild(playerElement);
+
+        // Инициализируем иконки Feather только для нового элемента
+        if (window.feather) {
+            feather.replace(playerElement.querySelector('[data-feather]'));
+        }
+
+        // Добавляем обработчик для кнопки удаления игрока с корта
+        const removeBtn = playerElement.querySelector('.remove-player-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removePlayerFromCourt(playerElement, playerId);
+            });
+        }
 
         // Проверяем, заполнены ли все слоты на этой половине корта
         updateCourtHalfButtons(courtHalf);
@@ -103,23 +159,30 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
             updateCourtVisibility(courtContainer);
         }
 
-        // Удаляем игрока из очереди в локальном состоянии
-        await trainingStateApi.removePlayerFromQueue(trainingId, playerId);
+        // Вызываем callback сразу после добавления в DOM
+        if (callback) callback();
 
-        // Добавляем игрока на корт в локальном состоянии
-        const slotIndex = Array.from(emptySlot.parentNode.children).indexOf(emptySlot) + 1;
-        const position = `${half}${slotIndex}`;
-        await trainingStateApi.addPlayerToCourt(trainingId, courtId, position, playerId);
+        // Выполняем обновление состояния в фоне
+        Promise.all([
+            // Удаляем игрока из очереди в локальном состоянии
+            trainingStateApi.removePlayerFromQueue(trainingId, playerId),
 
-        // Удаляем игрока из очереди в DOM
-        playerCard.remove();
-
-        // Обновляем локальное состояние
-        if (typeof window.updateLocalTrainingState === 'function') {
-            window.updateLocalTrainingState().catch(error => {
-                console.error('Ошибка при обновлении локального состояния:', error);
-            });
-        }
+            // Добавляем игрока на корт в локальном состоянии
+            (() => {
+                const slotIndex = Array.from(emptySlot.parentNode.children).indexOf(emptySlot) + 1;
+                const position = `${half}${slotIndex}`;
+                return trainingStateApi.addPlayerToCourt(trainingId, courtId, position, playerId);
+            })()
+        ]).then(() => {
+            // Обновляем локальное состояние
+            if (typeof window.updateLocalTrainingState === 'function') {
+                window.updateLocalTrainingState().catch(error => {
+                    console.error('Ошибка при обновлении локального состояния:', error);
+                });
+            }
+        }).catch(error => {
+            console.error('Ошибка при обновлении состояния:', error);
+        });
 
         // Проверяем, остались ли еще игроки в очереди
         const remainingPlayers = document.querySelectorAll('.queue-player-card');
@@ -137,20 +200,6 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
 
         // Вызываем callback сразу
         if (callback) callback();
-
-        // Инициализируем иконки Feather для новых элементов
-        if (window.feather) {
-            feather.replace();
-        }
-
-        // Добавляем обработчик для кнопки удаления игрока с корта
-        const removeBtn = playerElement.querySelector('.remove-player-btn');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                removePlayerFromCourt(playerElement, playerId);
-            });
-        }
 
         // Не показываем сообщение о необходимости сохранить изменения
     } catch (error) {
@@ -175,22 +224,39 @@ export async function removePlayerFromCourt(playerElement, playerId) {
             return;
         }
 
-        // Получаем данные игрока из локального хранилища или базы данных
-        const player = await playersApi.getPlayer(playerId);
-
-        if (!player) {
-            console.error(`Игрок с ID ${playerId} не найден`);
-            playerElement.remove();
-            return;
-        }
-
-        console.log(`Получены данные игрока:`, player);
-
         // Находим половину корта и позицию игрока
         const courtHalf = playerElement.closest('.court-half');
         const courtContainer = playerElement.closest('.court-container');
         const courtId = courtContainer ? courtContainer.getAttribute('data-court-id') : null;
         const half = courtHalf ? courtHalf.getAttribute('data-half') : null;
+
+        // Получаем данные игрока из элемента на корте
+        const playerNameElement = playerElement.querySelector('.court-player-name');
+        const playerPhotoElement = playerElement.querySelector('.court-player-photo');
+
+        let playerLastName = '';
+        let playerPhoto = '';
+
+        if (playerNameElement) {
+            playerLastName = playerNameElement.textContent.trim();
+        }
+
+        if (playerPhotoElement) {
+            playerPhoto = playerPhotoElement.src;
+        }
+
+        // Если не удалось получить данные из элемента, запрашиваем из API
+        let player;
+        if (!playerLastName) {
+            player = await playersApi.getPlayer(playerId);
+            if (!player) {
+                console.error(`Игрок с ID ${playerId} не найден`);
+                playerElement.remove();
+                return;
+            }
+            playerLastName = player.last_name;
+            playerPhoto = player.photo;
+        }
 
         if (courtId && half) {
             // Находим позицию игрока на корте
@@ -199,16 +265,15 @@ export async function removePlayerFromCourt(playerElement, playerId) {
 
             if (slotIndex) {
                 const position = `${half}${slotIndex}`;
-                // Удаляем игрока с корта в локальном состоянии
-                trainingStateApi.removePlayerFromCourt(courtId, position);
-                console.log(`Игрок удален с корта ${courtId}, позиция ${position}`);
+                // Удаляем игрока с корта в локальном состоянии (выполняем асинхронно)
+                setTimeout(() => {
+                    trainingStateApi.removePlayerFromCourt(courtId, position);
+                    console.log(`Игрок удален с корта ${courtId}, позиция ${position}`);
+                }, 0);
             }
         }
 
-        // Добавляем игрока в очередь в локальном состоянии
-        trainingStateApi.addPlayerToQueue(trainingId, playerId, 'start');
-
-        // Удаляем элемент игрока
+        // Удаляем элемент игрока сразу для мгновенной реакции
         playerElement.remove();
 
         // Обновляем видимость кнопок на половине корта
@@ -221,6 +286,11 @@ export async function removePlayerFromCourt(playerElement, playerId) {
             updateCourtVisibility(courtContainer);
         }
 
+        // Добавляем игрока в очередь в локальном состоянии (выполняем асинхронно)
+        setTimeout(() => {
+            trainingStateApi.addPlayerToQueue(trainingId, playerId, 'start');
+        }, 0);
+
         // Возвращаем игрока в очередь
         const queueContainer = document.querySelector('.players-queue-container');
         if (queueContainer) {
@@ -230,15 +300,15 @@ export async function removePlayerFromCourt(playerElement, playerId) {
                 noPlayersMessage.remove();
             }
 
-                // Формируем полное имя
-                const playerFullName = `${player.last_name} ${player.first_name}`;
+                // Формируем полное имя (используем данные, полученные ранее)
+                const playerFullName = player ? `${player.last_name} ${player.first_name}` : playerLastName;
 
-                // Определяем URL фото
-                const playerPhoto = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(playerFullName)}&background=3498db&color=fff&size=150`;
+                // Определяем URL фото (используем данные, полученные ранее)
+                const photoUrl = playerPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(playerFullName)}&background=3498db&color=fff&size=150`;
 
                 // Определяем класс рейтинга
                 let ratingClass = 'rating-blue';
-                const rating = player.rating;
+                const rating = player ? player.rating : 0;
                 if (rating >= 800) {
                     ratingClass = 'rating-red';
                 } else if (rating >= 600) {
@@ -256,7 +326,7 @@ export async function removePlayerFromCourt(playerElement, playerId) {
 
                 playerCard.innerHTML = `
                     <div class="queue-player-photo-container">
-                        <img src="${playerPhoto}" alt="${playerFullName}" class="queue-player-photo ${ratingClass}">
+                        <img src="${photoUrl}" alt="${playerFullName}" class="queue-player-photo ${ratingClass}">
                     </div>
                     <div class="queue-player-info">
                         <div class="queue-player-name">${playerFullName}</div>
@@ -284,12 +354,14 @@ export async function removePlayerFromCourt(playerElement, playerId) {
                 }
             }
 
-        // Обновляем локальное состояние тренировки
-        if (typeof window.updateLocalTrainingState === 'function') {
-            window.updateLocalTrainingState().catch(error => {
-                console.error('Ошибка при обновлении локального состояния:', error);
-            });
-        }
+        // Обновляем локальное состояние тренировки асинхронно
+        setTimeout(() => {
+            if (typeof window.updateLocalTrainingState === 'function') {
+                window.updateLocalTrainingState().catch(error => {
+                    console.error('Ошибка при обновлении локального состояния:', error);
+                });
+            }
+        }, 0);
 
         // Не показываем сообщение о необходимости сохранить изменения
     } catch (error) {

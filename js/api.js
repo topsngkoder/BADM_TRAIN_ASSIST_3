@@ -1,11 +1,16 @@
 // Сервисный слой для работы с Supabase API
 import { config } from './config.js';
 
-// Инициализация клиента Supabase
-const supabase = window.supabase.createClient(
-    config.supabase.url,
-    config.supabase.key
-);
+// Инициализация клиента Supabase (используем глобальный экземпляр, если он уже существует)
+const supabase = window.supabaseClient || (function() {
+    // Создаем клиент только один раз и сохраняем его в глобальной переменной
+    const client = window.supabase.createClient(
+        config.supabase.url,
+        config.supabase.key
+    );
+    window.supabaseClient = client;
+    return client;
+})();
 
 // API для работы с тренировками
 export const trainingsApi = {
@@ -557,11 +562,15 @@ export const trainingStateApi = {
         try {
             console.log(`Добавление игрока с ID ${playerId} в очередь тренировки ${trainingId}, позиция: ${position}`);
 
-            // Получаем текущую очередь игроков
-            const playersQueue = await this.getPlayersQueue(trainingId);
-
             // Преобразуем playerId в строку для сравнения
             const playerIdStr = String(playerId);
+
+            // Работаем напрямую с локальным хранилищем для ускорения
+            if (this._localState.trainingId !== parseInt(trainingId)) {
+                this.initLocalState(parseInt(trainingId));
+            }
+
+            const playersQueue = [...this._localState.playersQueue];
 
             // Проверяем, есть ли уже игрок с таким ID в очереди
             const existingPlayerIndex = playersQueue.findIndex(p =>
@@ -572,35 +581,26 @@ export const trainingStateApi = {
 
             // Если игрок уже есть в очереди, удаляем его
             if (existingPlayerIndex !== -1) {
-                console.log(`Игрок ${playerId} уже есть в очереди, удаляем его`);
                 playersQueue.splice(existingPlayerIndex, 1);
             }
 
             // Добавляем игрока в очередь в зависимости от позиции
             if (position === 'end') {
                 // Добавляем в конец очереди
-                console.log(`Добавляем игрока ${playerId} в конец очереди`);
                 playersQueue.push({ id: playerIdStr });
             } else {
                 // Добавляем в начало очереди
-                console.log(`Добавляем игрока ${playerId} в начало очереди`);
                 playersQueue.unshift({ id: playerIdStr });
             }
 
-            // Обновляем очередь только в локальном хранилище
-            if (this._localState.trainingId !== parseInt(trainingId)) {
-                this.initLocalState(parseInt(trainingId));
-            }
-
-            this._localState.playersQueue = [...playersQueue];
+            // Обновляем очередь в локальном хранилище
+            this._localState.playersQueue = playersQueue;
             this._localState.lastUpdated = new Date().toISOString();
-            console.log('Изменения внесены только в локальное хранилище');
 
-            console.log('Игрок успешно добавлен в очередь');
             return true;
         } catch (error) {
             console.error('Error adding player to queue:', error);
-            throw error;
+            return false;
         }
     },
 
@@ -612,51 +612,25 @@ export const trainingStateApi = {
             // Преобразуем ID в число
             const numericId = parseInt(trainingId);
 
+            // Преобразуем playerId в строку для сравнения
+            const playerIdStr = String(playerId);
+
             // Проверяем, инициализировано ли локальное хранилище
             if (this._localState.trainingId !== numericId) {
-                try {
-                    // Получаем текущую очередь игроков
-                    const playersQueue = await this.getPlayersQueue(trainingId);
+                this.initLocalState(numericId);
+            }
 
-                    // Преобразуем playerId в строку для сравнения
-                    const playerIdStr = String(playerId);
-
-                    // Удаляем игрока из очереди
-                    const updatedQueue = playersQueue.filter(p =>
-                        (p && typeof p === 'object' && 'id' in p) ?
-                            String(p.id) !== playerIdStr :
-                            String(p) !== playerIdStr
-                    );
-
-                    // Обновляем очередь только в локальном хранилище
-                    this._localState.playersQueue = [...updatedQueue];
-                    this._localState.lastUpdated = new Date().toISOString();
-                    console.log('Изменения внесены только в локальное хранилище');
-                } catch (queueError) {
-                    console.error('Ошибка при обновлении очереди:', queueError);
-                    // Инициализируем локальное хранилище
-                    this.initLocalState(numericId);
-                }
-            } else {
-                // Если локальное хранилище уже инициализировано
-                // Преобразуем playerId в строку для сравнения
-                const playerIdStr = String(playerId);
-
-                // Удаляем игрока из очереди
+            // Удаляем игрока из очереди напрямую в локальном хранилище
+            if (this._localState.playersQueue && Array.isArray(this._localState.playersQueue)) {
                 this._localState.playersQueue = this._localState.playersQueue.filter(p =>
                     (p && typeof p === 'object' && 'id' in p) ?
                         String(p.id) !== playerIdStr :
                         String(p) !== playerIdStr
                 );
-
-                this._localState.lastUpdated = new Date().toISOString();
-
-                // Не сохраняем изменения в базу данных автоматически
-                // Изменения будут сохранены при нажатии кнопки "Сохранить"
-                console.log('Изменения внесены только в локальное хранилище');
             }
 
-            console.log('Игрок успешно удален из очереди');
+            this._localState.lastUpdated = new Date().toISOString();
+
             return true;
         } catch (error) {
             console.error('Error removing player from queue:', error);
@@ -667,8 +641,6 @@ export const trainingStateApi = {
     // Добавление игрока на корт
     async addPlayerToCourt(trainingId, courtId, position, playerId) {
         try {
-            console.log(`Добавление игрока ${playerId} на корт ${courtId}, позиция: ${position}`);
-
             // Преобразуем ID в число
             const numericId = parseInt(trainingId);
 
@@ -677,8 +649,15 @@ export const trainingStateApi = {
                 this.initLocalState(numericId);
             }
 
-            // Находим нужный корт или создаем новый
-            let court = this._localState.courts.find(c => c.id === courtId);
+            // Находим нужный корт или создаем новый (оптимизировано)
+            let court = null;
+            for (let i = 0; i < this._localState.courts.length; i++) {
+                if (this._localState.courts[i].id === courtId) {
+                    court = this._localState.courts[i];
+                    break;
+                }
+            }
+
             if (!court) {
                 court = {
                     id: courtId,
@@ -707,11 +686,6 @@ export const trainingStateApi = {
             // Обновляем состояние тренировки
             this._localState.lastUpdated = new Date().toISOString();
 
-            // Не сохраняем изменения в базу данных автоматически
-            // Изменения будут сохранены при нажатии кнопки "Сохранить"
-            console.log('Изменения внесены только в локальное хранилище');
-
-            console.log('Игрок успешно добавлен на корт');
             return true;
         } catch (error) {
             console.error('Error adding player to court:', error);
@@ -722,12 +696,16 @@ export const trainingStateApi = {
     // Удаление игрока с корта
     removePlayerFromCourt(courtId, position) {
         try {
-            console.log(`Удаление игрока с корта ${courtId}, позиция: ${position}`);
+            // Находим нужный корт (оптимизировано)
+            let court = null;
+            for (let i = 0; i < this._localState.courts.length; i++) {
+                if (this._localState.courts[i].id === courtId) {
+                    court = this._localState.courts[i];
+                    break;
+                }
+            }
 
-            // Находим нужный корт
-            let court = this._localState.courts.find(c => c.id === courtId);
             if (!court) {
-                console.error(`Корт с ID ${courtId} не найден`);
                 return false;
             }
 
@@ -735,13 +713,11 @@ export const trainingStateApi = {
             if (position.startsWith('top')) {
                 const playerIndex = parseInt(position.replace('top', '')) - 1;
                 if (court.topPlayers && playerIndex >= 0 && playerIndex < court.topPlayers.length) {
-                    console.log(`Удаляем игрока с позиции top${playerIndex + 1}`);
                     court.topPlayers[playerIndex] = null;
                 }
             } else if (position.startsWith('bottom')) {
                 const playerIndex = parseInt(position.replace('bottom', '')) - 1;
                 if (court.bottomPlayers && playerIndex >= 0 && playerIndex < court.bottomPlayers.length) {
-                    console.log(`Удаляем игрока с позиции bottom${playerIndex + 1}`);
                     court.bottomPlayers[playerIndex] = null;
                 }
             }
@@ -749,11 +725,6 @@ export const trainingStateApi = {
             // Обновляем состояние тренировки
             this._localState.lastUpdated = new Date().toISOString();
 
-            // Не сохраняем изменения в базу данных автоматически
-            // Изменения будут сохранены при нажатии кнопки "Сохранить"
-            console.log('Изменения внесены только в локальное хранилище');
-
-            console.log('Игрок успешно удален с корта');
             return true;
         } catch (error) {
             console.error('Error removing player from court:', error);
@@ -824,28 +795,23 @@ export const playersApi = {
         }
     },
 
-    // Получение данных игрока по ID
+    // Получение данных игрока по ID (оптимизировано)
     async getPlayer(playerId) {
         try {
-            console.log(`Получение данных игрока с ID ${playerId}`);
-
             // Сначала проверяем локальное хранилище
             const localPlayer = this.getLocalPlayer(playerId);
             if (localPlayer) {
-                console.log(`Игрок с ID ${playerId} найден в локальном хранилище:`, localPlayer);
                 return localPlayer;
             }
 
             // Если игрока нет в локальном хранилище, запрашиваем из базы данных
-            console.log(`Игрок с ID ${playerId} не найден в локальном хранилище, запрашиваем из базы данных`);
             const { data, error } = await supabase
                 .from('players')
-                .select('*')
+                .select('id,first_name,last_name,rating,photo')
                 .eq('id', playerId)
                 .single();
 
             if (error) {
-                console.error(`Ошибка при получении игрока с ID ${playerId}:`, error);
                 return null;
             }
 
@@ -857,7 +823,6 @@ export const playersApi = {
 
             return null;
         } catch (error) {
-            console.error(`Ошибка при получении игрока с ID ${playerId}:`, error);
             return null;
         }
     },

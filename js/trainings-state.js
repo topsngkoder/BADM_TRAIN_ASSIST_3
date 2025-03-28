@@ -90,97 +90,101 @@ export async function updateLocalTrainingState() {
             trainingStateApi.initLocalState(parseInt(trainingId));
         }
 
-        // Получаем текущую очередь игроков из DOM
-        let playersQueue = [];
-        const queuePlayerCards = document.querySelectorAll('.queue-player-card');
+        // Используем requestAnimationFrame для оптимизации DOM-операций
+        return new Promise(resolve => {
+            requestAnimationFrame(() => {
+                try {
+                    // Получаем текущую очередь игроков из DOM
+                    let playersQueue = [];
+                    const queuePlayerCards = document.querySelectorAll('.queue-player-card');
 
-        if (queuePlayerCards.length > 0) {
-            // Собираем ID игроков из карточек в очереди
-            playersQueue = Array.from(queuePlayerCards).map(card => {
-                const playerId = card.getAttribute('data-player-id');
-                return { id: String(playerId) };
-            });
+                    if (queuePlayerCards.length > 0) {
+                        // Собираем ID игроков из карточек в очереди
+                        playersQueue = Array.from(queuePlayerCards).map(card => {
+                            const playerId = card.getAttribute('data-player-id');
+                            return { id: String(playerId) };
+                        });
 
-            console.log('Очередь игроков из DOM:', playersQueue);
+                        // Обновляем очередь в локальном хранилище
+                        trainingStateApi._localState.playersQueue = [...playersQueue];
+                    } else {
+                        // Если в DOM нет карточек игроков, очищаем очередь
+                        trainingStateApi._localState.playersQueue = [];
+                    }
 
-            // Обновляем очередь в локальном хранилище
-            trainingStateApi._localState.playersQueue = [...playersQueue];
-            console.log('Обновлена очередь игроков в локальном хранилище:', trainingStateApi._localState.playersQueue);
-        } else {
-            // Если в DOM нет карточек игроков, используем очередь из локального хранилища
-            playersQueue = [...trainingStateApi._localState.playersQueue] || [];
-            console.log('Очередь игроков из локального хранилища:', playersQueue);
-        }
+                    // Получаем текущий режим тренировки
+                    const trainingModeSelect = document.getElementById('training-mode');
+                    const trainingMode = trainingModeSelect ? trainingModeSelect.value : 'single';
 
-        // Получаем текущий режим тренировки
-        const trainingModeSelect = document.getElementById('training-mode');
-        const trainingMode = trainingModeSelect ? trainingModeSelect.value : 'single';
+                    // Обновляем режим тренировки в локальном хранилище
+                    trainingStateApi._localState.trainingMode = trainingMode;
 
-        // Обновляем режим тренировки в локальном хранилище
-        trainingStateApi._localState.trainingMode = trainingMode;
+                    // Собираем данные о кортах и игроках на них
+                    const courts = [];
+                    const courtElements = document.querySelectorAll('.court-container');
 
-        // Собираем данные о кортах и игроках на них
-        const courts = [];
-        const courtElements = document.querySelectorAll('.court-container');
+                    courtElements.forEach(courtElement => {
+                        const courtId = courtElement.getAttribute('data-court-id');
+                        const isGameInProgress = courtElement.classList.contains('game-in-progress');
 
-        courtElements.forEach(courtElement => {
-            const courtId = courtElement.getAttribute('data-court-id');
-            const isGameInProgress = courtElement.classList.contains('game-in-progress');
+                        // Получаем игроков на верхней половине корта
+                        const topHalf = courtElement.querySelector('.court-half[data-half="top"]');
+                        const topPlayers = Array.from(topHalf.querySelectorAll('.court-player'))
+                            .map(playerElement => {
+                                return {
+                                    id: playerElement.getAttribute('data-player-id'),
+                                    name: playerElement.querySelector('.court-player-name').textContent
+                                };
+                            });
 
-            // Получаем игроков на верхней половине корта
-            const topHalf = courtElement.querySelector('.court-half[data-half="top"]');
-            const topPlayers = Array.from(topHalf.querySelectorAll('.court-player'))
-                .map(playerElement => {
-                    return {
-                        id: playerElement.getAttribute('data-player-id'),
-                        name: playerElement.querySelector('.court-player-name').textContent,
-                        photo: playerElement.querySelector('.court-player-photo').src
-                    };
-                });
+                        // Получаем игроков на нижней половине корта
+                        const bottomHalf = courtElement.querySelector('.court-half[data-half="bottom"]');
+                        const bottomPlayers = Array.from(bottomHalf.querySelectorAll('.court-player'))
+                            .map(playerElement => {
+                                return {
+                                    id: playerElement.getAttribute('data-player-id'),
+                                    name: playerElement.querySelector('.court-player-name').textContent
+                                };
+                            });
 
-            // Получаем игроков на нижней половине корта
-            const bottomHalf = courtElement.querySelector('.court-half[data-half="bottom"]');
-            const bottomPlayers = Array.from(bottomHalf.querySelectorAll('.court-player'))
-                .map(playerElement => {
-                    return {
-                        id: playerElement.getAttribute('data-player-id'),
-                        name: playerElement.querySelector('.court-player-name').textContent,
-                        photo: playerElement.querySelector('.court-player-photo').src
-                    };
-                });
+                        // Получаем данные о таймере, если игра в процессе
+                        let gameStartTime = null;
+                        const startGameBtn = courtElement.querySelector('.start-game-btn');
+                        if (startGameBtn && startGameBtn.classList.contains('timer-active')) {
+                            gameStartTime = startGameBtn.getAttribute('data-start-time');
+                        }
 
-            // Получаем данные о таймере, если игра в процессе
-            let gameStartTime = null;
-            const startGameBtn = courtElement.querySelector('.start-game-btn');
-            if (startGameBtn && startGameBtn.classList.contains('timer-active')) {
-                gameStartTime = startGameBtn.getAttribute('data-start-time');
-            }
+                        // Получаем название корта из заголовка
+                        const courtHeader = courtElement.querySelector('.court-header h4');
+                        const courtName = courtHeader ? courtHeader.textContent.trim() : `Корт ${courtId}`;
 
-            // Получаем название корта из заголовка
-            const courtHeader = courtElement.querySelector('.court-header h4');
-            const courtName = courtHeader ? courtHeader.textContent.trim() : `Корт ${courtId}`;
+                        // Добавляем данные о корте
+                        courts.push({
+                            id: courtId,
+                            name: courtName,
+                            gameInProgress: isGameInProgress,
+                            topPlayers: topPlayers,
+                            bottomPlayers: bottomPlayers,
+                            gameStartTime
+                        });
+                    });
 
-            // Добавляем данные о корте
-            courts.push({
-                id: courtId,
-                name: courtName,
-                gameInProgress: isGameInProgress,
-                topPlayers: topPlayers,
-                bottomPlayers: bottomPlayers,
-                gameStartTime
+                    // Получаем общее количество кортов
+                    const courtCount = courtElements.length;
+
+                    // Обновляем данные в локальном хранилище
+                    trainingStateApi._localState.courts = [...courts];
+                    trainingStateApi._localState.courtCount = courtCount;
+                    trainingStateApi._localState.lastUpdated = new Date().toISOString();
+
+                    console.log('Локальное состояние тренировки успешно обновлено');
+                    resolve(true);
+                } catch (innerError) {
+                    console.error('Ошибка при обновлении локального состояния тренировки:', innerError);
+                    resolve(false);
+                }
             });
         });
-
-        // Получаем общее количество кортов
-        const courtCount = courtElements.length;
-
-        // Обновляем данные в локальном хранилище
-        trainingStateApi._localState.courts = [...courts];
-        trainingStateApi._localState.courtCount = courtCount;
-        trainingStateApi._localState.lastUpdated = new Date().toISOString();
-
-        console.log('Локальное состояние тренировки успешно обновлено');
-        return true;
     } catch (error) {
         console.error('Ошибка при обновлении локального состояния тренировки:', error);
         return false;
