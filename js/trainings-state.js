@@ -467,6 +467,27 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
 
     // Теперь удаляем игроков с корта
     const courtPlayers = courtElement.querySelectorAll('.court-player');
+
+    // Сначала удаляем игроков из локального состояния
+    if (courtId) {
+        // Получаем все позиции игроков на корте
+        const positions = [];
+        courtPlayers.forEach(player => {
+            const slot = player.closest('.court-player-slot');
+            const half = slot.closest('.court-half').getAttribute('data-half');
+            const slotIndex = Array.from(slot.parentNode.children).indexOf(slot) + 1;
+            const position = `${half}${slotIndex}`;
+            positions.push(position);
+        });
+
+        // Удаляем игроков с корта в локальном состоянии
+        positions.forEach(position => {
+            trainingStateApi.removePlayerFromCourt(courtId, position);
+            console.log(`Игрок удален с корта ${courtId}, позиция ${position}`);
+        });
+    }
+
+    // Затем удаляем игроков из DOM
     courtPlayers.forEach(player => {
         player.classList.add('removing');
         setTimeout(() => {
@@ -543,6 +564,27 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
 
         // Удаляем всех игроков с корта
         const courtPlayers = courtElement.querySelectorAll('.court-player');
+
+        // Сначала удаляем игроков из локального состояния
+        if (courtId) {
+            // Получаем все позиции игроков на корте
+            const positions = [];
+            courtPlayers.forEach(player => {
+                const slot = player.closest('.court-player-slot');
+                const half = slot.closest('.court-half').getAttribute('data-half');
+                const slotIndex = Array.from(slot.parentNode.children).indexOf(slot) + 1;
+                const position = `${half}${slotIndex}`;
+                positions.push(position);
+            });
+
+            // Удаляем игроков с корта в локальном состоянии
+            positions.forEach(position => {
+                trainingStateApi.removePlayerFromCourt(courtId, position);
+                console.log(`Игрок удален с корта ${courtId}, позиция ${position}`);
+            });
+        }
+
+        // Затем удаляем игроков из DOM
         courtPlayers.forEach(player => {
             player.classList.add('removing');
             setTimeout(() => {
@@ -609,6 +651,21 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
         losers.forEach(player => {
             const playerElement = courtElement.querySelector(`.court-player[data-player-id="${player.id}"]`);
             if (playerElement) {
+                // Сначала удаляем игрока из локального состояния
+                if (courtId) {
+                    const slot = playerElement.closest('.court-player-slot');
+                    if (slot) {
+                        const half = slot.closest('.court-half').getAttribute('data-half');
+                        const slotIndex = Array.from(slot.parentNode.children).indexOf(slot) + 1;
+                        const position = `${half}${slotIndex}`;
+
+                        // Удаляем игрока с корта в локальном состоянии
+                        trainingStateApi.removePlayerFromCourt(courtId, position);
+                        console.log(`Игрок удален с корта ${courtId}, позиция ${position}`);
+                    }
+                }
+
+                // Затем удаляем игрока из DOM
                 playerElement.classList.add('removing');
                 setTimeout(() => {
                     playerElement.remove();
