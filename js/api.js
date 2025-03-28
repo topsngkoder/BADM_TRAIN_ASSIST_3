@@ -304,6 +304,7 @@ export const trainingStateApi = {
         courts: [],
         playersQueue: [],
         courtCount: 0,
+        trainingMode: 'max-two-wins',
         lastUpdated: null
     },
 
@@ -315,6 +316,7 @@ export const trainingStateApi = {
             courts: [],
             playersQueue: [],
             courtCount: 0,
+            trainingMode: 'max-two-wins',
             lastUpdated: new Date().toISOString()
         };
     },
@@ -448,7 +450,7 @@ export const trainingStateApi = {
                         courts: [],
                         playersQueue: [],
                         courtCount: training.court_count || 1,
-                        trainingMode: 'single',
+                        trainingMode: 'max-two-wins',
                         lastUpdated: new Date().toISOString()
                     };
 

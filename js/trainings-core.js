@@ -246,8 +246,8 @@ export function initTrainingsModule() {
         trainingModeElement.innerHTML = `
             <label for="training-mode">Режим тренировки:</label>
             <select id="training-mode" class="training-mode-select">
-                <option value="single">Играем один раз</option>
                 <option value="max-two-wins">Не больше двух побед</option>
+                <option value="single">Играем один раз</option>
                 <option value="winner-stays">Победитель остается всегда</option>
             </select>
         `;

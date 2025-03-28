@@ -319,7 +319,7 @@ export async function loadTrainingState(trainingId) {
                         courts: [],
                         playersQueue: [],
                         courtCount: training.court_count || 1,
-                        trainingMode: 'single',
+                        trainingMode: 'max-two-wins',
                         lastUpdated: new Date().toISOString()
                     };
 
@@ -352,7 +352,7 @@ export async function loadTrainingState(trainingId) {
                 courts: [],
                 playersQueue: [],
                 courtCount: 1,
-                trainingMode: 'single',
+                trainingMode: 'max-two-wins',
                 lastUpdated: new Date().toISOString()
             };
 
