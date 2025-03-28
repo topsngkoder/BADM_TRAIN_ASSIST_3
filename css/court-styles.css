@@ -67,3 +67,76 @@
     color: #000000;
     font-weight: 500;
 }
+
+/* Стили для заголовка и кнопки добавления игроков в очередь */
+.players-queue-section {
+    margin-bottom: 20px;
+}
+
+.players-queue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.players-queue-header h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.add-players-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-players-btn:hover {
+    background-color: #2980b9;
+}
+
+/* Стили для карточки добавления игрока */
+.add-player-card {
+    width: 80px;
+    height: 110px;
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.add-player-card:hover {
+    transform: translateY(-3px);
+    background-color: #e0e0e0;
+}
+
+.add-player-icon {
+    width: 50px;
+    height: 50px;
+    background-color: #3498db;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.add-player-icon i {
+    width: 24px;
+    height: 24px;
+}

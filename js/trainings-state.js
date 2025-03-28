@@ -112,6 +112,46 @@ export async function updateLocalTrainingState() {
                         trainingStateApi._localState.playersQueue = [];
                     }
 
+                    // Обновляем player_ids в таблице trainings, чтобы включить всех игроков
+                    try {
+                        // Получаем всех игроков на тренировке (в очереди и на кортах)
+                        const allPlayerIds = new Set();
+
+                        // Добавляем игроков из очереди
+                        playersQueue.forEach(player => {
+                            if (player && player.id) {
+                                allPlayerIds.add(parseInt(player.id));
+                            }
+                        });
+
+                        // Добавляем игроков с кортов
+                        const courtPlayers = document.querySelectorAll('.court-player');
+                        courtPlayers.forEach(player => {
+                            const playerId = player.getAttribute('data-player-id');
+                            if (playerId) {
+                                allPlayerIds.add(parseInt(playerId));
+                            }
+                        });
+
+                        // Обновляем player_ids в таблице trainings
+                        if (allPlayerIds.size > 0) {
+                            const playerIdsArray = Array.from(allPlayerIds);
+                            supabase
+                                .from('trainings')
+                                .update({ player_ids: playerIdsArray })
+                                .eq('id', parseInt(trainingId))
+                                .then(({ data, error }) => {
+                                    if (error) {
+                                        console.error('Ошибка при обновлении player_ids:', error);
+                                    } else {
+                                        console.log('player_ids успешно обновлены:', playerIdsArray);
+                                    }
+                                });
+                        }
+                    } catch (playerIdsError) {
+                        console.error('Ошибка при обновлении player_ids:', playerIdsError);
+                    }
+
                     // Получаем текущий режим тренировки
                     const trainingModeSelect = document.getElementById('training-mode');
                     const trainingMode = trainingModeSelect ? trainingModeSelect.value : 'single';

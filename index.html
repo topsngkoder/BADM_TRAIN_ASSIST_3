@@ -202,6 +202,26 @@
         </div>
     </div>
 
+    <!-- Модальное окно для добавления игроков в тренировку -->
+    <div id="add-players-to-training-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Добавить игроков в тренировку</h2>
+                <button class="close-modal-btn" aria-label="Закрыть">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div id="training-players-selection" class="players-selection">
+                        <p id="training-players-loading">Загрузка списка игроков...</p>
+                        <!-- Здесь будут отображаться игроки для выбора -->
+                    </div>
+                </div>
+                <button id="add-selected-players-btn" class="submit-btn">Добавить выбранных игроков</button>
+            </div>
+        </div>
+    </div>
 
 
     <script type="module" src="js/main.js"></script>

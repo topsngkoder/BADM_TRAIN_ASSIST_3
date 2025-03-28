@@ -523,7 +523,18 @@ export function initTrainingsModule() {
         content.innerHTML = `
             <div class="training-layout vertical">
                 <div class="players-queue-section">
+                    <div class="players-queue-header">
+                        <h4>Очередь игроков</h4>
+                        <button id="add-players-to-training-btn" class="add-players-btn" aria-label="Добавить игроков в тренировку">
+                            <i data-feather="plus"></i>
+                        </button>
+                    </div>
                     <div class="players-queue-container horizontal">
+                        <div class="add-player-card">
+                            <div class="add-player-icon">
+                                <i data-feather="plus"></i>
+                            </div>
+                        </div>
                         ${playersQueueHTML}
                     </div>
                 </div>
@@ -540,6 +551,35 @@ export function initTrainingsModule() {
 
         // Добавляем обработчики для кнопок и карточек игроков
         setTimeout(() => {
+            // Добавляем обработчик для кнопки добавления игроков в тренировку
+            const addPlayersBtn = detailsContainer.querySelector('#add-players-to-training-btn');
+            if (addPlayersBtn) {
+                addPlayersBtn.addEventListener('click', () => {
+                    console.log('Нажата кнопка добавления игроков в тренировку');
+                    // Импортируем функцию динамически, чтобы избежать циклических зависимостей
+                    import('./trainings-players.js').then(module => {
+                        module.openAddPlayersToTrainingModal();
+                    });
+                });
+            }
+
+            // Добавляем обработчик для карточки добавления игрока
+            const addPlayerCard = detailsContainer.querySelector('.add-player-card');
+            if (addPlayerCard) {
+                addPlayerCard.addEventListener('click', () => {
+                    console.log('Нажата карточка добавления игрока');
+                    // Импортируем функцию динамически, чтобы избежать циклических зависимостей
+                    import('./trainings-players.js').then(module => {
+                        module.openAddPlayersToTrainingModal();
+                    });
+                });
+            }
+
+            // Инициализируем иконки Feather
+            if (window.feather) {
+                feather.replace();
+            }
+
             // Если есть сохраненное состояние, восстанавливаем его
             if (stateData && stateData.courts && stateData.courts.length > 0) {
                 console.log('Восстанавливаем сохраненное состояние кортов');

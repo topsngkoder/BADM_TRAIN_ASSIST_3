@@ -1,6 +1,6 @@
 // Модуль для работы с игроками и очередью
 import { playersApi, trainingStateApi } from './api.js';
-import { showMessage } from './ui.js';
+import { showMessage, openModal, closeModal } from './ui.js';
 import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility, startGameTimer, unlockCourtPlayers } from './trainings-court.js';
 import { saveTrainingState, saveTrainingStateWithoutUpdate } from './trainings-state.js';
 
@@ -437,6 +437,197 @@ export async function removePlayerFromCourt(playerElement, playerId) {
     }
 }
 
+// Функция для открытия модального окна выбора игроков для добавления в тренировку
+export async function openAddPlayersToTrainingModal() {
+    console.log('Открытие модального окна выбора игроков для добавления в тренировку');
+
+    // Получаем ID тренировки из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const trainingId = urlParams.get('id');
+
+    if (!trainingId) {
+        console.error('Не найден ID тренировки в URL');
+        showMessage('Не удалось определить ID тренировки', 'error');
+        return;
+    }
+
+    // Получаем модальное окно
+    const modal = document.getElementById('add-players-to-training-modal');
+    if (!modal) {
+        console.error('Не найдено модальное окно для добавления игроков в тренировку');
+        return;
+    }
+
+    // Получаем контейнер для отображения игроков
+    const playersContainer = modal.querySelector('#training-players-selection');
+    if (!playersContainer) {
+        console.error('Не найден контейнер для отображения игроков');
+        return;
+    }
+
+    // Показываем индикатор загрузки
+    playersContainer.innerHTML = '<p id="training-players-loading">Загрузка списка игроков...</p>';
+
+    try {
+        // Загружаем всех игроков
+        const allPlayers = await playersApi.getPlayers('name');
+
+        // Получаем список игроков, которые уже на тренировке
+        const existingPlayerIds = new Set();
+
+        // Добавляем ID игроков из очереди
+        const queuePlayerCards = document.querySelectorAll('.queue-player-card');
+        queuePlayerCards.forEach(card => {
+            const playerId = card.getAttribute('data-player-id');
+            if (playerId) {
+                existingPlayerIds.add(playerId);
+            }
+        });
+
+        // Добавляем ID игроков с кортов
+        const courtPlayers = document.querySelectorAll('.court-player');
+        courtPlayers.forEach(player => {
+            const playerId = player.getAttribute('data-player-id');
+            if (playerId) {
+                existingPlayerIds.add(playerId);
+            }
+        });
+
+        console.log('Игроки, уже участвующие в тренировке:', existingPlayerIds);
+
+        // Фильтруем игроков, которых еще нет на тренировке
+        const availablePlayers = allPlayers.filter(player => !existingPlayerIds.has(String(player.id)));
+
+        console.log('Доступные игроки для добавления:', availablePlayers);
+
+        // Очищаем контейнер
+        playersContainer.innerHTML = '';
+
+        // Если нет доступных игроков, показываем сообщение
+        if (availablePlayers.length === 0) {
+            playersContainer.innerHTML = '<p class="text-center p-3">Все игроки уже участвуют в тренировке.</p>';
+            return;
+        }
+
+        // Создаем элементы для выбора игроков
+        availablePlayers.forEach(player => {
+            const playerItem = document.createElement('div');
+            playerItem.className = 'player-checkbox-item';
+
+            // Используем дефолтное изображение, если фото не указано
+            const photoUrl = player.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.first_name + ' ' + player.last_name) + '&background=3498db&color=fff&size=150';
+
+            // Создаем элементы вручную для лучшего контроля
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'selectedTrainingPlayers';
+            checkbox.value = player.id;
+            checkbox.id = `training-player-${player.id}`;
+
+            const label = document.createElement('label');
+            label.className = 'player-checkbox-label';
+            label.htmlFor = `training-player-${player.id}`;
+
+            const img = document.createElement('img');
+            img.src = photoUrl;
+            img.alt = `${player.first_name} ${player.last_name}`;
+            img.className = 'player-checkbox-photo';
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'player-checkbox-info';
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'player-checkbox-name';
+            nameDiv.textContent = `${player.first_name} ${player.last_name}`;
+
+            const ratingDiv = document.createElement('div');
+            ratingDiv.className = 'player-checkbox-rating';
+            ratingDiv.textContent = `Рейтинг: ${player.rating}`;
+
+            // Собираем структуру
+            infoDiv.appendChild(nameDiv);
+            infoDiv.appendChild(ratingDiv);
+
+            playerItem.appendChild(checkbox);
+            label.appendChild(img);
+            label.appendChild(infoDiv);
+            playerItem.appendChild(label);
+
+            // Добавляем обработчик клика на весь элемент
+            playerItem.addEventListener('click', (e) => {
+                // Если клик был не на самом чекбоксе
+                if (e.target !== checkbox) {
+                    // Переключаем состояние чекбокса
+                    checkbox.checked = !checkbox.checked;
+
+                    // Создаем и диспатчим событие change для чекбокса
+                    const changeEvent = new Event('change', { bubbles: true });
+                    checkbox.dispatchEvent(changeEvent);
+
+                    // Предотвращаем дальнейшее всплытие события
+                    e.stopPropagation();
+                }
+            });
+
+            // Добавляем обработчик изменения состояния чекбокса
+            checkbox.addEventListener('change', () => {
+                // Добавляем визуальное выделение выбранного элемента
+                if (checkbox.checked) {
+                    playerItem.classList.add('selected');
+                } else {
+                    playerItem.classList.remove('selected');
+                }
+            });
+
+            playersContainer.appendChild(playerItem);
+        });
+
+        // Добавляем обработчик для кнопки "Добавить выбранных игроков"
+        const addSelectedPlayersBtn = modal.querySelector('#add-selected-players-btn');
+        if (addSelectedPlayersBtn) {
+            // Удаляем предыдущие обработчики
+            const newBtn = addSelectedPlayersBtn.cloneNode(true);
+            addSelectedPlayersBtn.parentNode.replaceChild(newBtn, addSelectedPlayersBtn);
+
+            // Добавляем новый обработчик
+            newBtn.addEventListener('click', async () => {
+                // Получаем выбранных игроков
+                const selectedPlayers = Array.from(
+                    modal.querySelectorAll('input[name="selectedTrainingPlayers"]:checked')
+                ).map(checkbox => checkbox.value);
+
+                if (selectedPlayers.length === 0) {
+                    showMessage('Выберите хотя бы одного игрока', 'warning');
+                    return;
+                }
+
+                // Добавляем выбранных игроков в очередь
+                for (const playerId of selectedPlayers) {
+                    await addPlayerToQueue(playerId, 'end', trainingId);
+                }
+
+                // Закрываем модальное окно
+                closeModal(modal);
+
+                // Показываем сообщение об успехе
+                showMessage(`Добавлено ${selectedPlayers.length} игроков в тренировку`, 'success');
+
+                // Сохраняем состояние тренировки
+                if (typeof saveTrainingState === 'function') {
+                    await saveTrainingState();
+                }
+            });
+        }
+
+        // Открываем модальное окно
+        openModal(modal);
+
+    } catch (error) {
+        console.error('Ошибка при загрузке игроков:', error);
+        showMessage('Не удалось загрузить список игроков', 'error');
+    }
+}
+
 // Функция для добавления игрока в очередь
 export async function addPlayerToQueue(playerId, position = 'end', trainingId = null) {
     console.log(`Добавление игрока с ID: ${playerId} в очередь, позиция: ${position}`);
@@ -458,6 +649,20 @@ export async function addPlayerToQueue(playerId, position = 'end', trainingId = 
     }
 
     try {
+        // Проверяем, есть ли уже этот игрок в очереди или на корте
+        const existingQueuePlayer = document.querySelector(`.queue-player-card[data-player-id="${playerId}"]`);
+        const existingCourtPlayer = document.querySelector(`.court-player[data-player-id="${playerId}"]`);
+
+        if (existingQueuePlayer) {
+            console.log(`Игрок с ID ${playerId} уже есть в очереди`);
+            return null;
+        }
+
+        if (existingCourtPlayer) {
+            console.log(`Игрок с ID ${playerId} уже есть на корте`);
+            return null;
+        }
+
         // Получаем данные игрока из локального хранилища или базы данных
         const player = await playersApi.getPlayer(playerId);
 
@@ -485,6 +690,9 @@ export async function addPlayerToQueue(playerId, position = 'end', trainingId = 
         if (noPlayersMessage) {
             noPlayersMessage.remove();
         }
+
+        // Добавляем игрока в локальное состояние
+        trainingStateApi.addPlayerToQueue(trainingId, playerId, position);
 
         // Создаем элемент игрока в очереди
         const playerElement = document.createElement('div');
