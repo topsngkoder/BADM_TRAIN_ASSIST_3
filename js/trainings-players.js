@@ -2,7 +2,10 @@
 import { playersApi, trainingStateApi } from './api.js';
 import { showMessage } from './ui.js';
 import { updateCourtHalfButtons, updateStartGameButton, updateCourtVisibility, startGameTimer, unlockCourtPlayers } from './trainings-court.js';
-import { saveTrainingState } from './trainings-state.js';
+import { saveTrainingState, saveTrainingStateWithoutUpdate } from './trainings-state.js';
+
+// Добавляем функцию withoutUpdate к объекту saveTrainingState
+saveTrainingState.withoutUpdate = saveTrainingStateWithoutUpdate;
 
 // Функция для добавления игрока из очереди на корт
 export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callback) {

@@ -207,6 +207,20 @@ export async function saveTrainingState() {
         // Сначала обновляем локальное состояние
         await updateLocalTrainingState();
 
+        // Сохраняем состояние в базу данных без повторного обновления
+        return await saveTrainingStateWithoutUpdate();
+    } catch (error) {
+        console.error('Ошибка при сохранении состояния тренировки в базу данных:', error);
+        showMessage('Не удалось сохранить состояние тренировки', 'error');
+        return false;
+    }
+}
+
+// Функция для сохранения текущего состояния тренировки в базу данных без обновления локального состояния
+export async function saveTrainingStateWithoutUpdate() {
+    try {
+        console.log('Сохранение текущего состояния тренировки в базу данных без обновления локального состояния');
+
         // Получаем ID текущей тренировки из URL
         const urlParams = new URLSearchParams(window.location.search);
         const trainingId = urlParams.get('id');

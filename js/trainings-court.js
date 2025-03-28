@@ -250,16 +250,28 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
             .then(() => {
                 console.log('Локальное состояние тренировки успешно обновлено');
 
-                // Сохраняем состояние в базу данных
+                // Импортируем функцию saveTrainingStateWithoutUpdate
                 if (saveTrainingState && typeof saveTrainingState === 'function') {
                     console.log('Сохраняем состояние тренировки в базу данных после начала игры');
-                    saveTrainingState()
-                        .then(() => {
-                            console.log('Состояние тренировки успешно сохранено в базу данных после начала игры');
-                        })
-                        .catch(saveError => {
-                            console.error('Ошибка при сохранении состояния тренировки в базу данных:', saveError);
-                        });
+                    // Проверяем, есть ли функция saveTrainingStateWithoutUpdate
+                    if (typeof saveTrainingState.withoutUpdate === 'function') {
+                        saveTrainingState.withoutUpdate()
+                            .then(() => {
+                                console.log('Состояние тренировки успешно сохранено в базу данных после начала игры');
+                            })
+                            .catch(saveError => {
+                                console.error('Ошибка при сохранении состояния тренировки в базу данных:', saveError);
+                            });
+                    } else {
+                        // Если функции нет, используем обычную функцию saveTrainingState
+                        saveTrainingState()
+                            .then(() => {
+                                console.log('Состояние тренировки успешно сохранено в базу данных после начала игры');
+                            })
+                            .catch(saveError => {
+                                console.error('Ошибка при сохранении состояния тренировки в базу данных:', saveError);
+                            });
+                    }
                 }
             })
             .catch(error => {
