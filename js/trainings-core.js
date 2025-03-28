@@ -55,6 +55,13 @@ export function initTrainingsModule() {
                 mainInterface.style.display = 'block';
             }
 
+            // Сбрасываем состояние экрана загрузки для следующего открытия
+            const loadingScreen = document.getElementById('training-details-loading');
+            const detailsContainer = document.getElementById('training-details-container');
+
+            if (loadingScreen) loadingScreen.style.display = 'flex';
+            if (detailsContainer) detailsContainer.style.display = 'none';
+
             // Очищаем URL
             const url = new URL(window.location);
             url.searchParams.delete('id');
@@ -186,10 +193,18 @@ export function initTrainingsModule() {
         const trainingDetailsInterface = document.getElementById('training-details-interface');
         console.log('Интерфейс деталей тренировки:', trainingDetailsInterface);
         if (trainingDetailsInterface) {
+            // Показываем интерфейс деталей тренировки
             trainingDetailsInterface.style.display = 'block';
             trainingDetailsInterface.style.width = '100%';
             trainingDetailsInterface.style.maxWidth = '100%';
             console.log('Интерфейс деталей тренировки показан');
+
+            // Показываем экран загрузки и скрываем контейнер с деталями
+            const loadingScreen = document.getElementById('training-details-loading');
+            const detailsContainer = document.getElementById('training-details-container');
+
+            if (loadingScreen) loadingScreen.style.display = 'flex';
+            if (detailsContainer) detailsContainer.style.display = 'none';
         } else {
             console.error('Не найден интерфейс деталей тренировки с ID "training-details-interface"');
         }
@@ -212,6 +227,11 @@ export function initTrainingsModule() {
         // Получаем элементы страницы
         const titleElement = document.getElementById('training-title');
         const detailsContainer = document.getElementById('training-details-container');
+
+        // Очищаем контейнер деталей перед загрузкой новых данных
+        if (detailsContainer) {
+            detailsContainer.innerHTML = '';
+        }
 
         // Получаем или создаем элемент для режима тренировки
         let trainingModeElement = document.getElementById('training-mode-selector');
@@ -759,6 +779,17 @@ export function initTrainingsModule() {
         } else {
             console.error('Feather не доступен');
         }
+
+        // Скрываем экран загрузки и показываем контейнер с деталями после небольшой задержки
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('training-details-loading');
+            const detailsContainer = document.getElementById('training-details-container');
+
+            if (loadingScreen) loadingScreen.style.display = 'none';
+            if (detailsContainer) detailsContainer.style.display = 'block';
+
+            console.log('Экран загрузки скрыт, контейнер с деталями показан');
+        }, 500); // Задержка для плавного перехода
     }
 
     // Возвращаем публичные методы и свойства

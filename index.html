@@ -74,7 +74,12 @@
                     </button>
                     <h2 id="training-title">Детали тренировки</h2>
                 </div>
-                <div id="training-details-container" class="training-details-container">
+                <!-- Экран загрузки для деталей тренировки -->
+                <div id="training-details-loading" class="loading-screen">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка тренировки...</p>
+                </div>
+                <div id="training-details-container" class="training-details-container" style="display: none;">
                     <!-- Здесь будет содержимое тренировки -->
                 </div>
             </section>
