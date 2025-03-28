@@ -742,5 +742,27 @@ function resetGameButton(courtElement) {
         if (window.feather) {
             feather.replace();
         }
+
+        // Обновляем видимость кнопки в зависимости от статуса игры и количества игроков
+        // Получаем все слоты для игроков на этом корте
+        const slots = courtElement.querySelectorAll('.court-player-slot');
+
+        // Считаем количество занятых слотов
+        let occupiedSlots = 0;
+        slots.forEach(slot => {
+            if (slot.children.length > 0) {
+                occupiedSlots++;
+            }
+        });
+
+        // Проверяем, не идет ли уже игра на этом корте
+        const isGameInProgress = courtElement.classList.contains('game-in-progress');
+
+        // Если все 4 слота заняты и игра не в процессе, показываем кнопку "Начать игру"
+        if (occupiedSlots === 4 && !isGameInProgress) {
+            startGameBtn.style.display = '';
+        } else {
+            startGameBtn.style.display = 'none';
+        }
     }
 }

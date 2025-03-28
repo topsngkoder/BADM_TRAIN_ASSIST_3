@@ -56,15 +56,18 @@ export function updateCourtVisibility(courtContainer) {
     // Проверяем, есть ли уже кнопка "Начать игру"
     let startGameBtn = courtContainer.querySelector('.start-game-btn');
 
-    // Если все 4 слота заняты, показываем кнопку "Начать игру"
-    if (occupiedSlots === 4) {
+    // Проверяем, не идет ли уже игра на этом корте
+    const isGameInProgress = courtContainer.classList.contains('game-in-progress');
+
+    // Если все 4 слота заняты и игра не в процессе, показываем кнопку "Начать игру"
+    if (occupiedSlots === 4 && !isGameInProgress) {
         // Если кнопка уже есть, показываем ее
         if (startGameBtn) {
             startGameBtn.style.display = '';
         } else {
         }
     } else {
-        // Если не все слоты заняты, скрываем кнопку
+        // Если не все слоты заняты или игра в процессе, скрываем кнопку
         if (startGameBtn) {
             startGameBtn.style.display = 'none';
         }
@@ -92,8 +95,11 @@ export function updateStartGameButton(courtContainer, onStartGame) {
     // Проверяем, есть ли уже кнопка "Начать игру"
     let startGameBtn = courtContainer.querySelector('.start-game-btn');
 
-    // Если все 4 слота заняты, показываем кнопку "Начать игру"
-    if (occupiedSlots === 4) {
+    // Проверяем, не идет ли уже игра на этом корте
+    const isGameInProgress = courtContainer.classList.contains('game-in-progress');
+
+    // Если все 4 слота заняты и игра не в процессе, показываем кнопку "Начать игру"
+    if (occupiedSlots === 4 && !isGameInProgress) {
         // Если кнопки еще нет, создаем ее
         if (!startGameBtn) {
             startGameBtn = document.createElement('button');
@@ -124,7 +130,7 @@ export function updateStartGameButton(courtContainer, onStartGame) {
             startGameBtn.style.display = '';
         }
     } else {
-        // Если не все слоты заняты, скрываем кнопку
+        // Если не все слоты заняты или игра в процессе, скрываем кнопку
         if (startGameBtn) {
             startGameBtn.style.display = 'none';
         }
