@@ -712,30 +712,6 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
 
 }
 
-// Функция для сброса кнопки "Начать игру"
-function resetGameButton(courtElement) {
-    // Находим кнопку "Начать игру"
-    const startGameBtn = courtElement.querySelector('.start-game-btn');
-    if (!startGameBtn) {
-        console.error('Не найдена кнопка "Начать игру"');
-        return;
-    }
-
-    // Сбрасываем кнопку в исходное состояние
-    startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
-    startGameBtn.classList.remove('timer-active');
-    startGameBtn.classList.remove('timer-transition');
-    startGameBtn.style.pointerEvents = '';
-    startGameBtn.title = '';
-    startGameBtn.removeAttribute('data-timer-id');
-    startGameBtn.removeAttribute('data-start-time');
-
-    // Инициализируем иконки Feather
-    if (window.feather) {
-        feather.replace();
-    }
-}
-
 // Функция для обработки режима "Не больше двух побед"
 async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trainingId, saveTrainingState) {
     console.log('Обработка режима "Не больше двух побед"');
