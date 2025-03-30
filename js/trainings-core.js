@@ -530,11 +530,6 @@ export function initTrainingsModule() {
                         </button>
                     </div>
                     <div class="players-queue-container horizontal">
-                        <div class="add-player-card">
-                            <div class="add-player-icon">
-                                <i data-feather="plus"></i>
-                            </div>
-                        </div>
                         ${playersQueueHTML}
                     </div>
                 </div>
@@ -563,17 +558,7 @@ export function initTrainingsModule() {
                 });
             }
 
-            // Добавляем обработчик для карточки добавления игрока
-            const addPlayerCard = detailsContainer.querySelector('.add-player-card');
-            if (addPlayerCard) {
-                addPlayerCard.addEventListener('click', () => {
-                    console.log('Нажата карточка добавления игрока');
-                    // Импортируем функцию динамически, чтобы избежать циклических зависимостей
-                    import('./trainings-players.js').then(module => {
-                        module.openAddPlayersToTrainingModal();
-                    });
-                });
-            }
+            // Обработчик для карточки добавления игрока удален, так как кнопка "+" больше не используется
 
             // Инициализируем иконки Feather
             if (window.feather) {
