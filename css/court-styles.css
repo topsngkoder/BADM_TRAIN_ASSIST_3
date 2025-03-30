@@ -86,22 +86,9 @@
     color: #333;
 }
 
-.add-players-btn {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
+.queue-actions {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.add-players-btn:hover {
-    background-color: #2980b9;
+    gap: 8px;
 }
 
 /* Стили для карточки добавления игрока */

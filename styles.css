@@ -344,6 +344,15 @@ button {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Кнопка опасного действия */
+.danger-btn {
+    background-color: #e74c3c;
+}
+
+.danger-btn:hover {
+    background-color: #c0392b;
+}
+
 .player-actions {
     display: flex;
     gap: 5px;
@@ -1592,7 +1601,8 @@ input:focus {
     color: #2c3e50;
 }
 
-.player-checkbox-rating {
+.player-checkbox-rating,
+.player-checkbox-location {
     font-size: 14px;
     color: #7f8c8d;
 }

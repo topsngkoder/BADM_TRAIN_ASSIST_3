@@ -523,6 +523,256 @@ export async function removePlayerFromCourt(playerElement, playerId) {
     }
 }
 
+// Функция для удаления игрока из очереди и с тренировки
+export async function removePlayerFromTraining(playerId, trainingId) {
+    console.log(`Удаление игрока с ID ${playerId} с тренировки ${trainingId}`);
+
+    try {
+        // Находим карточку игрока в очереди
+        const playerCard = document.querySelector(`.queue-player-card[data-player-id="${playerId}"]`);
+        if (playerCard) {
+            // Удаляем игрока из очереди
+            playerCard.remove();
+
+            // Обновляем локальное состояние
+            trainingStateApi.removePlayerFromQueue(trainingId, playerId);
+        }
+
+        // Находим игрока на кортах
+        const courtPlayer = document.querySelector(`.court-player[data-player-id="${playerId}"]`);
+        if (courtPlayer) {
+            // Удаляем игрока с корта без возврата в очередь
+            await removePlayerFromCourt(courtPlayer, false);
+        }
+
+        // Обновляем player_ids в таблице trainings
+        try {
+            // Получаем текущие player_ids
+            const { data: trainingData, error: trainingError } = await supabase
+                .from('trainings')
+                .select('player_ids')
+                .eq('id', parseInt(trainingId))
+                .single();
+
+            if (trainingError) {
+                console.error('Ошибка при получении данных тренировки:', trainingError);
+                return;
+            }
+
+            if (trainingData && trainingData.player_ids) {
+                // Удаляем игрока из списка
+                const updatedPlayerIds = trainingData.player_ids.filter(id => id !== parseInt(playerId));
+
+                // Обновляем player_ids в базе данных
+                const { error: updateError } = await supabase
+                    .from('trainings')
+                    .update({ player_ids: updatedPlayerIds })
+                    .eq('id', parseInt(trainingId));
+
+                if (updateError) {
+                    console.error('Ошибка при обновлении player_ids:', updateError);
+                } else {
+                    console.log('player_ids успешно обновлены:', updatedPlayerIds);
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка при обновлении player_ids:', error);
+        }
+
+        // Сохраняем состояние тренировки
+        await saveTrainingState();
+
+        return true;
+    } catch (error) {
+        console.error(`Ошибка при удалении игрока с ID ${playerId} с тренировки:`, error);
+        showMessage('Ошибка при удалении игрока с тренировки', 'error');
+        return false;
+    }
+}
+
+// Функция для открытия модального окна выбора игроков для удаления с тренировки
+export async function openRemovePlayersFromTrainingModal() {
+    console.log('Открытие модального окна выбора игроков для удаления с тренировки');
+
+    // Получаем ID тренировки из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const trainingId = urlParams.get('id');
+
+    if (!trainingId) {
+        console.error('Не найден ID тренировки в URL');
+        showMessage('Не удалось определить ID тренировки', 'error');
+        return;
+    }
+
+    // Проверяем, существует ли уже модальное окно
+    let removePlayersModal = document.getElementById('remove-players-from-training-modal');
+
+    // Если модальное окно не существует, создаем его
+    if (!removePlayersModal) {
+        removePlayersModal = document.createElement('div');
+        removePlayersModal.id = 'remove-players-from-training-modal';
+        removePlayersModal.className = 'modal';
+
+        // Добавляем модальное окно в DOM
+        document.body.appendChild(removePlayersModal);
+    }
+
+    // Собираем всех игроков, участвующих в тренировке
+    const allTrainingPlayers = [];
+
+    // Добавляем игроков из очереди
+    const queuePlayerCards = document.querySelectorAll('.queue-player-card');
+    queuePlayerCards.forEach(card => {
+        const playerId = card.getAttribute('data-player-id');
+        const playerName = card.querySelector('.queue-player-name').textContent;
+        const playerPhoto = card.querySelector('.queue-player-photo').src;
+        const playerRating = card.querySelector('.queue-player-rating').textContent;
+
+        allTrainingPlayers.push({
+            id: playerId,
+            name: playerName,
+            photo: playerPhoto,
+            rating: playerRating,
+            location: 'Очередь'
+        });
+    });
+
+    // Добавляем игроков с кортов
+    const courtPlayers = document.querySelectorAll('.court-player');
+    courtPlayers.forEach(player => {
+        const playerId = player.getAttribute('data-player-id');
+        const playerName = player.querySelector('.court-player-name').textContent;
+        const playerPhoto = player.querySelector('.court-player-photo').src;
+        const courtContainer = player.closest('.court-container');
+        const courtId = courtContainer ? courtContainer.getAttribute('data-court-id') : 'неизвестно';
+        const half = player.closest('.court-half').getAttribute('data-half');
+        const halfText = half === 'top' ? 'верхняя' : 'нижняя';
+
+        allTrainingPlayers.push({
+            id: playerId,
+            name: playerName,
+            photo: playerPhoto,
+            rating: '',
+            location: `Корт ${courtId}, ${halfText} половина`
+        });
+    });
+
+    // Если нет игроков, показываем сообщение
+    if (allTrainingPlayers.length === 0) {
+        showMessage('На тренировке нет игроков', 'warning');
+        return;
+    }
+
+    // Создаем содержимое модального окна
+    removePlayersModal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Удалить игроков с тренировки</h2>
+                <button class="close-modal-btn" aria-label="Закрыть">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div id="remove-players-selection" class="players-selection">
+                        ${allTrainingPlayers.map(player => `
+                            <div class="player-checkbox-item" data-player-id="${player.id}">
+                                <input type="checkbox" name="selectedPlayersToRemove" value="${player.id}" id="remove-player-${player.id}">
+                                <label class="player-checkbox-label" for="remove-player-${player.id}">
+                                    <img src="${player.photo}" alt="${player.name}" class="player-checkbox-photo">
+                                    <div class="player-checkbox-info">
+                                        <div class="player-checkbox-name">${player.name}</div>
+                                        <div class="player-checkbox-location">${player.location}</div>
+                                        ${player.rating ? `<div class="player-checkbox-rating">${player.rating}</div>` : ''}
+                                    </div>
+                                </label>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <button id="remove-selected-players-btn" class="submit-btn danger-btn">Удалить выбранных игроков</button>
+            </div>
+        </div>
+    `;
+
+    // Открываем модальное окно
+    openModal(removePlayersModal);
+
+    // Инициализируем иконки Feather
+    if (window.feather) {
+        feather.replace();
+    }
+
+    // Добавляем обработчик для кнопки закрытия
+    const closeBtn = removePlayersModal.querySelector('.close-modal-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            closeModal(removePlayersModal);
+        });
+    }
+
+    // Добавляем обработчики для элементов выбора игрока
+    const playerItems = removePlayersModal.querySelectorAll('.player-checkbox-item');
+    playerItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            // Если клик был не на самом чекбоксе
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if (e.target !== checkbox) {
+                // Переключаем состояние чекбокса
+                checkbox.checked = !checkbox.checked;
+
+                // Создаем и диспатчим событие change для чекбокса
+                const changeEvent = new Event('change', { bubbles: true });
+                checkbox.dispatchEvent(changeEvent);
+
+                // Предотвращаем дальнейшее всплытие события
+                e.stopPropagation();
+            }
+        });
+
+        // Добавляем обработчик изменения состояния чекбокса
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', () => {
+            // Добавляем визуальное выделение выбранного элемента
+            if (checkbox.checked) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    });
+
+    // Добавляем обработчик для кнопки "Удалить выбранных игроков"
+    const removeSelectedPlayersBtn = removePlayersModal.querySelector('#remove-selected-players-btn');
+    if (removeSelectedPlayersBtn) {
+        removeSelectedPlayersBtn.addEventListener('click', async () => {
+            // Получаем выбранных игроков
+            const selectedPlayers = Array.from(
+                removePlayersModal.querySelectorAll('input[name="selectedPlayersToRemove"]:checked')
+            ).map(checkbox => checkbox.value);
+
+            if (selectedPlayers.length === 0) {
+                showMessage('Выберите хотя бы одного игрока', 'warning');
+                return;
+            }
+
+            // Подтверждение удаления
+            if (confirm(`Вы уверены, что хотите удалить ${selectedPlayers.length} игроков с тренировки?`)) {
+                // Удаляем выбранных игроков с тренировки
+                for (const playerId of selectedPlayers) {
+                    await removePlayerFromTraining(playerId, trainingId);
+                }
+
+                // Закрываем модальное окно
+                closeModal(removePlayersModal);
+
+                // Показываем сообщение об успехе
+                showMessage(`Удалено ${selectedPlayers.length} игроков с тренировки`, 'success');
+            }
+        });
+    }
+}
+
 // Функция для открытия модального окна выбора игроков для добавления в тренировку
 export async function openAddPlayersToTrainingModal() {
     console.log('Открытие модального окна выбора игроков для добавления в тренировку');

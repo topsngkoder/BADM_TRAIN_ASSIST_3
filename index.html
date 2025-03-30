@@ -223,6 +223,27 @@
         </div>
     </div>
 
+    <!-- Модальное окно для удаления игроков с тренировки -->
+    <div id="remove-players-from-training-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Удалить игроков с тренировки</h2>
+                <button class="close-modal-btn" aria-label="Закрыть">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div id="remove-players-selection" class="players-selection">
+                        <p id="remove-players-loading">Загрузка списка игроков...</p>
+                        <!-- Здесь будут отображаться игроки для выбора -->
+                    </div>
+                </div>
+                <button id="remove-selected-players-btn" class="submit-btn danger-btn">Удалить выбранных игроков</button>
+            </div>
+        </div>
+    </div>
+
 
     <script type="module" src="js/main.js"></script>
 </body>

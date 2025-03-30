@@ -502,9 +502,14 @@ export function initTrainingsModule() {
                 <div class="players-queue-section">
                     <div class="players-queue-header">
                         <h4>Очередь игроков</h4>
-                        <button id="add-players-to-training-btn" class="section-action-btn" aria-label="Добавить игроков в тренировку">
-                            <i data-feather="user-plus"></i>
-                        </button>
+                        <div class="queue-actions">
+                            <button id="add-players-to-training-btn" class="section-action-btn" aria-label="Добавить игроков в тренировку">
+                                <i data-feather="user-plus"></i>
+                            </button>
+                            <button id="remove-players-from-training-btn" class="section-action-btn" aria-label="Удалить игроков с тренировки">
+                                <i data-feather="user-minus"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="players-queue-container horizontal">
                         ${playersQueueHTML}
@@ -531,6 +536,18 @@ export function initTrainingsModule() {
                     // Импортируем функцию динамически, чтобы избежать циклических зависимостей
                     import('./trainings-players.js').then(module => {
                         module.openAddPlayersToTrainingModal();
+                    });
+                });
+            }
+
+            // Добавляем обработчик для кнопки удаления игроков с тренировки
+            const removePlayersBtn = detailsContainer.querySelector('#remove-players-from-training-btn');
+            if (removePlayersBtn) {
+                removePlayersBtn.addEventListener('click', () => {
+                    console.log('Нажата кнопка удаления игроков с тренировки');
+                    // Импортируем функцию динамически, чтобы избежать циклических зависимостей
+                    import('./trainings-players.js').then(module => {
+                        module.openRemovePlayersFromTrainingModal();
                     });
                 });
             }
