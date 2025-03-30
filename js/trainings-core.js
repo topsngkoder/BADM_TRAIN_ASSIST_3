@@ -502,8 +502,8 @@ export function initTrainingsModule() {
                 <div class="players-queue-section">
                     <div class="players-queue-header">
                         <h4>Очередь игроков</h4>
-                        <button id="add-players-to-training-btn" class="add-players-btn" aria-label="Добавить игроков в тренировку">
-                            <i data-feather="plus"></i>
+                        <button id="add-players-to-training-btn" class="section-action-btn" aria-label="Добавить игроков в тренировку">
+                            <i data-feather="user-plus"></i>
                         </button>
                     </div>
                     <div class="players-queue-container horizontal">
