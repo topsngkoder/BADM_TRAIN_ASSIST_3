@@ -552,16 +552,30 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
         console.log('Добавляем победителей в очередь:', winners);
         for (const player of winners) {
             console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) в очередь`);
+            // Сначала обновляем локальное состояние
             trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
-            await addPlayerToQueue(player.id, 'end', trainingId);
+            // Затем добавляем игрока в DOM и обрабатываем UI
+            try {
+                const result = await addPlayerToQueue(player.id, 'end', trainingId);
+                console.log(`Результат добавления победителя ${player.name} в очередь:`, result ? "успешно" : "не добавлен");
+            } catch (error) {
+                console.error(`Ошибка при добавлении победителя ${player.name} в очередь:`, error);
+            }
         }
 
         // Затем добавляем проигравших
         console.log('Добавляем проигравших в очередь:', losers);
         for (const player of losers) {
             console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в очередь`);
+            // Сначала обновляем локальное состояние
             trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
-            await addPlayerToQueue(player.id, 'end', trainingId);
+            // Затем добавляем игрока в DOM и обрабатываем UI
+            try {
+                const result = await addPlayerToQueue(player.id, 'end', trainingId);
+                console.log(`Результат добавления проигравшего ${player.name} в очередь:`, result ? "успешно" : "не добавлен");
+            } catch (error) {
+                console.error(`Ошибка при добавлении проигравшего ${player.name} в очередь:`, error);
+            }
         }
 
         // Обновляем локальное состояние тренировки
@@ -674,16 +688,30 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
             console.log('Добавляем победителей в конец очереди:', winners);
             for (const player of winners) {
                 console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) в конец очереди`);
+                // Сначала обновляем локальное состояние
                 trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
-                await addPlayerToQueue(player.id, 'end', trainingId);
+                // Затем добавляем игрока в DOM и обрабатываем UI
+                try {
+                    const result = await addPlayerToQueue(player.id, 'end', trainingId);
+                    console.log(`Результат добавления победителя ${player.name} в очередь:`, result ? "успешно" : "не добавлен");
+                } catch (error) {
+                    console.error(`Ошибка при добавлении победителя ${player.name} в очередь:`, error);
+                }
             }
 
             // Затем добавляем проигравших в конец очереди
             console.log('Добавляем проигравших в конец очереди:', losers);
             for (const player of losers) {
                 console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в конец очереди`);
+                // Сначала обновляем локальное состояние
                 trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
-                await addPlayerToQueue(player.id, 'end', trainingId);
+                // Затем добавляем игрока в DOM и обрабатываем UI
+                try {
+                    const result = await addPlayerToQueue(player.id, 'end', trainingId);
+                    console.log(`Результат добавления проигравшего ${player.name} в очередь:`, result ? "успешно" : "не добавлен");
+                } catch (error) {
+                    console.error(`Ошибка при добавлении проигравшего ${player.name} в очередь:`, error);
+                }
             }
 
             // Обновляем локальное состояние тренировки
@@ -763,8 +791,15 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
             console.log('Добавляем проигравших в конец очереди:', losers);
             for (const player of losers) {
                 console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в конец очереди`);
+                // Сначала обновляем локальное состояние
                 trainingStateApi.addPlayerToQueue(trainingId, player.id, 'end');
-                await addPlayerToQueue(player.id, 'end', trainingId);
+                // Затем добавляем игрока в DOM и обрабатываем UI
+                try {
+                    const result = await addPlayerToQueue(player.id, 'end', trainingId);
+                    console.log(`Результат добавления проигравшего ${player.name} в очередь:`, result ? "успешно" : "не добавлен");
+                } catch (error) {
+                    console.error(`Ошибка при добавлении проигравшего ${player.name} в очередь:`, error);
+                }
             }
 
             // Обновляем локальное состояние тренировки
