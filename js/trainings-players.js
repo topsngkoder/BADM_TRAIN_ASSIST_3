@@ -213,13 +213,53 @@ export async function addPlayerFromQueueToCourt(playerCard, courtId, half, callb
                             // Сохраняем состояние в базу данных
                             await saveTrainingState();
 
-                            // Показываем сообщение о завершении игры
-                            showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
-
-                            // Разблокируем изменение состава игроков
+                            // Получаем игроков на корте
                             const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
                             if (courtElement) {
-                                unlockCourtPlayers(courtElement);
+                                // Получаем игроков верхней половины
+                                const topPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="top"] .court-player'))
+                                    .map(playerElement => {
+                                        const playerId = playerElement.getAttribute('data-player-id');
+                                        const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                        const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                                        return { id: playerId, name: playerName, photo: playerPhoto };
+                                    });
+
+                                // Получаем игроков нижней половины
+                                const bottomPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="bottom"] .court-player'))
+                                    .map(playerElement => {
+                                        const playerId = playerElement.getAttribute('data-player-id');
+                                        const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                        const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                                        return { id: playerId, name: playerName, photo: playerPhoto };
+                                    });
+
+                                // Проверяем, что на корте 4 игрока
+                                if (topPlayers.length === 2 && bottomPlayers.length === 2) {
+                                    // Формируем названия команд
+                                    const topTeamName = `${topPlayers[0].name}/${topPlayers[1].name}`;
+                                    const bottomTeamName = `${bottomPlayers[0].name}/${bottomPlayers[1].name}`;
+
+                                    // Импортируем функцию showWinnerSelectionModal и handleWinnerSelection
+                                    import('./trainings-ui.js').then(uiModule => {
+                                        import('./trainings-state.js').then(stateModule => {
+                                            // Показываем модальное окно выбора победителя
+                                            uiModule.showWinnerSelectionModal(courtId, topTeamName, bottomTeamName, topPlayers, bottomPlayers, formattedTime,
+                                                (courtId, winnerTeam, topPlayers, bottomPlayers) => {
+                                                    stateModule.handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers, saveTrainingState);
+                                                });
+                                        });
+                                    });
+                                } else {
+                                    // Если на корте не 4 игрока, просто показываем сообщение о завершении
+                                    showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+
+                                    // Разблокируем изменение состава игроков
+                                    unlockCourtPlayers(courtElement);
+                                }
+                            } else {
+                                // Если не найден элемент корта, просто показываем сообщение
+                                showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
                             }
                         },
                         // Функция сохранения состояния
@@ -807,6 +847,107 @@ export async function addPlayerToQueue(playerId, position = 'end', trainingId = 
         } else if (rating >= 300) {
             ratingClass = 'rating-green';
         }
+
+        // Заполняем HTML игрока
+        playerElement.innerHTML = `
+            <div class="queue-player-photo-container">
+                <img src="${photoUrl}" alt="${playerFullName}" class="queue-player-photo ${ratingClass}">
+            </div>
+            <div class="queue-player-info">
+                <div class="queue-player-name">${playerFullName}</div>
+                <div class="queue-player-rating">Рейтинг: ${rating}</div>
+            </div>
+        `;
+
+        // Добавляем игрока в очередь в зависимости от позиции
+        if (position === 'end') {
+            // Добавляем в конец очереди
+            queueContainer.appendChild(playerElement);
+        } else {
+            // Добавляем в начало очереди
+            queueContainer.prepend(playerElement);
+        }
+
+        // Без анимации
+
+        // Добавляем обработчик для перетаскивания игрока на корт
+        playerElement.addEventListener('click', function() {
+            console.log(`Нажат игрок в очереди: ${playerFullName} (ID: ${playerId}, рейтинг: ${rating})`);
+        });
+
+        // Не сохраняем состояние автоматически после добавления игрока в очередь
+        // Сохранение будет происходить только после добавления всех игроков
+
+        return playerElement;
+    } catch (error) {
+        console.error(`Ошибка при получении данных игрока с ID ${playerId}:`, error);
+        showMessage('Ошибка при получении данных игрока', 'error');
+        return null;
+    }
+}
+
+// Функция для добавления игрока в очередь
+export async function addPlayerToQueue(playerId, position = 'end', trainingId) {
+    console.log(`Добавление игрока с ID ${playerId} в очередь, позиция: ${position}`);
+
+    try {
+        // Получаем контейнер очереди
+        const queueContainer = document.querySelector('.players-queue-container');
+        if (!queueContainer) {
+            console.error('Не найден контейнер очереди');
+            return false;
+        }
+
+        // Проверяем, есть ли сообщение "Нет игроков в очереди"
+        const noPlayersMessage = queueContainer.querySelector('.no-players-message');
+        if (noPlayersMessage) {
+            noPlayersMessage.remove();
+        }
+
+        // Проверяем, есть ли уже этот игрок в очереди
+        const existingQueuePlayer = document.querySelector(`.queue-player-card[data-player-id="${playerId}"]`);
+        if (existingQueuePlayer) {
+            console.log(`Игрок с ID ${playerId} уже есть в очереди`);
+            return false;
+        }
+
+        // Проверяем, есть ли уже этот игрок на корте
+        const existingCourtPlayer = document.querySelector(`.court-player[data-player-id="${playerId}"]`);
+        if (existingCourtPlayer) {
+            console.log(`Игрок с ID ${playerId} уже есть на корте`);
+            return false;
+        }
+
+        // Получаем данные игрока
+        const player = await playersApi.getPlayer(playerId);
+        if (!player) {
+            console.error(`Игрок с ID ${playerId} не найден`);
+            return false;
+        }
+
+        // Формируем полное имя
+        const playerFullName = `${player.last_name} ${player.first_name}`;
+
+        // Получаем URL фото или используем заглушку
+        const photoUrl = player.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(playerFullName)}&background=3498db&color=fff&size=150`;
+
+        // Определяем класс рейтинга
+        let ratingClass = 'rating-blue';
+        const rating = parseInt(player.rating) || 0;
+        if (rating >= 800) {
+            ratingClass = 'rating-red';
+        } else if (rating >= 600) {
+            ratingClass = 'rating-orange';
+        } else if (rating >= 450) {
+            ratingClass = 'rating-yellow';
+        } else if (rating >= 300) {
+            ratingClass = 'rating-green';
+        }
+
+        // Создаем карточку игрока для очереди
+        const playerElement = document.createElement('div');
+        playerElement.className = 'queue-player-card';
+        playerElement.setAttribute('data-player-id', playerId);
 
         // Заполняем HTML игрока
         playerElement.innerHTML = `
