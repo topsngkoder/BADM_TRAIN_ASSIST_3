@@ -192,8 +192,7 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         return;
     }
 
-    // Добавляем класс для анимации
-    buttonElement.classList.add('timer-transition');
+    // Убрали добавление класса для анимации
 
     // Получаем ID корта и элемент корта
     const courtIdForLock = buttonElement.getAttribute('data-court-id');
@@ -377,7 +376,6 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         // Возвращаем кнопку в исходное состояние
         buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
         buttonElement.classList.remove('timer-active');
-        buttonElement.classList.remove('timer-transition');
         buttonElement.style.pointerEvents = '';
         buttonElement.title = '';
         buttonElement.removeAttribute('data-timer-id');

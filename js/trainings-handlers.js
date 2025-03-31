@@ -442,7 +442,6 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
                                         // Сбрасываем внешний вид кнопки
                                         buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
                                         buttonElement.classList.remove('timer-active');
-                                        buttonElement.classList.remove('timer-transition');
                                         buttonElement.style.pointerEvents = '';
                                         buttonElement.title = '';
 
