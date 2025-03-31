@@ -603,22 +603,20 @@ export function initTrainingsModule() {
                             // Сохраняем состояние в базу данных
                             await saveTrainingState();
 
+                            // Показываем сообщение об успехе
                             showMessage(`Корт ${courtId} успешно удален`, 'success');
 
-                            // Обновляем окно деталей тренировки
-                            setTimeout(() => {
+                            // Перезагружаем страницу деталей тренировки
+                            try {
                                 // Получаем текущую тренировку
-                                trainingsApi.getTrainingById(parseInt(trainingId))
-                                    .then(training => {
-                                        if (training) {
-                                            // Перезагружаем детали тренировки
-                                            openTrainingDetails(training);
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Ошибка при обновлении деталей тренировки:', error);
-                                    });
-                            }, 500); // Небольшая задержка для завершения всех операций
+                                const training = await trainingsApi.getTrainingById(parseInt(trainingId));
+                                if (training) {
+                                    // Перезагружаем детали тренировки
+                                    openTrainingDetails(training);
+                                }
+                            } catch (error) {
+                                console.error('Ошибка при обновлении деталей тренировки:', error);
+                            }
                         } catch (error) {
                             console.error('Ошибка при удалении корта:', error);
                             showMessage('Ошибка при удалении корта', 'error');
@@ -743,22 +741,20 @@ export function initTrainingsModule() {
                                         // Сохраняем состояние в базу данных
                                         await saveTrainingState();
 
+                                        // Показываем сообщение об успехе
                                         showMessage(`Корт ${courtId} успешно удален`, 'success');
 
-                                        // Обновляем окно деталей тренировки
-                                        setTimeout(() => {
+                                        // Перезагружаем страницу деталей тренировки
+                                        try {
                                             // Получаем текущую тренировку
-                                            trainingsApi.getTrainingById(parseInt(trainingId))
-                                                .then(training => {
-                                                    if (training) {
-                                                        // Перезагружаем детали тренировки
-                                                        openTrainingDetails(training);
-                                                    }
-                                                })
-                                                .catch(error => {
-                                                    console.error('Ошибка при обновлении деталей тренировки:', error);
-                                                });
-                                        }, 500); // Небольшая задержка для завершения всех операций
+                                            const training = await trainingsApi.getTrainingById(parseInt(trainingId));
+                                            if (training) {
+                                                // Перезагружаем детали тренировки
+                                                openTrainingDetails(training);
+                                            }
+                                        } catch (error) {
+                                            console.error('Ошибка при обновлении деталей тренировки:', error);
+                                        }
                                     } catch (error) {
                                         console.error('Ошибка при удалении корта:', error);
                                         showMessage('Ошибка при удалении корта', 'error');
@@ -918,22 +914,20 @@ export function initTrainingsModule() {
                         // Сохраняем состояние в базу данных
                         await saveTrainingState();
 
+                        // Показываем сообщение об успехе
                         showMessage(`Корт ${newCourtId} успешно добавлен`, 'success');
 
-                        // Обновляем окно деталей тренировки
-                        setTimeout(() => {
+                        // Перезагружаем страницу деталей тренировки
+                        try {
                             // Получаем текущую тренировку
-                            trainingsApi.getTrainingById(parseInt(trainingId))
-                                .then(training => {
-                                    if (training) {
-                                        // Перезагружаем детали тренировки
-                                        openTrainingDetails(training);
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Ошибка при обновлении деталей тренировки:', error);
-                                });
-                        }, 500); // Небольшая задержка для завершения всех операций
+                            const training = await trainingsApi.getTrainingById(parseInt(trainingId));
+                            if (training) {
+                                // Перезагружаем детали тренировки
+                                openTrainingDetails(training);
+                            }
+                        } catch (error) {
+                            console.error('Ошибка при обновлении деталей тренировки:', error);
+                        }
                     } catch (error) {
                         console.error('Ошибка при добавлении корта:', error);
                         showMessage('Ошибка при добавлении корта', 'error');
