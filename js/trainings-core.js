@@ -521,6 +521,9 @@ export function initTrainingsModule() {
                 <div class="courts-section" style="width: 100%; height: auto; min-height: 500px; display: flex; flex-direction: column;">
                     <div class="courts-container" style="display: flex; flex-direction: column; width: 100%; overflow-y: auto; max-height: none; padding-bottom: 50px;">
                         ${courtsHTML}
+                        <button id="add-court-btn" class="add-court-btn">
+                            <i data-feather="plus-circle"></i> Добавить корт
+                        </button>
                     </div>
                 </div>
             </div>
@@ -608,6 +611,147 @@ export function initTrainingsModule() {
                     }
                 });
             });
+
+            // Добавляем обработчик для кнопки добавления корта
+            const addCourtBtn = detailsContainer.querySelector('#add-court-btn');
+            if (addCourtBtn) {
+                addCourtBtn.addEventListener('click', async () => {
+                    try {
+                        // Получаем ID тренировки из URL
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const trainingId = urlParams.get('id');
+
+                        if (!trainingId) {
+                            console.error('Не найден ID тренировки в URL');
+                            return;
+                        }
+
+                        // Получаем текущее количество кортов
+                        const currentCourtCount = document.querySelectorAll('.court-container').length;
+                        const newCourtCount = currentCourtCount + 1;
+                        const newCourtId = newCourtCount;
+
+                        // Обновляем количество кортов в базе данных
+                        await trainingsApi.updateTraining(trainingId, { court_count: newCourtCount });
+                        console.log(`Количество кортов в базе данных обновлено: ${newCourtCount}`);
+
+                        // Создаем HTML для нового корта
+                        const newCourtHTML = `
+                            <div class="court-container" data-court-id="${newCourtId}" style="margin-bottom: 20px; width: 100%; display: block;">
+                                <div class="court-header">
+                                    <h4>Корт ${newCourtId}</h4>
+                                    <button class="remove-court-btn" data-court-id="${newCourtId}" aria-label="Удалить корт" title="Удалить корт">
+                                        <i data-feather="trash-2"></i>
+                                    </button>
+                                </div>
+                                <div class="court-body">
+                                    <div class="court-half top-half" data-court="${newCourtId}" data-half="top">
+                                        <div class="court-players">
+                                            <div class="court-player-slot" data-slot="1"></div>
+                                            <div class="court-player-slot" data-slot="2"></div>
+                                        </div>
+                                        <div class="court-actions">
+                                            <button class="court-action-btn add-from-queue-btn" data-court="${newCourtId}" data-half="top" aria-label="Добавить из очереди">
+                                                <i data-feather="user-plus"></i> Из очереди
+                                            </button>
+                                            <button class="court-action-btn add-player-btn" data-court="${newCourtId}" data-half="top" aria-label="Добавить игрока">
+                                                <i data-feather="plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="court-divider"></div>
+                                    <div class="court-half bottom-half" data-court="${newCourtId}" data-half="bottom">
+                                        <div class="court-players">
+                                            <div class="court-player-slot" data-slot="1"></div>
+                                            <div class="court-player-slot" data-slot="2"></div>
+                                        </div>
+                                        <div class="court-actions">
+                                            <button class="court-action-btn add-from-queue-btn" data-court="${newCourtId}" data-half="bottom" aria-label="Добавить из очереди">
+                                                <i data-feather="user-plus"></i> Из очереди
+                                            </button>
+                                            <button class="court-action-btn add-player-btn" data-court="${newCourtId}" data-half="bottom" aria-label="Добавить игрока">
+                                                <i data-feather="plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        // Создаем элемент корта
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = newCourtHTML.trim();
+                        const newCourtElement = tempDiv.firstChild;
+
+                        // Добавляем новый корт перед кнопкой "Добавить корт"
+                        const courtsContainer = detailsContainer.querySelector('.courts-container');
+                        courtsContainer.insertBefore(newCourtElement, addCourtBtn);
+
+                        // Инициализируем иконки Feather для нового корта
+                        if (window.feather) {
+                            feather.replace(newCourtElement.querySelectorAll('[data-feather]'));
+                        }
+
+                        // Добавляем обработчик для кнопки удаления нового корта
+                        const newRemoveBtn = newCourtElement.querySelector('.remove-court-btn');
+                        if (newRemoveBtn) {
+                            newRemoveBtn.addEventListener('click', async (e) => {
+                                e.stopPropagation();
+                                const courtId = newRemoveBtn.getAttribute('data-court-id');
+                                const courtContainer = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+
+                                // Проверяем, пустой ли корт
+                                const courtPlayers = courtContainer.querySelectorAll('.court-player');
+                                if (courtPlayers.length > 0) {
+                                    showMessage('Нельзя удалить корт с игроками. Сначала удалите всех игроков с корта.', 'warning');
+                                    return;
+                                }
+
+                                // Запрашиваем подтверждение удаления
+                                if (confirm(`Вы уверены, что хотите удалить корт ${courtId}?`)) {
+                                    try {
+                                        // Подсчитываем количество оставшихся кортов (текущее - 1)
+                                        const remainingCourts = document.querySelectorAll('.court-container').length - 1;
+
+                                        // Сначала обновляем количество кортов в базе данных
+                                        await trainingsApi.updateTraining(trainingId, { court_count: remainingCourts });
+                                        console.log(`Количество кортов в базе данных обновлено: ${remainingCourts}`);
+
+                                        // Затем удаляем корт из DOM
+                                        courtContainer.remove();
+
+                                        // Обновляем локальное состояние
+                                        if (typeof window.updateLocalTrainingState === 'function') {
+                                            await window.updateLocalTrainingState();
+                                        }
+
+                                        // Сохраняем состояние в базу данных
+                                        await saveTrainingState();
+
+                                        showMessage(`Корт ${courtId} успешно удален`, 'success');
+                                    } catch (error) {
+                                        console.error('Ошибка при удалении корта:', error);
+                                        showMessage('Ошибка при удалении корта', 'error');
+                                    }
+                                }
+                            });
+                        }
+
+                        // Обновляем локальное состояние
+                        if (typeof window.updateLocalTrainingState === 'function') {
+                            await window.updateLocalTrainingState();
+                        }
+
+                        // Сохраняем состояние в базу данных
+                        await saveTrainingState();
+
+                        showMessage(`Корт ${newCourtId} успешно добавлен`, 'success');
+                    } catch (error) {
+                        console.error('Ошибка при добавлении корта:', error);
+                        showMessage('Ошибка при добавлении корта', 'error');
+                    }
+                });
+            }
 
             // Обработчик для карточки добавления игрока удален, так как кнопка "+" больше не используется
 
