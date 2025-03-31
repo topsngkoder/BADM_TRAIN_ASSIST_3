@@ -63,7 +63,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
-    padding: 4px 8px;
+    padding: 0 0 0 8px; /* Отступ только слева для заголовка */
     background-color: #f8f9fa;
     border-radius: 5px;
     height: 32px; /* Фиксированная высота для компактности */
@@ -73,6 +73,10 @@
     margin: 0;
     font-size: 16px;
     color: #333;
+    flex-grow: 1; /* Заголовок занимает все доступное пространство */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .remove-court-btn {
@@ -80,12 +84,15 @@
     border: none;
     color: #7f8c8d; /* Серый цвет */
     cursor: pointer;
-    padding: 3px;
-    border-radius: 4px;
+    padding: 0;
+    width: 32px; /* Квадратная кнопка */
+    height: 32px; /* Квадратная кнопка */
+    border-radius: 0 5px 5px 0; /* Скругление только с правой стороны */
     transition: color 0.2s, background-color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 8px; /* Отступ от заголовка */
 }
 
 .remove-court-btn:hover {
