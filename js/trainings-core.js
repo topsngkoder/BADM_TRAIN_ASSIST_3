@@ -460,6 +460,9 @@ export function initTrainingsModule() {
                 <div class="court-container" data-court-id="${i}" style="margin-bottom: 20px; width: 100%; display: block;">
                     <div class="court-header">
                         <h4>Корт ${i}</h4>
+                        <button class="remove-court-btn" data-court-id="${i}" aria-label="Удалить корт">
+                            <i data-feather="trash-2"></i>
+                        </button>
                     </div>
                     <div class="court-body">
                         <div class="court-half top-half" data-court="${i}" data-half="top">
@@ -551,6 +554,57 @@ export function initTrainingsModule() {
                     });
                 });
             }
+
+            // Добавляем обработчики для кнопок удаления кортов
+            const removeCourtBtns = detailsContainer.querySelectorAll('.remove-court-btn');
+            removeCourtBtns.forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const courtId = btn.getAttribute('data-court-id');
+                    const courtContainer = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+
+                    // Проверяем, пустой ли корт
+                    const courtPlayers = courtContainer.querySelectorAll('.court-player');
+                    if (courtPlayers.length > 0) {
+                        showMessage('Нельзя удалить корт с игроками. Сначала удалите всех игроков с корта.', 'warning');
+                        return;
+                    }
+
+                    // Запрашиваем подтверждение удаления
+                    if (confirm(`Вы уверены, что хотите удалить корт ${courtId}?`)) {
+                        try {
+                            // Получаем ID тренировки из URL
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const trainingId = urlParams.get('id');
+
+                            if (!trainingId) {
+                                console.error('Не найден ID тренировки в URL');
+                                return;
+                            }
+
+                            // Удаляем корт из DOM
+                            courtContainer.remove();
+
+                            // Обновляем количество кортов в базе данных
+                            const remainingCourts = document.querySelectorAll('.court-container').length;
+                            await trainingsApi.updateTraining(trainingId, { court_count: remainingCourts });
+
+                            // Обновляем локальное состояние
+                            if (typeof window.updateLocalTrainingState === 'function') {
+                                await window.updateLocalTrainingState();
+                            }
+
+                            // Сохраняем состояние в базу данных
+                            await saveTrainingState();
+
+                            showMessage(`Корт ${courtId} успешно удален`, 'success');
+                        } catch (error) {
+                            console.error('Ошибка при удалении корта:', error);
+                            showMessage('Ошибка при удалении корта', 'error');
+                        }
+                    }
+                });
+            });
 
             // Обработчик для карточки добавления игрока удален, так как кнопка "+" больше не используется
 

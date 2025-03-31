@@ -57,6 +57,37 @@
     font-weight: 500;
 }
 
+/* Стили для заголовка корта и кнопки удаления корта */
+.court-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.court-header h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.remove-court-btn {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.remove-court-btn:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
 /* Стили для заголовка и кнопки добавления игроков в очередь */
 .players-queue-section {
     margin-bottom: 20px;
