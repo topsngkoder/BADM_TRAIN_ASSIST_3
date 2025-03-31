@@ -15,8 +15,10 @@
     box-shadow: none;
 }
 
+/* Сохраняем цвет кольца в зависимости от рейтинга даже когда игра идет */
 .court-container.game-in-progress .court-player-photo {
-    border: 2px solid #2ecc71;
+    /* Не меняем border-color, чтобы сохранить цвет рейтинга */
+    border-width: 2px;
 }
 
 /* Стили для значка "2-я игра" */

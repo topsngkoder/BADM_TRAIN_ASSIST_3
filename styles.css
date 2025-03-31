@@ -1139,9 +1139,25 @@ input:focus {
     height: 10px;
 }
 
-/* Применяем те же цветовые обводки к фото игрока на корте */
-.court-player-photo {
-    border-color: #3498db !important; /* Единый цвет для всех игроков */
+/* Применяем цветовые обводки к фото игрока на корте в зависимости от рейтинга */
+.court-player-photo.rating-blue {
+    border-color: #3498db; /* Голубой - до 300 */
+}
+
+.court-player-photo.rating-green {
+    border-color: #2ecc71; /* Зеленый - от 300 до 450 */
+}
+
+.court-player-photo.rating-yellow {
+    border-color: #f1c40f; /* Желтый - от 450 до 600 */
+}
+
+.court-player-photo.rating-orange {
+    border-color: #e67e22; /* Оранжевый - от 600 до 800 */
+}
+
+.court-player-photo.rating-red {
+    border-color: #e74c3c; /* Красный - выше 800 */
 }
 
 /* Анимации для добавления/удаления игроков */
