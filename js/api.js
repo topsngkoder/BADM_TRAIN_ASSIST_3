@@ -293,6 +293,37 @@ export const trainingsApi = {
             console.error('Error deleting training:', error);
             throw error;
         }
+    },
+
+    // Обновление тренировки
+    async updateTraining(trainingId, updateData) {
+        try {
+            console.log(`Обновление тренировки с ID: ${trainingId}`, updateData);
+
+            // Преобразуем ID в число, если он передан как строка
+            const numericId = parseInt(trainingId);
+            if (isNaN(numericId)) {
+                throw new Error(`Некорректный ID тренировки: ${trainingId}`);
+            }
+
+            // Обновляем тренировку
+            const { data, error } = await supabase
+                .from('trainings')
+                .update(updateData)
+                .eq('id', numericId)
+                .select();
+
+            if (error) {
+                console.error('Ошибка при обновлении тренировки:', error);
+                throw error;
+            }
+
+            console.log(`Тренировка ${numericId} успешно обновлена:`, data);
+            return data;
+        } catch (error) {
+            console.error('Error updating training:', error);
+            throw error;
+        }
     }
 };
 

@@ -582,12 +582,15 @@ export function initTrainingsModule() {
                                 return;
                             }
 
-                            // Удаляем корт из DOM
-                            courtContainer.remove();
+                            // Подсчитываем количество оставшихся кортов (текущее - 1)
+                            const remainingCourts = document.querySelectorAll('.court-container').length - 1;
 
-                            // Обновляем количество кортов в базе данных
-                            const remainingCourts = document.querySelectorAll('.court-container').length;
+                            // Сначала обновляем количество кортов в базе данных
                             await trainingsApi.updateTraining(trainingId, { court_count: remainingCourts });
+                            console.log(`Количество кортов в базе данных обновлено: ${remainingCourts}`);
+
+                            // Затем удаляем корт из DOM
+                            courtContainer.remove();
 
                             // Обновляем локальное состояние
                             if (typeof window.updateLocalTrainingState === 'function') {
