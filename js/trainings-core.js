@@ -589,8 +589,23 @@ export function initTrainingsModule() {
                             const remainingCourts = document.querySelectorAll('.court-container').length - 1;
 
                             // Сначала обновляем количество кортов в базе данных
-                            await trainingsApi.updateTraining(trainingId, { court_count: remainingCourts });
+                            const updatedTraining = await trainingsApi.updateTraining(trainingId, { court_count: remainingCourts });
                             console.log(`Количество кортов в базе данных обновлено: ${remainingCourts}`);
+
+                            // Если обновление прошло успешно, перезагружаем страницу деталей тренировки
+                            if (updatedTraining && updatedTraining.length > 0) {
+                                // Получаем полные данные тренировки
+                                const fullTraining = await trainingsApi.getTrainingById(parseInt(trainingId));
+                                if (fullTraining) {
+                                    // Удаляем корт из DOM
+                                    courtContainer.remove();
+
+                                    // Перезагружаем детали тренировки
+                                    openTrainingDetails(fullTraining);
+                                    showMessage(`Корт ${courtId} успешно удален`, 'success');
+                                    return; // Прерываем выполнение функции, так как страница будет перезагружена
+                                }
+                            }
 
                             // Затем удаляем корт из DOM
                             courtContainer.remove();
@@ -605,18 +620,6 @@ export function initTrainingsModule() {
 
                             // Показываем сообщение об успехе
                             showMessage(`Корт ${courtId} успешно удален`, 'success');
-
-                            // Перезагружаем страницу деталей тренировки
-                            try {
-                                // Получаем текущую тренировку
-                                const training = await trainingsApi.getTrainingById(parseInt(trainingId));
-                                if (training) {
-                                    // Перезагружаем детали тренировки
-                                    openTrainingDetails(training);
-                                }
-                            } catch (error) {
-                                console.error('Ошибка при обновлении деталей тренировки:', error);
-                            }
                         } catch (error) {
                             console.error('Ошибка при удалении корта:', error);
                             showMessage('Ошибка при удалении корта', 'error');
@@ -645,8 +648,20 @@ export function initTrainingsModule() {
                         const newCourtId = newCourtCount;
 
                         // Обновляем количество кортов в базе данных
-                        await trainingsApi.updateTraining(trainingId, { court_count: newCourtCount });
+                        const updatedTraining = await trainingsApi.updateTraining(trainingId, { court_count: newCourtCount });
                         console.log(`Количество кортов в базе данных обновлено: ${newCourtCount}`);
+
+                        // Если обновление прошло успешно, перезагружаем страницу деталей тренировки
+                        if (updatedTraining && updatedTraining.length > 0) {
+                            // Получаем полные данные тренировки
+                            const fullTraining = await trainingsApi.getTrainingById(parseInt(trainingId));
+                            if (fullTraining) {
+                                // Перезагружаем детали тренировки
+                                openTrainingDetails(fullTraining);
+                                showMessage(`Корт ${newCourtId} успешно добавлен`, 'success');
+                                return; // Прерываем выполнение функции, так как страница будет перезагружена
+                            }
+                        }
 
                         // Создаем HTML для нового корта
                         const newCourtHTML = `
@@ -727,8 +742,23 @@ export function initTrainingsModule() {
                                         const remainingCourts = document.querySelectorAll('.court-container').length - 1;
 
                                         // Сначала обновляем количество кортов в базе данных
-                                        await trainingsApi.updateTraining(trainingId, { court_count: remainingCourts });
+                                        const updatedTraining = await trainingsApi.updateTraining(trainingId, { court_count: remainingCourts });
                                         console.log(`Количество кортов в базе данных обновлено: ${remainingCourts}`);
+
+                                        // Если обновление прошло успешно, перезагружаем страницу деталей тренировки
+                                        if (updatedTraining && updatedTraining.length > 0) {
+                                            // Получаем полные данные тренировки
+                                            const fullTraining = await trainingsApi.getTrainingById(parseInt(trainingId));
+                                            if (fullTraining) {
+                                                // Удаляем корт из DOM
+                                                courtContainer.remove();
+
+                                                // Перезагружаем детали тренировки
+                                                openTrainingDetails(fullTraining);
+                                                showMessage(`Корт ${courtId} успешно удален`, 'success');
+                                                return; // Прерываем выполнение функции, так как страница будет перезагружена
+                                            }
+                                        }
 
                                         // Затем удаляем корт из DOM
                                         courtContainer.remove();
@@ -743,18 +773,6 @@ export function initTrainingsModule() {
 
                                         // Показываем сообщение об успехе
                                         showMessage(`Корт ${courtId} успешно удален`, 'success');
-
-                                        // Перезагружаем страницу деталей тренировки
-                                        try {
-                                            // Получаем текущую тренировку
-                                            const training = await trainingsApi.getTrainingById(parseInt(trainingId));
-                                            if (training) {
-                                                // Перезагружаем детали тренировки
-                                                openTrainingDetails(training);
-                                            }
-                                        } catch (error) {
-                                            console.error('Ошибка при обновлении деталей тренировки:', error);
-                                        }
                                     } catch (error) {
                                         console.error('Ошибка при удалении корта:', error);
                                         showMessage('Ошибка при удалении корта', 'error');
@@ -916,18 +934,6 @@ export function initTrainingsModule() {
 
                         // Показываем сообщение об успехе
                         showMessage(`Корт ${newCourtId} успешно добавлен`, 'success');
-
-                        // Перезагружаем страницу деталей тренировки
-                        try {
-                            // Получаем текущую тренировку
-                            const training = await trainingsApi.getTrainingById(parseInt(trainingId));
-                            if (training) {
-                                // Перезагружаем детали тренировки
-                                openTrainingDetails(training);
-                            }
-                        } catch (error) {
-                            console.error('Ошибка при обновлении деталей тренировки:', error);
-                        }
                     } catch (error) {
                         console.error('Ошибка при добавлении корта:', error);
                         showMessage('Ошибка при добавлении корта', 'error');
