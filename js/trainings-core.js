@@ -737,6 +737,149 @@ export function initTrainingsModule() {
                             });
                         }
 
+                        // Добавляем обработчики для кнопок добавления игроков на новый корт
+
+                        // 1. Обработчики для кнопок "Добавить из очереди"
+                        const addFromQueueButtons = newCourtElement.querySelectorAll('.add-from-queue-btn');
+                        addFromQueueButtons.forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                e.stopPropagation();
+
+                                const courtId = button.getAttribute('data-court');
+                                const half = button.getAttribute('data-half');
+
+                                // Проверяем, есть ли игроки в очереди
+                                const queuePlayers = document.querySelectorAll('.queue-player-card:not(.removing)');
+                                if (queuePlayers.length === 0) {
+                                    showMessage('В очереди нет игроков', 'warning');
+                                    return;
+                                }
+
+                                // Импортируем функцию динамически, чтобы избежать циклических зависимостей
+                                import('./trainings-players.js').then(module => {
+                                    // Добавляем первого игрока из очереди на корт
+                                    module.addPlayerFromQueueToCourt(queuePlayers[0], courtId, half, () => {
+                                        // Обновляем кнопку "Начать игру" для этого корта
+                                        const courtContainer = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                                        if (courtContainer) {
+                                            updateCourtVisibility(courtContainer);
+
+                                            // Проверяем, все ли слоты заняты
+                                            const slots = courtContainer.querySelectorAll('.court-player-slot');
+                                            let occupiedSlots = 0;
+                                            slots.forEach(slot => {
+                                                if (slot.children.length > 0) {
+                                                    occupiedSlots++;
+                                                }
+                                            });
+
+                                            if (occupiedSlots === 4) {
+                                                updateStartGameButton(courtContainer, (buttonElement, courtId) => {
+                                                    startGameTimer(buttonElement, courtId,
+                                                        // Обработчик отмены игры
+                                                        async (buttonElement, timerInterval) => {
+                                                            if (typeof window.updateLocalTrainingState === 'function') {
+                                                                await window.updateLocalTrainingState();
+                                                            }
+                                                            await saveTrainingState();
+                                                        },
+                                                        // Обработчик завершения игры
+                                                        (buttonElement, courtId, formattedTime, timerInterval) => {
+                                                            // Получаем текущий режим тренировки
+                                                            const trainingModeSelect = document.getElementById('training-mode');
+                                                            const currentMode = trainingModeSelect ? trainingModeSelect.value : 'single';
+
+                                                            // Получаем игроков на корте
+                                                            const courtElement = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
+                                                            if (!courtElement) {
+                                                                console.error('Не найден элемент корта');
+                                                                return;
+                                                            }
+
+                                                            // Получаем игроков верхней половины
+                                                            const topPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="top"] .court-player'))
+                                                                .map(playerElement => {
+                                                                    const playerId = playerElement.getAttribute('data-player-id');
+                                                                    const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                                                    const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                                                                    return { id: playerId, name: playerName, photo: playerPhoto };
+                                                                });
+
+                                                            // Получаем игроков нижней половины
+                                                            const bottomPlayers = Array.from(courtElement.querySelectorAll('.court-half[data-half="bottom"] .court-player'))
+                                                                .map(playerElement => {
+                                                                    const playerId = playerElement.getAttribute('data-player-id');
+                                                                    const playerName = playerElement.querySelector('.court-player-name').textContent.trim();
+                                                                    const playerPhoto = playerElement.querySelector('.court-player-photo').src;
+                                                                    return { id: playerId, name: playerName, photo: playerPhoto };
+                                                                });
+
+                                                            // Проверяем, что на корте 4 игрока
+                                                            if (topPlayers.length === 2 && bottomPlayers.length === 2) {
+                                                                // Формируем названия команд
+                                                                const topTeamName = `${topPlayers[0].name}/${topPlayers[1].name}`;
+                                                                const bottomTeamName = `${bottomPlayers[0].name}/${bottomPlayers[1].name}`;
+
+                                                                // Показываем модальное окно выбора победителя
+                                                                import('./trainings-ui.js').then(uiModule => {
+                                                                    import('./trainings-state.js').then(stateModule => {
+                                                                        uiModule.showWinnerSelectionModal(courtId, topTeamName, bottomTeamName, topPlayers, bottomPlayers, formattedTime,
+                                                                            (courtId, winnerTeam, topPlayers, bottomPlayers) => {
+                                                                                stateModule.handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPlayers, saveTrainingState);
+                                                                            });
+                                                                    });
+                                                                });
+                                                            } else {
+                                                                // Если на корте не 4 игрока, просто показываем сообщение о завершении
+                                                                showMessage(`Игра завершена. Продолжительность: ${formattedTime}`, 'success');
+
+                                                                // Разблокируем изменение состава игроков
+                                                                unlockCourtPlayers(courtElement);
+                                                            }
+                                                        },
+                                                        saveTrainingState
+                                                    );
+                                                });
+                                            }
+                                        }
+                                    });
+                                });
+                            });
+                        });
+
+                        // 2. Обработчики для кнопок "+" (добавить выбранного игрока)
+                        const addPlayerButtons = newCourtElement.querySelectorAll('.add-player-btn');
+                        addPlayerButtons.forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const courtId = button.getAttribute('data-court');
+                                const half = button.getAttribute('data-half');
+
+                                // Проверяем, есть ли игроки в очереди
+                                const queuePlayers = document.querySelectorAll('.queue-player-card:not(.removing)');
+                                if (queuePlayers.length === 0) {
+                                    showMessage('В очереди нет игроков', 'warning');
+                                    return;
+                                }
+
+                                // Импортируем функции динамически
+                                import('./trainings-ui.js').then(uiModule => {
+                                    import('./trainings-players.js').then(playersModule => {
+                                        // Создаем модальное окно для выбора игрока
+                                        uiModule.openPlayerSelectionModal(courtId, half, queuePlayers, (playerCard, courtId, half) => {
+                                            playersModule.addPlayerFromQueueToCourt(playerCard, courtId, half, null, null);
+                                        });
+                                    });
+                                });
+                            });
+                        });
+
+                        // 3. Инициализируем видимость кнопок на всех половинах кортов
+                        const courtHalves = newCourtElement.querySelectorAll('.court-half');
+                        courtHalves.forEach(half => {
+                            updateCourtHalfButtons(half);
+                        });
+
                         // Обновляем локальное состояние
                         if (typeof window.updateLocalTrainingState === 'function') {
                             await window.updateLocalTrainingState();
