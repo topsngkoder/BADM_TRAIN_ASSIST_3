@@ -1,0 +1,4 @@
+fix: Удалено дублирующее определение функции resetGameButton
+
+- Удалено дублирующее определение функции resetGameButton в файле trainings-state.js
+- Исправлена ошибка SyntaxError: Identifier 'resetGameButton' has already been declared

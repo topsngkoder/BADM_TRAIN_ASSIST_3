@@ -9,8 +9,6 @@ const supabase = window.supabaseClient;
 
 // Функция для загрузки данных игроков в локальное хранилище
 async function loadPlayersToLocalStorage(stateData) {
-    console.log('Загрузка данных игроков в локальное хранилище');
-
     try {
         // Получаем уникальные ID игроков из очереди и кортов
         const playerIds = new Set();
@@ -47,14 +45,11 @@ async function loadPlayersToLocalStorage(stateData) {
             }); 
         }
 
-        console.log('Найдено уникальных ID игроков:', playerIds.size);
-
         // Загружаем данные каждого игрока
         const playerPromises = Array.from(playerIds).map(async playerId => {
             try {
                 const player = await playersApi.getPlayer(playerId);
                 if (player) {
-                    console.log(`Игрок с ID ${playerId} загружен в локальное хранилище`);
                 } else {
                     console.warn(`Не удалось загрузить игрока с ID ${playerId}`);
                 }
@@ -68,7 +63,6 @@ async function loadPlayersToLocalStorage(stateData) {
         // Ждем загрузки всех игроков
         await Promise.all(playerPromises);
 
-        console.log('Все игроки загружены в локальное хранилище');
     } catch (error) {
         console.error('Ошибка при загрузке игроков в локальное хранилище:', error);
     }
@@ -77,7 +71,6 @@ async function loadPlayersToLocalStorage(stateData) {
 // Функция для сохранения текущего состояния тренировки в локальное хранилище
 export async function updateLocalTrainingState() {
     try {
-        console.log('Обновление локального состояния тренировки');
 
         // Получаем ID текущей тренировки из URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -253,7 +246,6 @@ export async function updateLocalTrainingState() {
                     trainingStateApi._localState.courtCount = courtCount;
                     trainingStateApi._localState.lastUpdated = new Date().toISOString();
 
-                    console.log('Локальное состояние тренировки успешно обновлено');
                     resolve(true);
                 } catch (innerError) {
                     console.error('Ошибка при обновлении локального состояния тренировки:', innerError);
@@ -270,8 +262,6 @@ export async function updateLocalTrainingState() {
 // Функция для сохранения текущего состояния тренировки в базу данных
 export async function saveTrainingState() {
     try {
-        console.log('Сохранение текущего состояния тренировки в базу данных');
-
         // Сначала обновляем локальное состояние
         await updateLocalTrainingState();
 
@@ -327,7 +317,6 @@ export async function saveTrainingStateWithoutUpdate() {
 // Функция для загрузки состояния тренировки
 export async function loadTrainingState(trainingId) {
     try {
-        console.log('Загрузка состояния тренировки:', trainingId);
 
         // Инициализируем локальное хранилище игроков
         playersApi.initLocalPlayers();
@@ -340,8 +329,6 @@ export async function loadTrainingState(trainingId) {
         console.log('Загруженное состояние тренировки:', trainingState);
 
         if (trainingState && trainingState.state_data) {
-            // Если есть состояние, используем его
-            console.log('Используем загруженное состояние тренировки');
 
             // Восстанавливаем режим тренировки, очередь игроков и состояние кортов
             const stateData = trainingState.state_data;
@@ -368,7 +355,6 @@ export async function loadTrainingState(trainingId) {
                         // Обновляем состояние в базе данных
                         try {
                             await trainingStateApi.saveTrainingState(trainingId, stateData);
-                            console.log('Обновлено состояние с очередью игроков в базе данных');
                         } catch (saveError) {
                             console.error('Ошибка при сохранении состояния с очередью игроков:', saveError);
                         }
@@ -393,7 +379,6 @@ export async function loadTrainingState(trainingId) {
             try {
                 const training = await trainingsApi.getTrainingById(trainingId);
                 if (training) {
-                    console.log('Получены данные тренировки:', training);
 
                     // Создаем начальное состояние
                     const initialState = {
@@ -408,7 +393,6 @@ export async function loadTrainingState(trainingId) {
                     // Если у тренировки есть игроки, добавляем их в очередь
                     if (training.player_ids && Array.isArray(training.player_ids) && training.player_ids.length > 0) {
                         initialState.playersQueue = training.player_ids.map(id => ({ id: String(id) }));
-                        console.log('Добавлены игроки в очередь:', initialState.playersQueue);
                     }
 
                     // Сохраняем начальное состояние в базу данных
@@ -491,7 +475,6 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
     const trainingModeSelect = document.getElementById('training-mode');
     const currentMode = trainingModeSelect ? trainingModeSelect.value : 'single';
 
-    console.log('Текущий режим тренировки:', currentMode);
 
     // Разблокируем изменение состава игроков на корте
     unlockCourtPlayers(courtElement);
@@ -511,24 +494,18 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
 
 // Функция для обработки режима "Играем один раз"
 async function handleSingleGameMode(courtId, courtElement, winners, losers, trainingId, saveTrainingState) {
-    console.log('Обработка режима "Играем один раз"');
 
-    // Сначала удаляем игроков с корта, затем добавляем их в очередь
-    console.log('Удаляем игроков с корта и добавляем их в очередь');
+    
 
     // Получаем всех игроков на корте
     const courtPlayers = courtElement.querySelectorAll('.court-player');
     const allPlayers = [...winners, ...losers];
-
-    console.log('Найдено игроков на корте:', courtPlayers.length);
-    console.log('Игроки для обработки:', allPlayers);
 
     // Создаем массив для хранения удаленных игроков
     const removedPlayers = [];
 
     // Сначала удаляем игроков из локального состояния
     if (courtId) {
-        console.log('Удаляем игроков из локального состояния корта');
 
         // Для каждого игрока находим его позицию и удаляем из локального состояния
         allPlayers.forEach(player => {
@@ -543,7 +520,6 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
                     // Удаляем игрока с корта в локальном состоянии
                     try {
                         trainingStateApi.removePlayerFromCourt(courtId, position);
-                        console.log(`Игрок ${player.name} (ID: ${player.id}) удален с корта ${courtId}, позиция ${position}`);
 
                         // Добавляем игрока в список удаленных
                         removedPlayers.push(player);
@@ -567,7 +543,6 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
 
     // Проверяем, остались ли игроки на корте
     const remainingPlayers = courtElement.querySelectorAll('.court-player');
-    console.log('Осталось игроков на корте после удаления:', remainingPlayers.length);
 
     // Если остались игроки, удаляем их принудительно
     if (remainingPlayers.length > 0) {
@@ -601,9 +576,7 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
         }
 
         // Сначала добавляем победителей
-        console.log('Добавляем победителей в очередь:', winners);
         for (const player of winners) {
-            console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) в очередь`);
 
             // Проверяем, есть ли уже этот игрок в очереди
             const existingQueuePlayer = document.querySelector(`.queue-player-card[data-player-id="${player.id}"]`);
@@ -632,9 +605,7 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
         }
 
         // Затем добавляем проигравших
-        console.log('Добавляем проигравших в очередь:', losers);
         for (const player of losers) {
-            console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в очередь`);
 
             // Проверяем, есть ли уже этот игрок в очереди
             const existingQueuePlayer = document.querySelector(`.queue-player-card[data-player-id="${player.id}"]`);
@@ -667,10 +638,8 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
 
         // Сохраняем состояние в базу данных после добавления всех игроков
         try {
-            console.log('Сохраняем состояние в базу данных после добавления всех игроков');
             if (saveTrainingState && typeof saveTrainingState === 'function') {
                 await saveTrainingState();
-                console.log('Состояние успешно сохранено в базу данных');
             } else {
                 // Получаем текущее состояние из локального хранилища
                 const stateData = { ...trainingStateApi._localState };
@@ -682,7 +651,6 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
                 // Обновляем локальное хранилище
                 trainingStateApi._localState = { ...stateData };
 
-                console.log('Состояние успешно сохранено в базу данных');
             }
         } catch (error) {
             console.error('Ошибка при сохранении состояния в базу данных:', error);
@@ -714,7 +682,6 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
 
 // Функция для обработки режима "Не больше двух побед"
 async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trainingId, saveTrainingState) {
-    console.log('Обработка режима "Не больше двух побед"');
 
     // Проверяем, есть ли у победителей уже одна победа (значок "2-я игра")
     const winnersHaveBadge = winners.some(player => {
@@ -722,25 +689,18 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
         return playerElement && playerElement.querySelector('.second-game-badge');
     });
 
-    console.log('Победители имеют значок "2-я игра":', winnersHaveBadge);
 
     if (winnersHaveBadge) {
-        // Если у победителей уже есть значок "2-я игра", это их вторая победа
-        console.log('Победители выиграли вторую игру подряд, все игроки отправляются в очередь');
 
         // Удаляем всех игроков с корта
         const courtPlayers = courtElement.querySelectorAll('.court-player');
         const allPlayers = [...winners, ...losers];
-
-        console.log('Найдено игроков на корте:', courtPlayers.length);
-        console.log('Игроки для обработки:', allPlayers);
 
         // Создаем массив для хранения удаленных игроков
         const removedPlayers = [];
 
         // Сначала удаляем игроков из локального состояния
         if (courtId) {
-            console.log('Удаляем игроков из локального состояния корта');
 
             // Для каждого игрока находим его позицию и удаляем из локального состояния
             allPlayers.forEach(player => {
@@ -755,7 +715,6 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
                         // Удаляем игрока с корта в локальном состоянии
                         try {
                             trainingStateApi.removePlayerFromCourt(courtId, position);
-                            console.log(`Игрок ${player.name} (ID: ${player.id}) удален с корта ${courtId}, позиция ${position}`);
 
                             // Добавляем игрока в список удаленных
                             removedPlayers.push(player);
@@ -763,7 +722,6 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
                             // Удаляем игрока из DOM
                             try {
                                 playerElement.remove();
-                                console.log(`Игрок ${player.name} (ID: ${player.id}) удален из DOM`);
                             } catch (domError) {
                                 console.error(`Ошибка при удалении игрока ${player.name} (ID: ${player.id}) из DOM:`, domError);
                             }
@@ -779,7 +737,6 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
 
         // Проверяем, остались ли игроки на корте
         const remainingPlayers = courtElement.querySelectorAll('.court-player');
-        console.log('Осталось игроков на корте после удаления:', remainingPlayers.length);
 
         // Если остались игроки, удаляем их принудительно
         if (remainingPlayers.length > 0) {
@@ -813,9 +770,7 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
             }
 
             // Сначала добавляем победителей в конец очереди
-            console.log('Добавляем победителей в конец очереди:', winners);
             for (const player of winners) {
-                console.log(`Добавляем победителя ${player.name} (ID: ${player.id}) в конец очереди`);
 
                 // Проверяем, есть ли уже этот игрок в очереди
                 const existingQueuePlayer = document.querySelector(`.queue-player-card[data-player-id="${player.id}"]`);
@@ -844,9 +799,7 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
             }
 
             // Затем добавляем проигравших в конец очереди
-            console.log('Добавляем проигравших в конец очереди:', losers);
             for (const player of losers) {
-                console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в конец очереди`);
 
                 // Проверяем, есть ли уже этот игрок в очереди
                 const existingQueuePlayer = document.querySelector(`.queue-player-card[data-player-id="${player.id}"]`);
@@ -880,7 +833,6 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
             // Сохраняем состояние в базу данных
             if (saveTrainingState && typeof saveTrainingState === 'function') {
                 await saveTrainingState();
-                console.log('Состояние успешно сохранено в базу данных');
             }
         };
 
@@ -899,11 +851,7 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
         // Сбрасываем кнопку "Начать игру"
         resetGameButton(courtElement);
     } else {
-        // Если у победителей нет значка "2-я игра", это их первая победа
-        console.log('Победители выиграли первую игру, добавляем значок "2-я игра" и отправляем проигравших в очередь');
-
-        // Удаляем проигравших с корта
-        console.log('Удаляем проигравших с корта:', losers);
+        
 
         // Создаем массив для хранения удаленных игроков
         const removedPlayers = [];
@@ -911,7 +859,6 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
         losers.forEach(player => {
             const playerElement = courtElement.querySelector(`.court-player[data-player-id="${player.id}"]`);
             if (playerElement) {
-                console.log(`Найден элемент игрока ${player.name} (ID: ${player.id}) на корте`);
 
                 // Сначала удаляем игрока из локального состояния
                 if (courtId) {
@@ -924,7 +871,6 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
                         // Удаляем игрока с корта в локальном состоянии
                         try {
                             trainingStateApi.removePlayerFromCourt(courtId, position);
-                            console.log(`Игрок ${player.name} (ID: ${player.id}) удален с корта ${courtId}, позиция ${position}`);
 
                             // Добавляем игрока в список удаленных
                             removedPlayers.push(player);
@@ -937,7 +883,6 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
                 // Затем удаляем игрока из DOM
                 try {
                     playerElement.remove();
-                    console.log(`Игрок ${player.name} (ID: ${player.id}) удален из DOM`);
                 } catch (error) {
                     console.error(`Ошибка при удалении игрока ${player.name} (ID: ${player.id}) из DOM:`, error);
                 }
@@ -946,9 +891,7 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
             }
         });
 
-        // Проверяем, все ли проигравшие были удалены
-        console.log('Удалено игроков:', removedPlayers.length, 'из', losers.length);
-
+        
         // Проверяем, остались ли проигравшие на корте
         losers.forEach(player => {
             const playerElement = courtElement.querySelector(`.court-player[data-player-id="${player.id}"]`);
@@ -995,9 +938,7 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
             }
 
             // Добавляем проигравших в конец очереди
-            console.log('Добавляем проигравших в конец очереди:', losers);
             for (const player of losers) {
-                console.log(`Добавляем проигравшего ${player.name} (ID: ${player.id}) в конец очереди`);
 
                 // Проверяем, есть ли уже этот игрок в очереди
                 const existingQueuePlayer = document.querySelector(`.queue-player-card[data-player-id="${player.id}"]`);
@@ -1031,7 +972,6 @@ async function handleMaxTwoWinsMode(courtId, courtElement, winners, losers, trai
             // Сохраняем состояние в базу данных
             if (saveTrainingState && typeof saveTrainingState === 'function') {
                 await saveTrainingState();
-                console.log('Состояние успешно сохранено в базу данных');
             }
         };
 
