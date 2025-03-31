@@ -605,9 +605,14 @@ export function initTrainingsModule() {
 
                                 // Обновляем количество кортов в состоянии
                                 trainingStateApi._localState.courtCount = remainingCourts;
+                                trainingStateApi._localState.lastUpdated = new Date().toISOString();
+
+                                // Обновляем локальное хранилище
+                                await updateLocalTrainingState();
+                                console.log(`Локальное состояние тренировки после удаления корта ${courtId} обновлено`);
 
                                 // Сохраняем обновленное состояние в базу данных
-                                await trainingStateApi.saveTrainingState(trainingId, trainingStateApi._localState);
+                                await saveTrainingState();
                                 console.log(`Состояние тренировки после удаления корта ${courtId} сохранено в базу данных`);
                             } catch (stateError) {
                                 console.error(`Ошибка при обновлении состояния тренировки после удаления корта ${courtId}:`, stateError);
@@ -699,9 +704,14 @@ export function initTrainingsModule() {
 
                             // Обновляем количество кортов в состоянии
                             trainingStateApi._localState.courtCount = newCourtCount;
+                            trainingStateApi._localState.lastUpdated = new Date().toISOString();
+
+                            // Обновляем локальное хранилище
+                            await updateLocalTrainingState();
+                            console.log(`Локальное состояние тренировки с новым кортом ${newCourtId} обновлено`);
 
                             // Сохраняем обновленное состояние в базу данных
-                            await trainingStateApi.saveTrainingState(trainingId, trainingStateApi._localState);
+                            await saveTrainingState();
                             console.log(`Состояние тренировки с новым кортом ${newCourtId} сохранено в базу данных`);
                         } catch (stateError) {
                             console.error(`Ошибка при обновлении состояния тренировки с новым кортом ${newCourtId}:`, stateError);
@@ -814,9 +824,14 @@ export function initTrainingsModule() {
 
                                             // Обновляем количество кортов в состоянии
                                             trainingStateApi._localState.courtCount = remainingCourts;
+                                            trainingStateApi._localState.lastUpdated = new Date().toISOString();
+
+                                            // Обновляем локальное хранилище
+                                            await updateLocalTrainingState();
+                                            console.log(`Локальное состояние тренировки после удаления корта ${courtId} обновлено`);
 
                                             // Сохраняем обновленное состояние в базу данных
-                                            await trainingStateApi.saveTrainingState(trainingId, trainingStateApi._localState);
+                                            await saveTrainingState();
                                             console.log(`Состояние тренировки после удаления корта ${courtId} сохранено в базу данных`);
                                         } catch (stateError) {
                                             console.error(`Ошибка при обновлении состояния тренировки после удаления корта ${courtId}:`, stateError);
