@@ -62,10 +62,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    padding: 5px 10px;
+    margin-bottom: 8px;
+    padding: 4px 8px;
     background-color: #f8f9fa;
     border-radius: 5px;
+    height: 32px; /* Фиксированная высота для компактности */
 }
 
 .court-header h4 {
@@ -77,15 +78,24 @@
 .remove-court-btn {
     background: none;
     border: none;
-    color: #e74c3c;
+    color: #7f8c8d; /* Серый цвет */
     cursor: pointer;
-    padding: 5px;
+    padding: 3px;
     border-radius: 4px;
-    transition: background-color 0.2s;
+    transition: color 0.2s, background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .remove-court-btn:hover {
+    color: #e74c3c; /* Красный цвет при наведении */
     background-color: rgba(231, 76, 60, 0.1);
+}
+
+.remove-court-btn svg {
+    width: 16px; /* Меньший размер иконки */
+    height: 16px; /* Меньший размер иконки */
 }
 
 /* Стили для заголовка и кнопки добавления игроков в очередь */

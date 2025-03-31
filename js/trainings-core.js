@@ -460,7 +460,7 @@ export function initTrainingsModule() {
                 <div class="court-container" data-court-id="${i}" style="margin-bottom: 20px; width: 100%; display: block;">
                     <div class="court-header">
                         <h4>Корт ${i}</h4>
-                        <button class="remove-court-btn" data-court-id="${i}" aria-label="Удалить корт">
+                        <button class="remove-court-btn" data-court-id="${i}" aria-label="Удалить корт" title="Удалить корт">
                             <i data-feather="trash-2"></i>
                         </button>
                     </div>
