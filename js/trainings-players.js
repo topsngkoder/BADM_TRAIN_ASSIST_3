@@ -641,8 +641,8 @@ export async function openRemovePlayersFromTrainingModal() {
         document.body.appendChild(removePlayersModal);
     }
 
-    // Собираем всех игроков, участвующих в тренировке
-    const allTrainingPlayers = [];
+    // Собираем только игроков из очереди
+    const queuePlayers = [];
 
     // Добавляем игроков из очереди
     const queuePlayerCards = document.querySelectorAll('.queue-player-card');
@@ -652,7 +652,7 @@ export async function openRemovePlayersFromTrainingModal() {
         const playerPhoto = card.querySelector('.queue-player-photo').src;
         const playerRating = card.querySelector('.queue-player-rating').textContent;
 
-        allTrainingPlayers.push({
+        queuePlayers.push({
             id: playerId,
             name: playerName,
             photo: playerPhoto,
@@ -661,29 +661,9 @@ export async function openRemovePlayersFromTrainingModal() {
         });
     });
 
-    // Добавляем игроков с кортов
-    const courtPlayers = document.querySelectorAll('.court-player');
-    courtPlayers.forEach(player => {
-        const playerId = player.getAttribute('data-player-id');
-        const playerName = player.querySelector('.court-player-name').textContent;
-        const playerPhoto = player.querySelector('.court-player-photo').src;
-        const courtContainer = player.closest('.court-container');
-        const courtId = courtContainer ? courtContainer.getAttribute('data-court-id') : 'неизвестно';
-        const half = player.closest('.court-half').getAttribute('data-half');
-        const halfText = half === 'top' ? 'верхняя' : 'нижняя';
-
-        allTrainingPlayers.push({
-            id: playerId,
-            name: playerName,
-            photo: playerPhoto,
-            rating: '',
-            location: `Корт ${courtId}, ${halfText} половина`
-        });
-    });
-
-    // Если нет игроков, показываем сообщение
-    if (allTrainingPlayers.length === 0) {
-        showMessage('На тренировке нет игроков', 'warning');
+    // Если нет игроков в очереди, показываем сообщение
+    if (queuePlayers.length === 0) {
+        showMessage('В очереди нет игроков для удаления', 'warning');
         return;
     }
 
@@ -691,23 +671,25 @@ export async function openRemovePlayersFromTrainingModal() {
     removePlayersModal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Удалить игроков с тренировки</h2>
+                <h2>Удалить игроков из очереди</h2>
                 <button class="close-modal-btn" aria-label="Закрыть">
                     <i data-feather="x"></i>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
+                    <div class="info-message">
+                        <p>Здесь отображаются только игроки, находящиеся в очереди. Чтобы удалить игрока с корта, сначала верните его в очередь.</p>
+                    </div>
                     <div id="remove-players-selection" class="players-selection">
-                        ${allTrainingPlayers.map(player => `
+                        ${queuePlayers.map(player => `
                             <div class="player-checkbox-item" data-player-id="${player.id}">
                                 <input type="checkbox" name="selectedPlayersToRemove" value="${player.id}" id="remove-player-${player.id}">
                                 <label class="player-checkbox-label" for="remove-player-${player.id}">
                                     <img src="${player.photo}" alt="${player.name}" class="player-checkbox-photo ${getRatingClass(player.rating)}">
                                     <div class="player-checkbox-info">
                                         <div class="player-checkbox-name">${player.name}</div>
-                                        <div class="player-checkbox-location">${player.location}</div>
-                                        ${player.rating ? `<div class="player-checkbox-rating">${player.rating}</div>` : ''}
+                                        <div class="player-checkbox-rating">${player.rating}</div>
                                     </div>
                                 </label>
                             </div>
