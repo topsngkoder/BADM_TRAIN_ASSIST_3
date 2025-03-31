@@ -604,6 +604,21 @@ export function initTrainingsModule() {
                             await saveTrainingState();
 
                             showMessage(`Корт ${courtId} успешно удален`, 'success');
+
+                            // Обновляем окно деталей тренировки
+                            setTimeout(() => {
+                                // Получаем текущую тренировку
+                                trainingsApi.getTrainingById(parseInt(trainingId))
+                                    .then(training => {
+                                        if (training) {
+                                            // Перезагружаем детали тренировки
+                                            openTrainingDetails(training);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Ошибка при обновлении деталей тренировки:', error);
+                                    });
+                            }, 500); // Небольшая задержка для завершения всех операций
                         } catch (error) {
                             console.error('Ошибка при удалении корта:', error);
                             showMessage('Ошибка при удалении корта', 'error');
@@ -729,6 +744,21 @@ export function initTrainingsModule() {
                                         await saveTrainingState();
 
                                         showMessage(`Корт ${courtId} успешно удален`, 'success');
+
+                                        // Обновляем окно деталей тренировки
+                                        setTimeout(() => {
+                                            // Получаем текущую тренировку
+                                            trainingsApi.getTrainingById(parseInt(trainingId))
+                                                .then(training => {
+                                                    if (training) {
+                                                        // Перезагружаем детали тренировки
+                                                        openTrainingDetails(training);
+                                                    }
+                                                })
+                                                .catch(error => {
+                                                    console.error('Ошибка при обновлении деталей тренировки:', error);
+                                                });
+                                        }, 500); // Небольшая задержка для завершения всех операций
                                     } catch (error) {
                                         console.error('Ошибка при удалении корта:', error);
                                         showMessage('Ошибка при удалении корта', 'error');
@@ -889,6 +919,21 @@ export function initTrainingsModule() {
                         await saveTrainingState();
 
                         showMessage(`Корт ${newCourtId} успешно добавлен`, 'success');
+
+                        // Обновляем окно деталей тренировки
+                        setTimeout(() => {
+                            // Получаем текущую тренировку
+                            trainingsApi.getTrainingById(parseInt(trainingId))
+                                .then(training => {
+                                    if (training) {
+                                        // Перезагружаем детали тренировки
+                                        openTrainingDetails(training);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Ошибка при обновлении деталей тренировки:', error);
+                                });
+                        }, 500); // Небольшая задержка для завершения всех операций
                     } catch (error) {
                         console.error('Ошибка при добавлении корта:', error);
                         showMessage('Ошибка при добавлении корта', 'error');
