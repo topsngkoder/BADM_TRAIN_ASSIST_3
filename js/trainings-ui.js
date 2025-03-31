@@ -23,6 +23,7 @@ export function createTrainingCard(training, onCardClick, onDeleteClick) {
                     month: '2-digit',
                     year: 'numeric'
                 });
+                
             } catch (dateError) {
                 console.error('Ошибка при форматировании даты:', dateError);
             }
@@ -236,11 +237,14 @@ export function openPlayerSelectionModal(courtId, half, queuePlayers, onPlayerSe
                         const playerId = player.getAttribute('data-player-id');
                         const playerName = player.querySelector('.queue-player-name').textContent;
                         const playerPhoto = player.querySelector('.queue-player-photo').src;
+                        // Получаем класс рейтинга из фото игрока в очереди
+                        const ratingClass = player.querySelector('.queue-player-photo').className.split(' ')
+                            .find(cls => cls.startsWith('rating-')) || 'rating-blue';
 
                         return `
                             <div class="player-selection-item" data-player-id="${playerId}">
                                 <div class="player-selection-photo-container">
-                                    <img src="${playerPhoto}" alt="${playerName}" class="player-selection-photo">
+                                    <img src="${playerPhoto}" alt="${playerName}" class="player-selection-photo ${ratingClass}">
                                 </div>
                                 <div class="player-selection-name">${playerName}</div>
                             </div>
