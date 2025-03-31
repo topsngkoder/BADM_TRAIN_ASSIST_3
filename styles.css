@@ -606,6 +606,27 @@ input:focus {
     border: 2px solid #3498db;
 }
 
+/* Цветовые обводки для фото игрока в модальном окне выбора игрока */
+.player-selection-photo.rating-blue {
+    border-color: #3498db; /* Голубой - до 300 */
+}
+
+.player-selection-photo.rating-green {
+    border-color: #2ecc71; /* Зеленый - от 300 до 450 */
+}
+
+.player-selection-photo.rating-yellow {
+    border-color: #f1c40f; /* Желтый - от 450 до 600 */
+}
+
+.player-selection-photo.rating-orange {
+    border-color: #e67e22; /* Оранжевый - от 600 до 800 */
+}
+
+.player-selection-photo.rating-red {
+    border-color: #e74c3c; /* Красный - выше 800 */
+}
+
 .player-selection-name {
     font-size: 16px;
     font-weight: 500;
@@ -1622,6 +1643,27 @@ input:focus {
     object-fit: cover;
     margin-right: 10px;
     border: 2px solid #3498db;
+}
+
+/* Цветовые обводки для фото игрока в модальных окнах добавления/удаления игрока */
+.player-checkbox-photo.rating-blue {
+    border-color: #3498db; /* Голубой - до 300 */
+}
+
+.player-checkbox-photo.rating-green {
+    border-color: #2ecc71; /* Зеленый - от 300 до 450 */
+}
+
+.player-checkbox-photo.rating-yellow {
+    border-color: #f1c40f; /* Желтый - от 450 до 600 */
+}
+
+.player-checkbox-photo.rating-orange {
+    border-color: #e67e22; /* Оранжевый - от 600 до 800 */
+}
+
+.player-checkbox-photo.rating-red {
+    border-color: #e74c3c; /* Красный - выше 800 */
 }
 
 .player-checkbox-info {

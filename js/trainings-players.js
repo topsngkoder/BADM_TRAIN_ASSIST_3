@@ -7,6 +7,30 @@ import { saveTrainingState, saveTrainingStateWithoutUpdate } from './trainings-s
 // Получаем доступ к глобальному экземпляру Supabase
 const supabase = window.supabaseClient;
 
+// Функция для определения класса рейтинга по значению рейтинга
+function getRatingClass(rating) {
+    // Преобразуем рейтинг в число, если он передан как строка
+    const numericRating = typeof rating === 'string' ? parseInt(rating) : rating;
+
+    // Если рейтинг не определен или не является числом, возвращаем базовый класс
+    if (isNaN(numericRating)) {
+        return 'rating-blue';
+    }
+
+    // Определяем класс в зависимости от значения рейтинга
+    if (numericRating >= 800) {
+        return 'rating-red';
+    } else if (numericRating >= 600) {
+        return 'rating-orange';
+    } else if (numericRating >= 450) {
+        return 'rating-yellow';
+    } else if (numericRating >= 300) {
+        return 'rating-green';
+    } else {
+        return 'rating-blue';
+    }
+}
+
 // Добавляем функцию withoutUpdate к объекту saveTrainingState
 saveTrainingState.withoutUpdate = saveTrainingStateWithoutUpdate;
 
@@ -679,7 +703,7 @@ export async function openRemovePlayersFromTrainingModal() {
                             <div class="player-checkbox-item" data-player-id="${player.id}">
                                 <input type="checkbox" name="selectedPlayersToRemove" value="${player.id}" id="remove-player-${player.id}">
                                 <label class="player-checkbox-label" for="remove-player-${player.id}">
-                                    <img src="${player.photo}" alt="${player.name}" class="player-checkbox-photo">
+                                    <img src="${player.photo}" alt="${player.name}" class="player-checkbox-photo ${getRatingClass(player.rating)}">
                                     <div class="player-checkbox-info">
                                         <div class="player-checkbox-name">${player.name}</div>
                                         <div class="player-checkbox-location">${player.location}</div>
@@ -867,7 +891,20 @@ export async function openAddPlayersToTrainingModal() {
             const img = document.createElement('img');
             img.src = photoUrl;
             img.alt = `${player.first_name} ${player.last_name}`;
-            img.className = 'player-checkbox-photo';
+
+            // Определяем класс рейтинга
+            let ratingClass = 'rating-blue';
+            if (player.rating >= 800) {
+                ratingClass = 'rating-red';
+            } else if (player.rating >= 600) {
+                ratingClass = 'rating-orange';
+            } else if (player.rating >= 450) {
+                ratingClass = 'rating-yellow';
+            } else if (player.rating >= 300) {
+                ratingClass = 'rating-green';
+            }
+
+            img.className = `player-checkbox-photo ${ratingClass}`;
 
             const infoDiv = document.createElement('div');
             infoDiv.className = 'player-checkbox-info';

@@ -138,7 +138,20 @@ export async function openAddTrainingModal(playersSelection, addTrainingModal) {
                 const img = document.createElement('img');
                 img.src = photoUrl;
                 img.alt = `${player.first_name} ${player.last_name}`;
-                img.className = 'player-checkbox-photo';
+
+                // Определяем класс рейтинга
+                let ratingClass = 'rating-blue';
+                if (player.rating >= 800) {
+                    ratingClass = 'rating-red';
+                } else if (player.rating >= 600) {
+                    ratingClass = 'rating-orange';
+                } else if (player.rating >= 450) {
+                    ratingClass = 'rating-yellow';
+                } else if (player.rating >= 300) {
+                    ratingClass = 'rating-green';
+                }
+
+                img.className = `player-checkbox-photo ${ratingClass}`;
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'player-checkbox-info';
