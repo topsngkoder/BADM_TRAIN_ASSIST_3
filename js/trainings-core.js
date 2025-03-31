@@ -566,6 +566,17 @@ export function initTrainingsModule() {
                     const courtId = btn.getAttribute('data-court-id');
                     const courtContainer = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
 
+                    // Получаем все корты
+                    const allCourts = document.querySelectorAll('.court-container');
+                    const totalCourts = allCourts.length;
+
+                    // Проверяем, является ли удаляемый корт последним
+                    if (parseInt(courtId) !== totalCourts) {
+                        console.log(`Корт ${courtId} не является последним. Можно удалить только последний корт.`);
+                        showMessage(`Можно удалить только последний корт (Корт ${totalCourts})`, 'warning');
+                        return;
+                    }
+
                     // Проверяем, пустой ли корт
                     const courtPlayers = courtContainer.querySelectorAll('.court-player');
                     if (courtPlayers.length > 0) {
@@ -592,14 +603,14 @@ export function initTrainingsModule() {
                             const updatedTraining = await trainingsApi.updateTraining(trainingId, { court_count: remainingCourts });
                             console.log(`Количество кортов в базе данных обновлено: ${remainingCourts}`);
 
-                            // Удаляем корт из состояния тренировки
+                            // Обрабатываем удаление корта из состояния тренировки
                             try {
                                 // Проверяем, инициализировано ли локальное хранилище
                                 if (trainingStateApi._localState.trainingId !== parseInt(trainingId)) {
                                     trainingStateApi.initLocalState(parseInt(trainingId));
                                 }
 
-                                // Удаляем корт из состояния
+                                // Удаляем корт из состояния (теперь мы знаем, что это последний корт)
                                 trainingStateApi._localState.courts = trainingStateApi._localState.courts.filter(court => court.id !== String(courtId));
                                 console.log(`Корт ${courtId} удален из состояния тренировки`);
 
@@ -794,6 +805,17 @@ export function initTrainingsModule() {
                                 const courtId = newRemoveBtn.getAttribute('data-court-id');
                                 const courtContainer = document.querySelector(`.court-container[data-court-id="${courtId}"]`);
 
+                                // Получаем все корты
+                                const allCourts = document.querySelectorAll('.court-container');
+                                const totalCourts = allCourts.length;
+
+                                // Проверяем, является ли удаляемый корт последним
+                                if (parseInt(courtId) !== totalCourts) {
+                                    console.log(`Корт ${courtId} не является последним. Можно удалить только последний корт.`);
+                                    showMessage(`Можно удалить только последний корт (Корт ${totalCourts})`, 'warning');
+                                    return;
+                                }
+
                                 // Проверяем, пустой ли корт
                                 const courtPlayers = courtContainer.querySelectorAll('.court-player');
                                 if (courtPlayers.length > 0) {
@@ -811,14 +833,14 @@ export function initTrainingsModule() {
                                         const updatedTraining = await trainingsApi.updateTraining(trainingId, { court_count: remainingCourts });
                                         console.log(`Количество кортов в базе данных обновлено: ${remainingCourts}`);
 
-                                        // Удаляем корт из состояния тренировки
+                                        // Обрабатываем удаление корта из состояния тренировки
                                         try {
                                             // Проверяем, инициализировано ли локальное хранилище
                                             if (trainingStateApi._localState.trainingId !== parseInt(trainingId)) {
                                                 trainingStateApi.initLocalState(parseInt(trainingId));
                                             }
 
-                                            // Удаляем корт из состояния
+                                            // Удаляем корт из состояния (теперь мы знаем, что это последний корт)
                                             trainingStateApi._localState.courts = trainingStateApi._localState.courts.filter(court => court.id !== String(courtId));
                                             console.log(`Корт ${courtId} удален из состояния тренировки`);
 
