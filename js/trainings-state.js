@@ -448,11 +448,9 @@ export function handleWinnerSelection(courtId, winnerTeam, topPlayers, bottomPla
     if (winnerTeam === 'top') {
         winners = topPlayers;
         losers = bottomPlayers;
-        showMessage(`Победила команда: ${topPlayers[0].name}/${topPlayers[1].name}`, 'success');
     } else {
         winners = bottomPlayers;
         losers = topPlayers;
-        showMessage(`Победила команда: ${bottomPlayers[0].name}/${bottomPlayers[1].name}`, 'success');
     }
 
     // Получаем элемент корта
