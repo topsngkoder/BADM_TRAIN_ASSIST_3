@@ -318,8 +318,8 @@ export async function handleDeleteTraining(trainingId, cardElement, trainingsCon
 export async function initTrainingDetailsHandlers(detailsContainer, saveTrainingState) {
     console.log('Инициализация обработчиков деталей тренировки');
 
-    // Загружаем всех игроков в локальное хранилище
-    await loadAllPlayersToLocalStorage();
+    // Игроки должны быть уже загружены при инициализации приложения
+    // или при обновлении на странице "Игроки"
 
     // Флаг для отслеживания процесса добавления игрока
     let isAddingPlayer = false;

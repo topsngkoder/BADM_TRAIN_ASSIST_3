@@ -421,13 +421,8 @@ export const trainingStateApi = {
                 console.log('Используем состояние тренировки из локального хранилища:', this._localState);
                 console.log('Очередь игроков в локальном хранилище:', this._localState.playersQueue);
 
-                // Сохраняем локальное состояние в базу данных
-                try {
-                    await this.saveTrainingState(numericId, this._localState);
-                    console.log('Локальное состояние сохранено в базу данных');
-                } catch (saveError) {
-                    console.error('Ошибка при сохранении локального состояния в базу данных:', saveError);
-                }
+                // Не сохраняем локальное состояние в базу данных при загрузке
+                console.log('Используем локальное состояние без сохранения в базу данных');
 
                 return { state_data: { ...this._localState } };
             }
@@ -456,12 +451,8 @@ export const trainingStateApi = {
                     // Обновляем локальное хранилище
                     this._localState = { ...initialState };
 
-                    // Сохраняем начальное состояние в базу данных
-                    try {
-                        await this.saveTrainingState(numericId, initialState);
-                    } catch (saveError) {
-                        console.error('Ошибка при сохранении начального состояния:', saveError);
-                    }
+                    // Не сохраняем начальное состояние в базу данных при загрузке
+                    console.log('Создано начальное состояние без сохранения в базу данных');
 
                     return { state_data: { ...initialState } };
                 }
@@ -472,13 +463,8 @@ export const trainingStateApi = {
             // Если не удалось получить данные тренировки, используем пустое состояние
             this.initLocalState(numericId);
 
-            // Сохраняем пустое состояние в базу данных
-            try {
-                await this.saveTrainingState(numericId, this._localState);
-                console.log('Пустое состояние сохранено в базу данных');
-            } catch (saveError) {
-                console.error('Ошибка при сохранении пустого состояния в базу данных:', saveError);
-            }
+            // Не сохраняем пустое состояние в базу данных при загрузке
+            console.log('Создано пустое состояние без сохранения в базу данных');
 
             return { state_data: { ...this._localState } };
         } catch (error) {
