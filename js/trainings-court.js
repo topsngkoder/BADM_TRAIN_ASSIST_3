@@ -76,8 +76,6 @@ export function updateCourtVisibility(courtContainer) {
 
 // Функция для проверки заполненности корта и отображения кнопки "Начать игру"
 export function updateStartGameButton(courtContainer, onStartGame) {
-    console.log('Вызвана функция updateStartGameButton', { courtContainer, onStartGame });
-
     // Получаем ID корта
     const courtId = courtContainer.getAttribute('data-court-id');
 
@@ -107,17 +105,11 @@ export function updateStartGameButton(courtContainer, onStartGame) {
             startGameBtn.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
             startGameBtn.setAttribute('data-court-id', courtId);
 
-            // Очищаем атрибут data-start-time, чтобы таймер начинался с нуля
-            startGameBtn.removeAttribute('data-start-time');
-
             // Добавляем обработчик для кнопки
             startGameBtn.addEventListener('click', () => {
-                console.log(`Нажата кнопка "Начать игру" для корта ${courtId}`);
-                console.log('onStartGame:', onStartGame);
                 // Запускаем игру и превращаем кнопку в таймер
                 if (onStartGame) {
                     onStartGame(startGameBtn, courtId);
-                } else {
                 }
             });
 
@@ -178,21 +170,10 @@ export function unlockCourtPlayers(courtElement) {
 
 // Функция для запуска таймера игры
 export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinish, saveTrainingState) {
-    console.log('Вызвана функция startGameTimer', {
-        buttonElement,
-        courtId,
-        onGameCancel: typeof onGameCancel === 'function' ? 'Function defined' : 'Not a function',
-        onGameFinish: typeof onGameFinish === 'function' ? 'Function defined' : 'Not a function',
-        saveTrainingState: typeof saveTrainingState === 'function' ? 'Function defined' : 'Not a function'
-    });
-
     // Проверяем, не запущен ли уже таймер
     if (buttonElement.classList.contains('timer-active')) {
-        console.log('Таймер уже запущен');
         return;
     }
-
-    // Убрали добавление класса для анимации
 
     // Получаем ID корта и элемент корта
     const courtIdForLock = buttonElement.getAttribute('data-court-id');
@@ -202,69 +183,28 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         lockCourtPlayers(courtElementForLock);
     }
 
-    // Всегда начинаем таймер с текущего времени, игнорируя сохраненное время
+    // Всегда начинаем таймер с текущего времени
     let startTime = new Date();
-
-    // Очищаем предыдущее сохраненное время, если оно есть
-    buttonElement.removeAttribute('data-start-time');
 
     // Устанавливаем новое время начала игры
     buttonElement.setAttribute('data-start-time', startTime.getTime());
-    console.log('Сохраняем новое время начала игры:', startTime);
 
     // Обновляем локальное состояние тренировки и сохраняем в базу данных
     if (typeof window.updateLocalTrainingState === 'function') {
-        console.log('Обновление локального состояния тренировки при начале игры');
-
-        // Сохраняем информацию о запущенной игре в локальном состоянии
-        if (trainingStateApi._localState) {
-            // Если нет массива активных игр, создаем его
-            if (!trainingStateApi._localState.activeGames) {
-                trainingStateApi._localState.activeGames = [];
-            }
-
-            // Проверяем, есть ли уже информация об этой игре
-            const existingGameIndex = trainingStateApi._localState.activeGames.findIndex(
-                game => game.courtId === courtId
-            );
-
-            if (existingGameIndex !== -1) {
-                // Обновляем существующую информацию
-                console.log('Обновляем информацию о существующей игре в локальном состоянии');
-            } else {
-                // Добавляем информацию о новой игре
-                trainingStateApi._localState.activeGames.push({
-                    courtId: courtId,
-                    startTime: startTime.getTime()
-                });
-
-                console.log('Добавлена информация о запущенной игре в локальное состояние:',
-                    trainingStateApi._localState.activeGames);
-            }
-        }
-
+        // Здесь будет новая реализация таймера
         window.updateLocalTrainingState()
             .then(() => {
-                console.log('Локальное состояние тренировки успешно обновлено');
-
-                // Импортируем функцию saveTrainingStateWithoutUpdate
+                // Сохраняем состояние в базу данных
                 if (saveTrainingState && typeof saveTrainingState === 'function') {
-                    console.log('Сохраняем состояние тренировки в базу данных после начала игры');
                     // Проверяем, есть ли функция saveTrainingStateWithoutUpdate
                     if (typeof saveTrainingState.withoutUpdate === 'function') {
                         saveTrainingState.withoutUpdate()
-                            .then(() => {
-                                console.log('Состояние тренировки успешно сохранено в базу данных после начала игры');
-                            })
                             .catch(saveError => {
                                 console.error('Ошибка при сохранении состояния тренировки в базу данных:', saveError);
                             });
                     } else {
                         // Если функции нет, используем обычную функцию saveTrainingState
                         saveTrainingState()
-                            .then(() => {
-                                console.log('Состояние тренировки успешно сохранено в базу данных после начала игры');
-                            })
                             .catch(saveError => {
                                 console.error('Ошибка при сохранении состояния тренировки в базу данных:', saveError);
                             });
@@ -315,13 +255,11 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
     // Добавляем обработчики для кнопок
     cancelButton.addEventListener('click', (e) => {
         e.stopPropagation();
-        console.log('Нажата кнопка "Отмена" для корта', courtId);
         cancelGame(buttonElement, timerInterval);
     });
 
     finishButton.addEventListener('click', (e) => {
         e.stopPropagation();
-        console.log('Нажата кнопка "Игра завершена" для корта', courtId);
         finishGame(buttonElement, timerInterval);
     });
 
@@ -363,15 +301,7 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         // Получаем ID корта
         const courtId = buttonElement.getAttribute('data-court-id');
 
-        // Удаляем информацию о запущенной игре из локального состояния
-        if (trainingStateApi._localState && trainingStateApi._localState.activeGames) {
-            const activeGames = trainingStateApi._localState.activeGames;
-            const gameIndex = activeGames.findIndex(game => game.courtId === courtId);
-            if (gameIndex !== -1) {
-                activeGames.splice(gameIndex, 1);
-                console.log('Удалена информация о запущенной игре из локального состояния:', courtId);
-            }
-        }
+        // Здесь будет новая реализация удаления информации о таймере
 
         // Возвращаем кнопку в исходное состояние
         buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
@@ -397,7 +327,6 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         if (typeof window.updateLocalTrainingState === 'function') {
             try {
                 await window.updateLocalTrainingState();
-                console.log('Локальное состояние тренировки успешно обновлено после отмены игры');
             } catch (error) {
                 console.error('Ошибка при обновлении локального состояния после отмены игры:', error);
             }
@@ -417,15 +346,7 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         // Получаем ID корта
         const courtId = buttonElement.getAttribute('data-court-id');
 
-        // Удаляем информацию о запущенной игре из локального состояния
-        if (trainingStateApi._localState && trainingStateApi._localState.activeGames) {
-            const activeGames = trainingStateApi._localState.activeGames;
-            const gameIndex = activeGames.findIndex(game => game.courtId === courtId);
-            if (gameIndex !== -1) {
-                activeGames.splice(gameIndex, 1);
-                console.log('Удалена информация о запущенной игре из локального состояния:', courtId);
-            }
-        }
+        // Здесь будет новая реализация удаления информации о таймере
 
         // Получаем время игры
         const startTimeMs = parseInt(buttonElement.getAttribute('data-start-time'));

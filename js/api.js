@@ -17,8 +17,6 @@ export const trainingsApi = {
     // Получение тренировки по ID
     async getTrainingById(trainingId) {
         try {
-            console.log(`Получение тренировки с ID: ${trainingId}`);
-
             // Преобразуем ID в число, если он передан как строка
             const numericId = parseInt(trainingId);
             if (isNaN(numericId)) {
@@ -42,11 +40,8 @@ export const trainingsApi = {
                 return null;
             }
 
-            console.log(`Получена тренировка:`, data);
-
             // Проверяем, есть ли у тренировки поле player_ids
             if (!data.player_ids || !Array.isArray(data.player_ids) || data.player_ids.length === 0) {
-                console.log(`У тренировки ${numericId} нет игроков`);
                 return data; // Возвращаем тренировку без игроков
             }
 
@@ -79,8 +74,6 @@ export const trainingsApi = {
     // Получение списка тренировок
     async getTrainings() {
         try {
-            console.log('Запрос на получение тренировок');
-
             // Сначала проверяем, существует ли таблица trainings
             try {
                 const { data: checkData, error: checkError } = await supabase
@@ -108,8 +101,6 @@ export const trainingsApi = {
                 throw trainingsError;
             }
 
-            console.log('Получены тренировки:', trainings);
-
             // Если тренировок нет, возвращаем пустой массив
             if (!trainings || trainings.length === 0) {
                 return [];
@@ -120,7 +111,6 @@ export const trainingsApi = {
                 try {
                     // Проверяем, есть ли у тренировки поле player_ids
                     if (!training.player_ids || !Array.isArray(training.player_ids) || training.player_ids.length === 0) {
-                        console.log(`У тренировки ${training.id} нет игроков`);
                         return training; // Возвращаем тренировку без игроков
                     }
 
@@ -151,7 +141,6 @@ export const trainingsApi = {
                 }
             }));
 
-            console.log('Получены тренировки с игроками:', trainingsWithPlayers);
             return trainingsWithPlayers;
         } catch (error) {
             console.error('Error fetching trainings:', error);
@@ -162,8 +151,6 @@ export const trainingsApi = {
     // Добавление новой тренировки
     async addTraining(trainingData) {
         try {
-            console.log('Добавление тренировки с данными:', trainingData);
-
             // Проверяем, существуют ли таблицы
             const { data: tables, error: tablesError } = await supabase
                 .from('trainings')
@@ -199,8 +186,6 @@ export const trainingsApi = {
                 state_data: initialState
             };
 
-            console.log('Вставка данных тренировки:', trainingInsertData);
-
             const { data: training, error } = await supabase
                 .from('trainings')
                 .insert([trainingInsertData])
@@ -210,8 +195,6 @@ export const trainingsApi = {
                 console.error('Ошибка при добавлении тренировки:', error);
                 throw error;
             }
-
-            console.log('Тренировка успешно добавлена:', training);
 
             // Обновляем trainingId в state_data
             if (training && training[0] && training[0].id) {
@@ -235,7 +218,6 @@ export const trainingsApi = {
                 if (updateError) {
                     console.error('Ошибка при обновлении state_data:', updateError);
                 } else {
-                    console.log('state_data успешно обновлен с ID тренировки');
                     return updatedTraining[0];
                 }
             }
@@ -267,8 +249,6 @@ export const trainingsApi = {
     // Удаление тренировки
     async deleteTraining(trainingId) {
         try {
-            console.log(`Удаление тренировки с ID: ${trainingId}`);
-
             // Преобразуем ID в число, если он передан как строка
             const numericId = parseInt(trainingId);
             if (isNaN(numericId)) {
@@ -276,7 +256,6 @@ export const trainingsApi = {
             }
 
             // Удаляем тренировку
-            console.log(`Удаление тренировки ${numericId}`);
             const { error } = await supabase
                 .from('trainings')
                 .delete()
@@ -287,7 +266,6 @@ export const trainingsApi = {
                 throw error;
             }
 
-            console.log(`Тренировка ${numericId} успешно удалена`);
             return true;
         } catch (error) {
             console.error('Error deleting training:', error);
@@ -298,8 +276,6 @@ export const trainingsApi = {
     // Обновление тренировки
     async updateTraining(trainingId, updateData) {
         try {
-            console.log(`Обновление тренировки с ID: ${trainingId}`, updateData);
-
             // Преобразуем ID в число, если он передан как строка
             const numericId = parseInt(trainingId);
             if (isNaN(numericId)) {
@@ -318,7 +294,6 @@ export const trainingsApi = {
                 throw error;
             }
 
-            console.log(`Тренировка ${numericId} успешно обновлена:`, data);
             return data;
         } catch (error) {
             console.error('Error updating training:', error);
@@ -341,7 +316,6 @@ export const trainingStateApi = {
 
     // Инициализация локального состояния
     initLocalState(trainingId) {
-        console.log(`Инициализация локального состояния для тренировки ${trainingId}`);
         this._localState = {
             trainingId,
             courts: [],
@@ -359,9 +333,6 @@ export const trainingStateApi = {
     // Сохранение состояния тренировки
     async saveTrainingState(trainingId, stateData) {
         try {
-            console.log(`Сохранение состояния тренировки с ID: ${trainingId}`);
-            console.log('Данные состояния для сохранения:', stateData);
-
             // Преобразуем ID в число, если он передан как строка
             const numericId = parseInt(trainingId);
             if (isNaN(numericId)) {
@@ -380,8 +351,6 @@ export const trainingStateApi = {
                 stateData.playersQueue = [];
             }
 
-            console.log('Очередь игроков в сохраняемом состоянии:', stateData.playersQueue);
-
             // Обновляем поле state_data в таблице trainings
             const { data, error } = await supabase
                 .from('trainings')
@@ -397,7 +366,6 @@ export const trainingStateApi = {
                 throw error;
             }
 
-            console.log('Состояние тренировки успешно обновлено в базе данных:', data);
             return { success: true, data };
         } catch (error) {
             console.error('Error saving training state:', error);
@@ -408,8 +376,6 @@ export const trainingStateApi = {
     // Получение состояния тренировки
     async getTrainingState(trainingId) {
         try {
-            console.log(`Получение состояния тренировки с ID: ${trainingId}`);
-
             // Преобразуем ID в число, если он передан как строка
             const numericId = parseInt(trainingId);
             if (isNaN(numericId)) {
@@ -467,14 +433,11 @@ export const trainingStateApi = {
             }
 
             // Если состояние не найдено ни в базе данных, ни в локальном хранилище, создаем новое
-            console.log('Состояние тренировки не найдено, создаем новое состояние');
 
             // Получаем данные тренировки
             try {
                 const training = await this.getTrainingById(numericId);
                 if (training) {
-                    console.log('Получены данные тренировки для инициализации состояния:', training);
-
                     // Создаем начальное состояние на основе данных тренировки
                     const initialState = {
                         trainingId: numericId,
@@ -488,7 +451,6 @@ export const trainingStateApi = {
                     // Если у тренировки есть игроки, добавляем их в очередь
                     if (training.player_ids && Array.isArray(training.player_ids) && training.player_ids.length > 0) {
                         initialState.playersQueue = training.player_ids.map(id => ({ id: String(id) }));
-                        console.log('Добавлены игроки в очередь:', initialState.playersQueue);
                     }
 
                     // Обновляем локальное хранилище
@@ -497,7 +459,6 @@ export const trainingStateApi = {
                     // Сохраняем начальное состояние в базу данных
                     try {
                         await this.saveTrainingState(numericId, initialState);
-                        console.log('Начальное состояние сохранено в базу данных');
                     } catch (saveError) {
                         console.error('Ошибка при сохранении начального состояния:', saveError);
                     }
@@ -533,11 +494,8 @@ export const trainingStateApi = {
     // Получение очереди игроков для тренировки
     async getPlayersQueue(trainingId) {
         try {
-            console.log(`Получение очереди игроков для тренировки с ID: ${trainingId}`);
-
             // Проверяем, есть ли очередь в локальном хранилище
             if (this._localState.trainingId === parseInt(trainingId) && this._localState.playersQueue) {
-                console.log('Получена очередь игроков из локального хранилища:', this._localState.playersQueue);
                 return [...this._localState.playersQueue];
             }
 
@@ -547,7 +505,6 @@ export const trainingStateApi = {
 
                 // Если есть состояние и в нем есть очередь игроков, возвращаем ее
                 if (trainingState && trainingState.state_data && trainingState.state_data.playersQueue) {
-                    console.log('Получена очередь игроков из состояния тренировки:', trainingState.state_data.playersQueue);
                     return [...trainingState.state_data.playersQueue];
                 }
             } catch (stateError) {
@@ -555,7 +512,6 @@ export const trainingStateApi = {
             }
 
             // Если очереди нет, возвращаем пустой массив
-            console.log('Очередь игроков не найдена, возвращаем пустой массив');
             return [];
         } catch (error) {
             console.error('Error getting players queue:', error);
@@ -566,8 +522,6 @@ export const trainingStateApi = {
     // Обновление очереди игроков для тренировки
     async updatePlayersQueue(trainingId, playersQueue) {
         try {
-            console.log(`Обновление очереди игроков для тренировки с ID: ${trainingId}`);
-
             // Преобразуем ID в число
             const numericId = parseInt(trainingId);
 
@@ -581,8 +535,6 @@ export const trainingStateApi = {
 
             // Не сохраняем изменения в базу данных автоматически
             // Изменения будут сохранены при нажатии кнопки "Сохранить"
-            console.log('Изменения внесены только в локальное хранилище');
-            console.log('Очередь игроков успешно обновлена');
             return true;
         } catch (error) {
             console.error('Error updating players queue:', error);
@@ -593,8 +545,6 @@ export const trainingStateApi = {
     // Добавление игрока в очередь
     async addPlayerToQueue(trainingId, playerId, position = 'end') {
         try {
-            console.log(`Добавление игрока с ID ${playerId} в очередь тренировки ${trainingId}, позиция: ${position}`);
-
             // Преобразуем playerId в строку для сравнения
             const playerIdStr = String(playerId);
 
@@ -640,8 +590,6 @@ export const trainingStateApi = {
     // Удаление игрока из очереди
     async removePlayerFromQueue(trainingId, playerId) {
         try {
-            console.log(`Удаление игрока с ID ${playerId} из очереди тренировки ${trainingId}`);
-
             // Преобразуем ID в число
             const numericId = parseInt(trainingId);
 
@@ -781,7 +729,6 @@ export const playersApi = {
 
     // Инициализация локального хранилища игроков
     initLocalPlayers() {
-        console.log('Инициализация локального хранилища игроков');
         this._localPlayers = {};
     },
 
@@ -884,22 +831,18 @@ export const playersApi = {
 
     // Получение данных кортов из локального состояния
     getCourts() {
-        console.log('Получение данных кортов из локального состояния');
         return [...this._localState.courts];
     },
 
     // Обновление данных кортов в локальном состоянии
     updateCourts(courts) {
-        console.log('Обновление данных кортов в локальном состоянии');
         this._localState.courts = [...courts];
         this._localState.lastUpdated = new Date().toISOString();
-        console.log('Данные кортов обновлены:', this._localState.courts);
         return true;
     },
 
     // Обновление количества кортов в локальном состоянии
     updateCourtCount(count) {
-        console.log(`Обновление количества кортов: ${count}`);
         this._localState.courtCount = count;
         this._localState.lastUpdated = new Date().toISOString();
         return true;
@@ -908,8 +851,6 @@ export const playersApi = {
     // Добавление игрока на корт
     addPlayerToCourt(courtId, position, playerId) {
         try {
-            console.log(`Добавление игрока ${playerId} на корт ${courtId}, позиция: ${position}`);
-
             // Получаем текущие данные кортов
             const courts = [...this._localState.courts];
 
@@ -918,7 +859,6 @@ export const playersApi = {
 
             if (courtIndex === -1) {
                 // Если корт не найден, создаем новый
-                console.log(`Корт ${courtId} не найден, создаем новый`);
                 const newCourt = {
                     id: courtId,
                     topPlayers: [],
@@ -955,7 +895,6 @@ export const playersApi = {
             // Обновляем данные кортов в локальном состоянии
             this.updateCourts(courts);
 
-            console.log('Игрок успешно добавлен на корт');
             return true;
         } catch (error) {
             console.error('Error adding player to court:', error);
@@ -966,8 +905,6 @@ export const playersApi = {
     // Удаление игрока с корта
     removePlayerFromCourt(courtId, position) {
         try {
-            console.log(`Удаление игрока с корта ${courtId}, позиция: ${position}`);
-
             // Получаем текущие данные кортов
             const courts = [...this._localState.courts];
 
@@ -975,7 +912,6 @@ export const playersApi = {
             const courtIndex = courts.findIndex(c => c.id === courtId);
 
             if (courtIndex === -1) {
-                console.log(`Корт ${courtId} не найден`);
                 return false;
             }
 
@@ -997,7 +933,6 @@ export const playersApi = {
             // Обновляем данные кортов в локальном состоянии
             this.updateCourts(courts);
 
-            console.log('Игрок успешно удален с корта');
             return true;
         } catch (error) {
             console.error('Error removing player from court:', error);
@@ -1008,8 +943,6 @@ export const playersApi = {
     // Обновление состояния игры на корте
     updateGameState(courtId, gameInProgress, gameStartTime = null) {
         try {
-            console.log(`Обновление состояния игры на корте ${courtId}: ${gameInProgress ? 'в процессе' : 'завершына'}`);
-
             // Получаем текущие данные кортов
             const courts = [...this._localState.courts];
 
@@ -1017,7 +950,6 @@ export const playersApi = {
             const courtIndex = courts.findIndex(c => c.id === courtId);
 
             if (courtIndex === -1) {
-                console.log(`Корт ${courtId} не найден`);
                 return false;
             }
 
@@ -1028,7 +960,6 @@ export const playersApi = {
             // Обновляем данные кортов в локальном состоянии
             this.updateCourts(courts);
 
-            console.log('Состояние игры успешно обновлено');
             return true;
         } catch (error) {
             console.error('Error updating game state:', error);
