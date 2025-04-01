@@ -3,7 +3,7 @@ import { trainingsApi, playersApi, trainingStateApi } from './api.js';
 import { showMessage, openModal, closeModal } from './ui.js';
 import { saveTrainingState, handleWinnerSelection } from './trainings-state.js';
 import { addPlayerFromQueueToCourt, removePlayerFromCourt } from './trainings-players.js';
-import { updateCourtHalfButtons, updateStartGameButton, startGameTimer, unlockCourtPlayers, updateCourtVisibility } from './trainings-court.js';
+import { updateCourtHalfButtons, updateStartGameButton, startGameTimer, unlockCourtPlayers, updateCourtVisibility, lockCourtPlayers } from './trainings-court.js';
 import { showWinnerSelectionModal, openPlayerSelectionModal } from './trainings-ui.js';
 
 // Функция для загрузки всех игроков в локальное хранилище
