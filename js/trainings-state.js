@@ -352,12 +352,8 @@ export async function loadTrainingState(trainingId) {
                         console.log('Получена очередь игроков:', playersQueue);
                         stateData.playersQueue = playersQueue;
 
-                        // Обновляем состояние в базе данных
-                        try {
-                            await trainingStateApi.saveTrainingState(trainingId, stateData);
-                        } catch (saveError) {
-                            console.error('Ошибка при сохранении состояния с очередью игроков:', saveError);
-                        }
+                        // Не сохраняем состояние в базу данных при загрузке
+                        console.log('Очередь игроков добавлена в локальное состояние');
                     }
                 } catch (queueError) {
                     console.error('Ошибка при получении очереди игроков:', queueError);
@@ -395,13 +391,8 @@ export async function loadTrainingState(trainingId) {
                         initialState.playersQueue = training.player_ids.map(id => ({ id: String(id) }));
                     }
 
-                    // Сохраняем начальное состояние в базу данных
-                    try {
-                        await trainingStateApi.saveTrainingState(trainingId, initialState);
-                        console.log('Начальное состояние сохранено в базу данных');
-                    } catch (saveError) {
-                        console.error('Ошибка при сохранении начального состояния:', saveError);
-                    }
+                    // Не сохраняем начальное состояние в базу данных при загрузке
+                    console.log('Начальное состояние создано в локальном хранилище');
 
                     // Обновляем локальное хранилище
                     trainingStateApi._localState = { ...initialState };
