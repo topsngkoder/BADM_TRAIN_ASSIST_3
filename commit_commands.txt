@@ -1,3 +1,3 @@
 git add .
-git commit -m "Полностью переписан файл js/external-api.js для исправления всех синтаксических ошибок"
+git commit -m "Добавлена функция обновления рейтинга игрока с сайта Badminton4u"
 git push origin main

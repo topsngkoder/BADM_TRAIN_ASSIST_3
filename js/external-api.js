@@ -62,3 +62,13 @@ export async function getPlayerRatingFromBadminton4u(url) {
         throw error;
     }
 }
+
+/**
+ * Получает рейтинг игрока в парном разряде с сайта Badminton4u
+ * @param {string} url - URL профиля игрока на Badminton4u
+ * @returns {Promise<number>} - Рейтинг игрока в парном разряде
+ */
+export async function getPlayerDoubleRating(url) {
+    // Используем существующую функцию для получения рейтинга
+    return await getPlayerRatingFromBadminton4u(url);
+}
