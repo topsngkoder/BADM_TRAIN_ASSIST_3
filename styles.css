@@ -281,6 +281,7 @@ section {
     display: flex;
     align-items: center;
     gap: 5px;
+    margin-bottom: 5px;
 }
 
 .rating-label {
@@ -295,6 +296,30 @@ section {
     padding: 3px 8px;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.player-badminton4u {
+    margin-top: 5px;
+}
+
+.badminton4u-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.badminton4u-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.badminton4u-link i {
+    width: 16px;
+    height: 16px;
 }
 
 /* Цвета фона для значений рейтинга */

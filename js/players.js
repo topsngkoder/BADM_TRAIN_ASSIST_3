@@ -174,13 +174,22 @@ export function initPlayersModule() {
     function createPlayerCard(player) {
         const card = document.createElement('div');
         card.className = 'player-card';
-        
+
         // Используем дефолтное изображение, если фото не указано
         const photoUrl = player.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.first_name + ' ' + player.last_name) + '&background=3498db&color=fff&size=150';
-        
+
         // Определяем класс для обводки фото в зависимости от рейтинга
         const ratingClass = getRatingClass(player.rating);
-        
+
+        // Создаем HTML для ссылки на профиль Badminton4u, если она указана
+        const badminton4uLink = player.badminton4u_url
+            ? `<div class="player-badminton4u">
+                <a href="${player.badminton4u_url}" target="_blank" class="badminton4u-link">
+                    <i data-feather="external-link"></i> Профиль Badminton4u
+                </a>
+              </div>`
+            : '';
+
         card.innerHTML = `
             <img src="${photoUrl}" alt="${player.first_name} ${player.last_name}" class="player-photo ${ratingClass}">
             <div class="player-info">
@@ -189,6 +198,7 @@ export function initPlayersModule() {
                     <span class="rating-label">Рейтинг:</span>
                     <span class="rating-value ${ratingClass}">${player.rating}</span>
                 </div>
+                ${badminton4uLink}
             </div>
             <div class="player-actions">
                 <button class="edit-btn" data-id="${player.id}">
@@ -229,7 +239,14 @@ export function initPlayersModule() {
         document.getElementById('editFirstName').value = player.first_name;
         document.getElementById('editLastName').value = player.last_name;
         document.getElementById('editRating').value = player.rating;
-        
+
+        // Заполняем поле ссылки на профиль Badminton4u, если оно есть
+        if (player.badminton4u_url) {
+            document.getElementById('editBadminton4uUrl').value = player.badminton4u_url;
+        } else {
+            document.getElementById('editBadminton4uUrl').value = '';
+        }
+
         // Устанавливаем фото игрока в предпросмотр
         const editPhotoPreview = document.getElementById('editPhotoPreview');
         if (player.photo) {
@@ -238,11 +255,11 @@ export function initPlayersModule() {
             // Используем дефолтное изображение
             editPhotoPreview.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.first_name + ' ' + player.last_name) + '&background=3498db&color=fff&size=150';
         }
-        
+
         // Обновляем класс обводки в зависимости от рейтинга
         editPhotoPreview.className = 'photo-preview';
         updatePhotoRatingClass(editPhotoPreview, player.rating);
-        
+
         // Открываем модальное окно
         openModal(editPlayerModal);
     }
@@ -250,50 +267,51 @@ export function initPlayersModule() {
     // Функция для обработки добавления игрока
     async function handleAddPlayer(event) {
         event.preventDefault();
-        
+
         // Получаем данные из формы
         const first_name = document.getElementById('firstName').value.trim();
         const last_name = document.getElementById('lastName').value.trim();
         const rating = parseInt(document.getElementById('rating').value);
+        const badminton4u_url = document.getElementById('badminton4uUrl').value.trim();
         const photoFile = document.getElementById('photoFile').files[0];
-        
+
         // Проверка данных
         if (!first_name || !last_name || isNaN(rating)) {
             showMessage('Пожалуйста, заполните все обязательные поля', 'error');
             return;
         }
-        
+
         // Показываем индикатор загрузки
         const submitBtn = addPlayerForm.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.textContent;
         submitBtn.textContent = 'Добавление...';
         submitBtn.disabled = true;
-        
+
         try {
             let photo = null; // По умолчанию фото отсутствует
-            
+
             // Если выбран файл, обрабатываем и загружаем его
             if (photoFile) {
                 // Обрабатываем изображение перед загрузкой
                 const processedFile = await storageApi.processImageBeforeUpload(photoFile);
-                
+
                 // Загружаем файл и получаем URL
                 photo = await storageApi.uploadFile(processedFile);
             }
-            
+
             // Добавляем игрока в базу данных
-            await playersApi.addPlayer({ first_name, last_name, rating, photo });
-            
+            await playersApi.addPlayer({ first_name, last_name, rating, photo, badminton4u_url });
+
             // Сбрасываем форму и предпросмотр
             addPlayerForm.reset();
             document.getElementById('photoPreview').src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23cccccc' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
-            
+
             // Обновляем список игроков
             fetchPlayers();
-            
+
             // Закрываем модальное окно
             closeModal(addPlayerModal);
-            
+
             // Показываем сообщение об успехе
             showMessage('Игрок успешно добавлен!', 'success');
         } catch (error) {
@@ -309,53 +327,54 @@ export function initPlayersModule() {
     // Функция для обработки редактирования игрока
     async function handleEditPlayer(event) {
         event.preventDefault();
-        
+
         // Получаем данные из формы
         const playerId = document.getElementById('editPlayerId').value;
         const first_name = document.getElementById('editFirstName').value.trim();
         const last_name = document.getElementById('editLastName').value.trim();
         const rating = parseInt(document.getElementById('editRating').value);
+        const badminton4u_url = document.getElementById('editBadminton4uUrl').value.trim();
         const photoFile = document.getElementById('editPhotoFile').files[0];
-        
+
         // Проверка данных
         if (!first_name || !last_name || isNaN(rating)) {
             showMessage('Пожалуйста, заполните все обязательные поля', 'error');
             return;
         }
-        
+
         // Показываем индикатор загрузки
         const submitBtn = editPlayerForm.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.textContent;
         submitBtn.textContent = 'Сохранение...';
         submitBtn.disabled = true;
-        
+
         try {
             // Получаем текущие данные игрока
             const currentPlayer = await playersApi.getPlayer(playerId);
-            
+
             let photo = currentPlayer.photo; // По умолчанию оставляем текущее фото
-            
+
             // Если выбран новый файл, обрабатываем и загружаем его
             if (photoFile) {
                 // Обрабатываем изображение перед загрузкой
                 const processedFile = await storageApi.processImageBeforeUpload(photoFile);
-                
+
                 // Загружаем файл и получаем URL
                 photo = await storageApi.uploadFile(processedFile);
             }
-            
+
             // Обновляем данные игрока
-            await playersApi.updatePlayer(playerId, { first_name, last_name, rating, photo });
-            
+            await playersApi.updatePlayer(playerId, { first_name, last_name, rating, photo, badminton4u_url });
+
             // Сбрасываем форму
             editPlayerForm.reset();
-            
+
             // Закрываем модальное окно
             closeModal(editPlayerModal);
-            
+
             // Обновляем список игроков
             fetchPlayers();
-            
+
             // Показываем сообщение об успехе
             showMessage('Игрок успешно обновлен!', 'success');
         } catch (error) {
