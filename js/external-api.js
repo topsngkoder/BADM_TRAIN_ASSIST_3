@@ -1,0 +1,61 @@
+**
+ * Получает рейтинг игрока с сайта Badminton4u через серверный прокси
+ * @param {string} url - URL профиля игрока на Badminton4u
+ * @returns {Promise<number>} - Рейтинг игрока в парном разряде
+ */
+export async function getPlayerRatingFromBadminton4u(url) {
+    if (!url) {
+        console.error('❌ URL профиля игрока не указан');
+        throw new Error('URL профиля игрока не указан');
+    }
+
+    console.log('🔍 Получаем рейтинг игрока с сайта Badminton4u...');
+    console.log('🔗 URL профиля игрока:', url);
+
+    try {
+        console.time('proxyFetch');
+        
+        // Для локальной разработки можно использовать относительный путь
+        const proxyUrl = `/api/get-player-rating?url=${encodeURIComponent(url)}`;
+        console.log('🔗 URL прокси:', proxyUrl);
+
+        // Выполняем запрос к серверному прокси
+        const response = await fetch(proxyUrl);
+        
+        if (!response.ok) {
+            try {
+                // Пытаемся получить JSON с ошибкой
+                const errorData = await response.json();
+                console.error('❌ Ошибка от серверного прокси:', errorData);
+                throw new Error(errorData.error || `Ошибка от сервера: ${response.status} ${response.statusText}`);
+            } catch (jsonError) {
+                // Если не удалось получить JSON, получаем текст ошибки
+                const errorText = await response.text();
+                console.error('❌ Ошибка от серверного прокси (не JSON):', errorText.substring(0, 200));
+                throw new Error(`Ошибка от сервера: ${response.status} ${response.statusText}`);
+            }
+        }
+        
+        // Получаем данные от серверного прокси
+        try {
+            const data = await response.json();
+            
+            if (!data.rating) {
+                console.error('❌ Серверный прокси не вернул рейтинг:', data);
+                throw new Error('Серверный прокси не вернул рейтинг');
+            }
+            
+            const rating = parseInt(data.rating);
+            console.log('✅ Рейтинг успешно получен через серверный прокси:', rating);
+            
+            return rating;
+        } catch (jsonError) {
+            console.error('❌ Ошибка при парсинге JSON от серверного прокси:', jsonError);
+            throw new Error('Ошибка при парсинге ответа от серверного прокси');
+        }
+        console.timeEnd('proxyFetch');
+
+    } catch (error) {
+        console.error('❌ Ошибка при получении рейтинга через серверный прокси:', error);
+        throw error;
+    }
