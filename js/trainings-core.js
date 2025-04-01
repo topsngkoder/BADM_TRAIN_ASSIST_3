@@ -278,7 +278,15 @@ export function initTrainingsModule() {
             trainingModeSelect.addEventListener('change', (e) => {
                 const selectedMode = e.target.value;
                 console.log('Выбран режим тренировки:', selectedMode);
-                // Здесь будет функционал для разных режимов тренировки
+
+                // Импортируем функцию updateLocalTrainingStateOnly
+                import('./trainings-state.js').then(stateModule => {
+                    if (typeof stateModule.updateLocalTrainingStateOnly === 'function') {
+                        stateModule.updateLocalTrainingStateOnly().catch(error => {
+                            console.error('Ошибка при обновлении локального состояния:', error);
+                        });
+                    }
+                });
             });
         }
 

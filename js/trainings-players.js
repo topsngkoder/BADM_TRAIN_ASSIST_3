@@ -603,8 +603,10 @@ export async function removePlayerFromTraining(playerId, trainingId) {
             console.error('Ошибка при обновлении player_ids:', error);
         }
 
-        // Сохраняем состояние тренировки
-        await saveTrainingState();
+        // Обновляем только локальное состояние без сохранения в базу данных
+        if (typeof window.updateLocalTrainingState === 'function') {
+            await window.updateLocalTrainingState();
+        }
 
         return true;
     } catch (error) {
@@ -1013,9 +1015,9 @@ export async function openAddPlayersToTrainingModal() {
                 // Показываем сообщение об успехе
                 showMessage(`Добавлено ${selectedPlayers.length} игроков в тренировку`, 'success');
 
-                // Сохраняем состояние тренировки
-                if (typeof saveTrainingState === 'function') {
-                    await saveTrainingState();
+                // Обновляем только локальное состояние без сохранения в базу данных
+                if (typeof window.updateLocalTrainingState === 'function') {
+                    await window.updateLocalTrainingState();
                 }
             });
         }

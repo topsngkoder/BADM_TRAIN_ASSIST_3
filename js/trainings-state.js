@@ -274,6 +274,19 @@ export async function saveTrainingState() {
     }
 }
 
+// Функция для обновления только локального состояния без сохранения в базу данных
+export async function updateLocalTrainingStateOnly() {
+    try {
+        // Обновляем только локальное состояние
+        await updateLocalTrainingState();
+        console.log('Локальное состояние обновлено без сохранения в базу данных');
+        return true;
+    } catch (error) {
+        console.error('Ошибка при обновлении локального состояния:', error);
+        return false;
+    }
+}
+
 // Функция для сохранения текущего состояния тренировки в базу данных без обновления локального состояния
 export async function saveTrainingStateWithoutUpdate() {
     try {
@@ -625,25 +638,14 @@ async function handleSingleGameMode(courtId, courtElement, winners, losers, trai
         // Обновляем локальное состояние тренировки
         await updateLocalTrainingState();
 
-        // Сохраняем состояние в базу данных после добавления всех игроков
+        // Обновляем только локальное состояние без сохранения в базу данных
         try {
-            if (saveTrainingState && typeof saveTrainingState === 'function') {
-                await saveTrainingState();
-            } else {
-                // Получаем текущее состояние из локального хранилища
-                const stateData = { ...trainingStateApi._localState };
-                stateData.lastUpdated = new Date().toISOString();
-
-                // Сохраняем в базу данных
-                await trainingStateApi.saveTrainingState(trainingId, stateData);
-
-                // Обновляем локальное хранилище
-                trainingStateApi._localState = { ...stateData };
-
+            if (typeof window.updateLocalTrainingState === 'function') {
+                await window.updateLocalTrainingState();
+                console.log('Локальное состояние обновлено после добавления игроков в очередь');
             }
         } catch (error) {
-            console.error('Ошибка при сохранении состояния в базу данных:', error);
-            showMessage('Ошибка при сохранении состояния в базу данных', 'error');
+            console.error('Ошибка при обновлении локального состояния:', error);
         }
     };
 
