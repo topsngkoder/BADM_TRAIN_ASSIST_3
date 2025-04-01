@@ -191,7 +191,7 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
 
     // Обновляем локальное состояние тренировки и сохраняем в базу данных
     if (typeof window.updateLocalTrainingState === 'function') {
-        // Здесь будет новая реализация таймера
+        // Обновляем локальное состояние, которое автоматически запишет время начала игры
         window.updateLocalTrainingState()
             .then(() => {
                 // Сохраняем состояние в базу данных
@@ -301,7 +301,8 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         // Получаем ID корта
         const courtId = buttonElement.getAttribute('data-court-id');
 
-        // Здесь будет новая реализация удаления информации о таймере
+        // Удаляем время начала игры из атрибута кнопки
+        buttonElement.removeAttribute('data-start-time');
 
         // Возвращаем кнопку в исходное состояние
         buttonElement.innerHTML = '<i data-feather="play-circle"></i> Начать игру';
@@ -309,7 +310,6 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         buttonElement.style.pointerEvents = '';
         buttonElement.title = '';
         buttonElement.removeAttribute('data-timer-id');
-        buttonElement.removeAttribute('data-start-time');
 
         // Инициализируем иконки Feather
         if (window.feather) {
@@ -323,7 +323,7 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
             unlockCourtPlayers(courtElement);
         }
 
-        // Обновляем локальное состояние тренировки
+        // Обновляем локальное состояние тренировки, которое автоматически удалит время начала игры
         if (typeof window.updateLocalTrainingState === 'function') {
             try {
                 await window.updateLocalTrainingState();
@@ -346,12 +346,13 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         // Получаем ID корта
         const courtId = buttonElement.getAttribute('data-court-id');
 
-        // Здесь будет новая реализация удаления информации о таймере
-
         // Получаем время игры
         const startTimeMs = parseInt(buttonElement.getAttribute('data-start-time'));
         const endTimeMs = new Date().getTime();
         const gameDurationMs = endTimeMs - startTimeMs;
+
+        // Удаляем время начала игры из атрибута кнопки
+        buttonElement.removeAttribute('data-start-time');
 
         // Преобразуем в минуты и секунды
         const minutes = Math.floor(gameDurationMs / 60000);

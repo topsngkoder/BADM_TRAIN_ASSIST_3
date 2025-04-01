@@ -518,14 +518,26 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
     const courtContainers = detailsContainer.querySelectorAll('.court-container');
     console.log('Найдено контейнеров кортов:', courtContainers.length);
 
+    // Проверяем, есть ли активные игры в состоянии тренировки
+    const courts = trainingStateApi._localState.courts || [];
+
     courtContainers.forEach(court => {
         const courtId = court.getAttribute('data-court-id');
 
         // Сначала обновляем видимость кнопки
         updateCourtVisibility(court);
 
+        // Проверяем, есть ли активная игра для этого корта в состоянии тренировки
+        const courtData = courts.find(c => c.id === courtId);
+        const isGameInProgress = courtData && courtData.gameInProgress;
+        const gameStartTime = courtData && courtData.gameStartTime;
+
         // Затем добавляем обработчик
         const startGameHandler = (buttonElement, courtId) => {
+            // Если есть сохраненное время начала игры, восстанавливаем его
+            if (gameStartTime) {
+                buttonElement.setAttribute('data-start-time', gameStartTime);
+            }
 
             startGameTimer(buttonElement, courtId,
                 // Обработчик отмены игры
@@ -600,14 +612,17 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
         updateStartGameButton(court, startGameHandler);
 
         // Если есть активная игра для этого корта, автоматически запускаем таймер
-        if (activeGame) {
+        if (isGameInProgress && gameStartTime) {
             console.log('Автоматически запускаем таймер для активной игры на корте:', courtId);
 
             // Находим кнопку "Начать игру"
             const startGameBtn = court.querySelector('.start-game-btn');
             if (startGameBtn) {
                 // Устанавливаем время начала игры
-                startGameBtn.setAttribute('data-start-time', activeGame.startTime);
+                startGameBtn.setAttribute('data-start-time', gameStartTime);
+
+                // Блокируем корт, так как игра уже идет
+                lockCourtPlayers(court);
 
                 // Запускаем таймер
                 startGameHandler(startGameBtn, courtId);
