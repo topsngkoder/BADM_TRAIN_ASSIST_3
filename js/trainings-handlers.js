@@ -534,10 +534,8 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
 
         // Затем добавляем обработчик
         const startGameHandler = (buttonElement, courtId) => {
-            // Если есть сохраненное время начала игры, восстанавливаем его
-            if (gameStartTime) {
-                buttonElement.setAttribute('data-start-time', gameStartTime);
-            }
+            // Не восстанавливаем сохраненное время начала игры,
+            // чтобы таймер всегда начинался с 00:00
 
             startGameTimer(buttonElement, courtId,
                 // Обработчик отмены игры

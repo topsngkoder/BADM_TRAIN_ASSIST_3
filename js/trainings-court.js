@@ -183,21 +183,12 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         lockCourtPlayers(courtElementForLock);
     }
 
-    // Проверяем, есть ли сохраненное время начала игры
-    let startTime;
-    const savedStartTime = buttonElement.getAttribute('data-start-time');
+    // Всегда используем текущее время при нажатии на кнопку "Начать игру"
+    let startTime = new Date();
 
-    if (savedStartTime) {
-        // Используем сохраненное время
-        startTime = new Date(parseInt(savedStartTime));
-        console.log('Используем сохраненное время начала игры:', startTime);
-    } else {
-        // Если нет сохраненного времени, используем текущее
-        startTime = new Date();
-        // Устанавливаем новое время начала игры
-        buttonElement.setAttribute('data-start-time', startTime.getTime());
-        console.log('Устанавливаем новое время начала игры:', startTime);
-    }
+    // Устанавливаем новое время начала игры
+    buttonElement.setAttribute('data-start-time', startTime.getTime());
+    console.log('Устанавливаем новое время начала игры:', startTime);
 
     // Обновляем локальное состояние тренировки и сохраняем в базу данных
     if (typeof window.updateLocalTrainingState === 'function') {
