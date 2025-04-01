@@ -298,6 +298,34 @@ section {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+.update-rating-btn {
+    background-color: transparent;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+    box-shadow: none;
+    color: #3498db;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.update-rating-btn:active {
+    transform: rotate(180deg);
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.update-rating-btn.updating {
+    animation: spin 1s linear infinite;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
 .player-badminton4u {
     margin-top: 5px;
 }

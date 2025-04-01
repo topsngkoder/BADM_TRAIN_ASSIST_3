@@ -197,6 +197,9 @@ export function initPlayersModule() {
                 <div class="player-rating">
                     <span class="rating-label">Рейтинг:</span>
                     <span class="rating-value ${ratingClass}">${player.rating}</span>
+                    <button class="update-rating-btn" data-id="${player.id}" title="Обновить рейтинг">
+                        <i data-feather="refresh-cw"></i>
+                    </button>
                 </div>
                 ${badminton4uLink}
             </div>
@@ -221,6 +224,11 @@ export function initPlayersModule() {
             else if (e.target.closest('.delete-btn')) {
                 e.stopPropagation();
                 deletePlayer(player.id);
+            }
+            // Обработка нажатия на кнопку обновления рейтинга
+            else if (e.target.closest('.update-rating-btn')) {
+                e.stopPropagation();
+                handleUpdateRating(player.id);
             }
             // Обработка нажатия на карточку
             else {
@@ -392,15 +400,15 @@ export function initPlayersModule() {
         if (!confirm('Вы уверены, что хотите удалить этого игрока?')) {
             return;
         }
-        
+
         try {
             // Находим карточку игрока и добавляем класс для анимации удаления
             const playerCard = document.querySelector(`.delete-btn[data-id="${playerId}"]`).closest('.player-card');
             playerCard.classList.add('removing');
-            
+
             // Удаляем игрока
             await playersApi.deletePlayer(playerId);
-            
+
             // Ждем завершения анимации и обновляем список
             setTimeout(() => {
                 fetchPlayers();
@@ -409,6 +417,27 @@ export function initPlayersModule() {
         } catch (error) {
             console.error('Ошибка при удалении игрока:', error);
             showMessage('Произошла ошибка при удалении игрока', 'error');
+        }
+    }
+
+    // Функция для обновления рейтинга игрока
+    async function handleUpdateRating(playerId) {
+        try {
+            // Находим кнопку обновления рейтинга и добавляем класс для анимации
+            const updateBtn = document.querySelector(`.update-rating-btn[data-id="${playerId}"]`);
+            updateBtn.classList.add('updating');
+
+            // Здесь будет логика обновления рейтинга
+            // Пока просто показываем сообщение
+            showMessage('Функция обновления рейтинга будет реализована позже', 'info');
+
+            // Удаляем класс анимации
+            setTimeout(() => {
+                updateBtn.classList.remove('updating');
+            }, 1000);
+        } catch (error) {
+            console.error('Ошибка при обновлении рейтинга:', error);
+            showMessage('Произошла ошибка при обновлении рейтинга', 'error');
         }
     }
     
