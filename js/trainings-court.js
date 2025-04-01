@@ -107,6 +107,11 @@ export function updateStartGameButton(courtContainer, onStartGame) {
 
             // Добавляем обработчик для кнопки
             startGameBtn.addEventListener('click', () => {
+                // Устанавливаем новое время начала игры только при клике на кнопку
+                const startTime = new Date();
+                startGameBtn.setAttribute('data-start-time', startTime.getTime());
+                console.log('Установлено новое время начала игры при клике на кнопку:', startTime);
+
                 // Запускаем игру и превращаем кнопку в таймер
                 if (onStartGame) {
                     onStartGame(startGameBtn, courtId);
@@ -183,12 +188,15 @@ export function startGameTimer(buttonElement, courtId, onGameCancel, onGameFinis
         lockCourtPlayers(courtElementForLock);
     }
 
-    // Всегда используем текущее время при нажатии на кнопку "Начать игру"
-    let startTime = new Date();
+    // Используем время начала игры, которое было установлено при клике на кнопку "Начать игру"
+    const startTimeMs = buttonElement.getAttribute('data-start-time');
+    if (!startTimeMs) {
+        console.error('Не найдено время начала игры в атрибуте data-start-time');
+        return;
+    }
 
-    // Устанавливаем новое время начала игры
-    buttonElement.setAttribute('data-start-time', startTime.getTime());
-    console.log('Устанавливаем новое время начала игры:', startTime);
+    let startTime = new Date(parseInt(startTimeMs));
+    console.log('Используем время начала игры:', startTime);
 
     // Обновляем локальное состояние тренировки и сохраняем в базу данных
     if (typeof window.updateLocalTrainingState === 'function') {

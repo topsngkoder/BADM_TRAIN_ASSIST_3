@@ -616,8 +616,9 @@ export async function initTrainingDetailsHandlers(detailsContainer, saveTraining
             // Находим кнопку "Начать игру"
             const startGameBtn = court.querySelector('.start-game-btn');
             if (startGameBtn) {
-                // Устанавливаем время начала игры
+                // Устанавливаем сохраненное время начала игры
                 startGameBtn.setAttribute('data-start-time', gameStartTime);
+                console.log('Установлено сохраненное время начала игры:', new Date(parseInt(gameStartTime)));
 
                 // Блокируем корт, так как игра уже идет
                 lockCourtPlayers(court);
